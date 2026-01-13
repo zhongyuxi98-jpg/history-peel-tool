@@ -163,6 +163,7 @@
   <div class="main">
     <div class="nav-bar">
       <button class="btn-save" onclick="save()">💾 SAVE</button>
+      <button class="nav-btn ai-btn" id="ai-btn" style="background: #007bff; color: white;">🤖 AI Review</button>
       <button class="btn-export" onclick="exportDoc()">📥 EXPORT</button>
       <button class="btn-menu" onclick="location.href='../../index.html'">🏠 MENU</button>
       <button class="btn-menu" style="background:#6c757d;" onclick="toggleHub()">📂 HUB</button>
@@ -281,6 +282,34 @@
       a.href = URL.createObjectURL(blob);
       a.download = `${ID}_draft.txt`;
       a.click();
+    }
+    async function reviewAI() {
+      const btn = document.getElementById('ai-btn');
+      const data = {
+        point: document.getElementById('p').value,
+        evidence1: document.getElementById('e1').value,
+        evidence2: document.getElementById('e2').value,
+        link: document.getElementById('l').value
+      };
+
+      const originalText = btn.innerText;
+      btn.innerText = "⌛ Thinking...";
+      btn.disabled = true;
+
+      try {
+        const response = await fetch('/api/review', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+        const result = await response.json();
+        alert(result.review);
+      } catch (error) {
+        alert("Connection failed. Please check Vercel.");
+      } finally {
+        btn.innerText = originalText;
+        btn.disabled = false;
+      }
     }
 
     window.onload = () => {
