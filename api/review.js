@@ -1,20 +1,19 @@
-export default function handler(req, res) {
-  // 模拟 AI 思考延迟
-  setTimeout(() => {
-    const { point, evidence, explanation, link } = req.body;
-    
-    // 基础的字数检测模拟逻辑
-    const feedback = {
-      score: "4/5",
-      analysis: {
-        P: "Point Clear.",
-        E: evidence.length > 30 ? "Good Evidence." : "Evidence too short.",
-        Ex: "Logic follows.",
-        L: "Link is present."
-      },
-      suggestion: "This is a simulated AI response. Once Vercel is connected, this will be replaced by real LLM feedback."
-    };
+export default async function handler(req, res) {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
 
-    res.status(200).json(feedback);
-  }, 1000);
+  const { point, evidence1, evidence2, link } = req.body;
+
+  const aiFeedback = `
+【PEEL 结构分析报告】
+🎯 观点 (Point): ${point ? "已识别" : "未填写"}
+📚 证据 (Evidence): 检测到 ${(evidence1 || "").length + (evidence2 || "").length} 个字符的内容。
+🔗 逻辑 (Link): ${link ? "已检测到收尾" : "建议加强总结"}
+
+💡 老师建议：
+这是来自后端的模拟回复。请确保你已经完成了 Vercel 的部署，以便后续连接真正的 Gemini 智能批改模型。
+  `;
+
+  return res.status(200).json({ review: aiFeedback });
 }
