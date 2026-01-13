@@ -320,36 +320,25 @@
       a.download = `${ID}_draft.txt`;
       a.click();
     }
-
+    // --- 核心功能 1：AI 批改段落 ---
     async function reviewAI() {
       const btn = document.getElementById('ai-btn');
       const resultDiv = document.getElementById('ai-review-result');
       const contentDiv = document.getElementById('ai-content');
 
-      // 1. 获取语言选择器元素
-      const langSelector = document.getElementById('language-setting');
+      if (!btn) return;
 
-      if (!btn) {
-        console.error("找不到 ID 为 ai-btn 的按钮，请检查 HTML 属性");
-        return;
-      }
-
-      // 2. 准备提交给 AI 的数据 (确保包含 language 字段)
       const data = {
         point: document.getElementById('p').value,
         evidence1: document.getElementById('e1').value,
         evidence2: document.getElementById('e2').value,
-        link: document.getElementById('l').value,
-        // 如果能找到下拉框就取它的值，否则默认给 dual
-        language: langSelector ? langSelector.value : 'dual'
+        link: document.getElementById('l').value
       };
 
-      // 进入等待状态
       const originalText = btn.innerText;
       btn.innerText = "⌛ Thinking...";
       btn.disabled = true;
 
-      // 展示反馈面板并自动平滑滚动
       contentDiv.innerText = "AI 老师正在审阅你的段落，请稍候...";
       resultDiv.style.display = 'block';
       resultDiv.scrollIntoView({ behavior: 'smooth' });
@@ -360,37 +349,74 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(data)
         });
-
         const result = await response.json();
-
-        // 兼容不同的后端返回字段名
-        const feedback = result.review || result.feedback || "未收到有效反馈，请重试";
-
-        // 渲染反馈内容
-        contentDiv.innerText = feedback;
-
+        contentDiv.innerText = result.review || "未收到反馈，请重试";
       } catch (error) {
-        console.error("Review Error:", error);
-        contentDiv.innerText = "⚠️ 连接失败: 请检查网络或 Vercel 部署状态。";
+        contentDiv.innerText = "⚠️ 连接失败，请检查网络。";
       } finally {
-        // 恢复按钮状态
         btn.innerText = originalText;
         btn.disabled = false;
-        // 再次平滑滚动，确保用户看到的是反馈的起始位置
         resultDiv.scrollIntoView({ behavior: 'smooth' });
       }
     }
 
-    // 页面加载时自动恢复草稿
-    window.onload = () => {
+    // --- 核心功能 2：知识点深度解析 ---
+    // 使用 window. 前缀确保函数在全局范围内百分之百可用
+    window.explainTopic = async function (event, topic) {
+      if (event) event.preventDefault();
+
+      const resultDiv = document.getElementById('ai-review-result');
+      const contentDiv = document.getElementById('ai-content');
+
+      resultDiv.style.display = 'block';
+      contentDiv.innerText = `🔍 正在调取史料解析「${topic}」...`;
+      resultDiv.scrollIntoView({ behavior: 'smooth' });
+
+      try {
+        const response = await fetch('/api/explain', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ topic: topic })
+        });
+        const data = await response.json();
+        contentDiv.innerText = data.explanation || "未收到有效解析。";
+      } catch (error) {
+        contentDiv.innerText = "❌ 老师去图书馆了，请检查 api/explain.js 是否部署。";
+      }
+    };
+
+    // --- 初始化逻辑 ---
+    document.addEventListener('DOMContentLoaded', () => {
+      // 1. 自动恢复草稿
       const d = JSON.parse(localStorage.getItem(ID) || '{}');
       if (d.p) document.getElementById('p').value = d.p;
       if (d.e1) document.getElementById('e1').value = d.e1;
       if (d.e2) document.getElementById('e2').value = d.e2;
       if (d.l) document.getElementById('l').value = d.l;
-    };
-  </script>
 
+      // 2. 强力事件委托：监听整个页面的右键点击
+      document.body.addEventListener('contextmenu', function (e) {
+        // 1. 寻找被点击的元素，看它是否包含 tag 类（因为你的标签是 div 不是 button）
+        const tagElement = e.target.closest('.tag');
+
+        if (tagElement && tagElement.getAttribute('onclick')) {
+          e.preventDefault(); // 阻止浏览器默认菜单
+
+          // 2. 从 onclick="add('文字')" 中提取出括号里的文字
+          const attr = tagElement.getAttribute('onclick');
+          const match = attr.match(/'([^']+)'/);
+
+          if (match) {
+            const topic = match[1];
+            console.log("检测到右键点击，准备解析:", topic);
+            window.explainTopic(e, topic);
+          }
+        }
+      });
+
+      console.log("AI Workspace 系统初始化完成，右键监听已启动。");
+    });
+  </script>
 </body>
 
 </html>
