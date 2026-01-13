@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🚀 PEEL Workstation Missions</title>
     <style>
-        /* 全局美化：加上你想要的花纹感 */
+        /* 这里就是你丢失的“花纹”和样式 */
         body { 
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
             padding: 40px 20px; 
@@ -16,16 +16,14 @@
 
         h1 { text-align: center; color: #2c3e50; margin-bottom: 40px; font-size: 2.5rem; }
 
-        /* 核心网格布局 */
         .mission-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
             gap: 25px;
             max-width: 1200px;
             margin: 0 auto;
         }
 
-        /* 卡片设计：找回你丢失的精致感 */
         .mission-card {
             background: white;
             border-radius: 16px;
@@ -36,6 +34,7 @@
             border: 1px solid #e1e4e8;
             display: flex;
             flex-direction: column;
+            min-height: 200px;
         }
 
         .mission-card:hover {
@@ -67,14 +66,10 @@
 
         .question-box p { margin: 0; font-style: italic; color: #5f6368; font-size: 0.95rem; }
 
-        /* v2.2 响应式补丁：适配平板和手机 */
+        /* 响应式：让它在平板上自动变单列 */
         @media (max-width: 768px) {
-            h1 { font-size: 1.8rem; }
             .mission-grid { grid-template-columns: 1fr; }
         }
-
-        footer { text-align: center; margin-top: 50px; color: #95a5a6; }
-        a { color: #3498db; text-decoration: none; }
     </style>
 </head>
 <body>
@@ -122,10 +117,6 @@
             </div>
         </div>
     </div>
-
-    <footer>
-        <p>Built for History Students | <a href="ROADMAP.md">View Project Roadmap</a></p>
-    </footer>
 
 </body>
 </html>
