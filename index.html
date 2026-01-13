@@ -1,41 +1,131 @@
-<div class="mission-grid">
-            <div class="mission-card" onclick="location.href='assets/missions/CR_M1_workspace.html'">
-                <span class="mid-tag">Mission CR_M1</span>
-                <h3>Opposition in the 1950s</h3>
-                <div class="question-box">
-                    <p>"Assess the reasons for the opposition to the Civil Rights movement in the Southern states in the 1950s."</p>
-                </div>
-            </div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚀 PEEL Workstation Missions</title>
+    <style>
+        /* 全局美化：加上你想要的花纹感 */
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+            padding: 40px 20px; 
+            background: #f0f2f5; 
+            color: #1a1a1a;
+            line-height: 1.6;
+        }
 
-            <div class="mission-card" onclick="location.href='assets/missions/CR_M2_workspace.html'">
-                <span class="mid-tag">Mission CR_M2</span>
-                <h3>Success in the 1950s</h3>
-                <div class="question-box">
-                    <p>"Evaluate how successful the Civil Rights movement was in the 1950s."</p>
-                </div>
-            </div>
+        h1 { text-align: center; color: #2c3e50; margin-bottom: 40px; font-size: 2.5rem; }
 
-            <div class="mission-card" onclick="location.href='assets/missions/CR_M3_workspace.html'">
-                <span class="mid-tag">Mission CR_M3</span>
-                <h3>Federal Institutions</h3>
-                <div class="question-box">
-                    <p>"Assess the impact of federal institutions on civil rights in the late 1940s and 1950s."</p>
-                </div>
-            </div>
+        /* 核心网格布局 */
+        .mission-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
 
-            <div class="mission-card" onclick="location.href='assets/missions/CR_M4_workspace.html'">
-                <span class="mid-tag">Mission CR_M4</span>
-                <h3>NAACP Effectiveness</h3>
-                <div class="question-box">
-                    <p>"Analyse the effectiveness of the NAACP in promoting civil rights in the late 1940s and 1950s."</p>
-                </div>
-            </div>
+        /* 卡片设计：找回你丢失的精致感 */
+        .mission-card {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05), 0 1px 3px rgba(0,0,0,0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+            border: 1px solid #e1e4e8;
+            display: flex;
+            flex-direction: column;
+        }
 
-            <div class="mission-card" onclick="location.href='assets/missions/CR_M5_workspace.html'">
-                <span class="mid-tag">Mission CR_M5</span>
-                <h3>Federal vs Grassroots</h3>
-                <div class="question-box">
-                    <p>"'Progress towards greater civil rights in the 1950s was mainly brought about by federal institutions.' Evaluate this view."</p>
-                </div>
+        .mission-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 20px rgba(0,0,0,0.1);
+            border-color: #3498db;
+        }
+
+        .mid-tag {
+            background: #e1f5fe;
+            color: #0288d1;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            align-self: flex-start;
+            margin-bottom: 15px;
+        }
+
+        h3 { margin: 10px 0; color: #2c3e50; font-size: 1.4rem; }
+
+        .question-box {
+            background: #f8f9fa;
+            border-left: 4px solid #3498db;
+            padding: 12px;
+            margin-top: auto;
+            border-radius: 4px;
+        }
+
+        .question-box p { margin: 0; font-style: italic; color: #5f6368; font-size: 0.95rem; }
+
+        /* v2.2 响应式补丁：适配平板和手机 */
+        @media (max-width: 768px) {
+            h1 { font-size: 1.8rem; }
+            .mission-grid { grid-template-columns: 1fr; }
+        }
+
+        footer { text-align: center; margin-top: 50px; color: #95a5a6; }
+        a { color: #3498db; text-decoration: none; }
+    </style>
+</head>
+<body>
+
+    <h1>🚀 PEEL Workstation Missions</h1>
+
+    <div class="mission-grid">
+        <div class="mission-card" onclick="location.href='assets/missions/CR_M1_workspace.html'">
+            <span class="mid-tag">Mission CR_M1</span>
+            <h3>Opposition in the 1950s</h3>
+            <div class="question-box">
+                <p>"Assess the reasons for the opposition to the Civil Rights movement in the Southern states in the 1950s."</p>
             </div>
         </div>
+
+        <div class="mission-card" onclick="location.href='assets/missions/CR_M2_workspace.html'">
+            <span class="mid-tag">Mission CR_M2</span>
+            <h3>Success in the 1950s</h3>
+            <div class="question-box">
+                <p>"Evaluate how successful the Civil Rights movement was in the 1950s."</p>
+            </div>
+        </div>
+
+        <div class="mission-card" onclick="location.href='assets/missions/CR_M3_workspace.html'">
+            <span class="mid-tag">Mission CR_M3</span>
+            <h3>Federal Institutions</h3>
+            <div class="question-box">
+                <p>"Assess the impact of federal institutions on civil rights in the late 1940s and 1950s."</p>
+            </div>
+        </div>
+
+        <div class="mission-card" onclick="location.href='assets/missions/CR_M4_workspace.html'">
+            <span class="mid-tag">Mission CR_M4</span>
+            <h3>NAACP Effectiveness</h3>
+            <div class="question-box">
+                <p>"Analyse the effectiveness of the NAACP in promoting civil rights in the late 1940s and 1950s."</p>
+            </div>
+        </div>
+
+        <div class="mission-card" onclick="location.href='assets/missions/CR_M5_workspace.html'">
+            <span class="mid-tag">Mission CR_M5</span>
+            <h3>Federal vs Grassroots</h3>
+            <div class="question-box">
+                <p>"'Progress towards greater civil rights in the 1950s was mainly brought about by federal institutions.' Evaluate this view."</p>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>Built for History Students | <a href="ROADMAP.md">View Project Roadmap</a></p>
+    </footer>
+
+</body>
+</html>
