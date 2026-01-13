@@ -321,26 +321,27 @@
       a.click();
     }
 
-    /**
-     * 核心 AI 批改逻辑
-     * 绑定于 id="ai-btn" 的按钮
-     */
     async function reviewAI() {
       const btn = document.getElementById('ai-btn');
       const resultDiv = document.getElementById('ai-review-result');
       const contentDiv = document.getElementById('ai-content');
+
+      // 1. 获取语言选择器元素
+      const langSelector = document.getElementById('language-setting');
 
       if (!btn) {
         console.error("找不到 ID 为 ai-btn 的按钮，请检查 HTML 属性");
         return;
       }
 
-      // 准备提交给 AI 的数据
+      // 2. 准备提交给 AI 的数据 (确保包含 language 字段)
       const data = {
         point: document.getElementById('p').value,
         evidence1: document.getElementById('e1').value,
         evidence2: document.getElementById('e2').value,
-        link: document.getElementById('l').value
+        link: document.getElementById('l').value,
+        // 如果能找到下拉框就取它的值，否则默认给 dual
+        language: langSelector ? langSelector.value : 'dual'
       };
 
       // 进入等待状态
@@ -369,11 +370,14 @@
         contentDiv.innerText = feedback;
 
       } catch (error) {
+        console.error("Review Error:", error);
         contentDiv.innerText = "⚠️ 连接失败: 请检查网络或 Vercel 部署状态。";
       } finally {
         // 恢复按钮状态
         btn.innerText = originalText;
         btn.disabled = false;
+        // 再次平滑滚动，确保用户看到的是反馈的起始位置
+        resultDiv.scrollIntoView({ behavior: 'smooth' });
       }
     }
 
