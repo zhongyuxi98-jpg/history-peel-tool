@@ -165,6 +165,14 @@
       <button class="btn-save" onclick="save()">💾 SAVE</button>
       <button class="nav-btn ai-btn" id="ai-btn" onclick="reviewAI()" style="background: #007bff; color: white;">🤖 AI
         Review</button>
+
+      <select id="language-setting"
+        style="padding: 10px; border-radius: 6px; border: 1.5px solid #007bff; background: white; font-weight: 600; cursor: pointer;">
+        <option value="dual" selected>🌓 双语 (Bilingual)</option>
+        <option value="en">🇬🇧 外教 (English Only)</option>
+        <option value="zh">🇨🇳 中教 (Chinese)</option>
+      </select>
+
       <button class="btn-export" onclick="exportDoc()">📥 EXPORT</button>
       <button class="btn-menu" onclick="location.href='../../index.html'">🏠 MENU</button>
       <button class="btn-menu" style="background:#6c757d;" onclick="toggleHub()">📂 HUB</button>
