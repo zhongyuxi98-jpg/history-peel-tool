@@ -9,10 +9,8 @@ def create_page(mid, question):
     <style>
         body {{ font-family: 'Segoe UI', sans-serif; background: #f4f7f6; display: flex; height: 100vh; margin: 0; color: #333; }}
         .main {{ flex: 1; padding: 40px; overflow-y: auto; }}
-        .sidebar {{ width: 340px; background: #fff; border-left: 1px solid #dee2e6; padding: 25px; box-shadow: -5px 0 15px rgba(0,0,0,0.05); overflow-y: auto; }}
-        .sidebar.hidden {{ 
-            display: none; 
-        }}
+        .sidebar {{ width: 340px; background: #fff; border-left: 1px solid #dee2e6; padding: 25px; box-shadow: -5px 0 15px rgba(0, 0, 0, 0.05); overflow-y: auto; }}
+        .sidebar.hidden {{ display: none; }}
         .header {{ border-bottom: 3px solid #1d3557; margin-bottom: 30px; padding-bottom: 15px; }}
         .q-text {{ font-size: 20px; font-weight: 700; color: #1d3557; }}
         .nav-bar {{ margin-bottom: 25px; display: flex; gap: 10px; }}
@@ -24,8 +22,6 @@ def create_page(mid, question):
         .editor-box {{ margin-bottom: 20px; }}
         .label {{ color: #e63946; font-size: 11px; font-weight: 800; text-transform: uppercase; margin-bottom: 5px; }}
         textarea {{ width: 100%; height: 95px; border: 1.5px solid #ced4da; border-radius: 8px; padding: 12px; font-size: 14px; resize: none; line-height: 1.5; }}
-        
-        /* Knowledge Hub V2.1 样式 */
         .kb-section {{ margin-bottom: 25px; }}
         .sec-title {{ font-size: 12px; font-weight: 800; color: #1d3557; border-bottom: 1px solid #eee; padding-bottom: 5px; margin-bottom: 10px; display: flex; align-items: center; gap: 5px; }}
         .tag-group {{ display: flex; flex-wrap: wrap; gap: 6px; }}
@@ -37,81 +33,58 @@ def create_page(mid, question):
         .hist {{ border-left-color: #8338ec; }}
     </style>
 </head>
+
 <body>
     <div class="main">
         <div class="nav-bar">
             <button class="btn-save" onclick="save()">💾 SAVE</button>
+            <button class="nav-btn ai-btn" id="ai-btn" onclick="reviewAI()" style="background: #007bff; color: white;">🤖 AI Review</button>
+            <select id="language-setting" style="padding: 10px; border-radius: 6px; border: 1.5px solid #007bff; background: white; font-weight: 600; cursor: pointer;">
+                <option value="dual" selected>🌓 双语 (Bilingual)</option>
+                <option value="en">🇬🇧 外教 (English Only)</option>
+                <option value="zh">🇨🇳 中教 (Chinese)</option>
+            </select>
             <button class="btn-export" onclick="exportDoc()">📥 EXPORT</button>
             <button class="btn-menu" onclick="location.href='../../index.html'">🏠 MENU</button>
             <button class="btn-menu" style="background:#6c757d;" onclick="toggleHub()">📂 HUB</button>
         </div>
+
         <div class="header">
             <div style="color:#6c757d; font-size:11px; margin-bottom:5px;">MISSION ID: {mid}</div>
             <div class="q-text">{question}</div>
         </div>
-        
+
         <div class="editor-box"><div class="label">1. Point (Thesis Statement)</div><textarea id="p"></textarea></div>
         <div class="editor-box"><div class="label">2. Evidence 1 + Mechanism</div><textarea id="e1"></textarea></div>
         <div class="editor-box"><div class="label">3. Evidence 2 + Mechanism</div><textarea id="e2"></textarea></div>
         <div class="editor-box"><div class="label">4. Link Back</div><textarea id="l"></textarea></div>
+
+        <div id="ai-review-result" style="display: none; margin-top: 30px; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.15); border: 1px solid #ddd;">
+            <div style="background: #2d3436; color: white; padding: 12px 20px; font-weight: bold; display: flex; justify-content: space-between; align-items: center;">
+                <span>🤖 AI TEACHER'S RESPONSE</span>
+                <button onclick="document.getElementById('ai-review-result').style.display='none'" style="background:none; border:none; color:white; cursor:pointer; font-size:20px;">×</button>
+            </div>
+            <div id="ai-content" style="background: #fff; padding: 25px; line-height: 1.8; color: #2d3436; min-height: 100px; white-space: pre-wrap;">AI is thinking...</div>
+        </div>
     </div>
 
     <div class="sidebar">
-           
-        <h3 style="margin:0 0 20px 0; color:#1d3557;">Knowledge Hub (V2.1)</h3>
+        <h3 style="margin:0 0 5px 0; color:#1d3557;">Knowledge Hub</h3>
+        <p style="font-size:10px; color:#666; margin-bottom:15px;">💡 Left-click to use | Right-click for AI Guide</p>
         <div class="kb-section">
-            <div class="sec-title">⚖️ LEGAL MILESTONES (De Jure)</div>
+            <div class="sec-title">⚖️ LEGAL MILESTONES</div>
             <div class="tag-group">
-                <div class="tag ctx" onclick="add('Plessy v. Ferguson (1896)')">Plessy v. Ferguson</div>
-                <div class="tag ctx" onclick="add('Brown v. Board of Education (1954)')">Brown v. Board</div>
-                <div class="tag ctx" onclick="add('Brown II (1955) - With All Deliberate Speed')">Brown II</div>
-                <div class="tag ctx" onclick="add('Civil Rights Act of 1957')">1957 CR Act</div>
-            </div>
-        </div>
-
-        <div class="kb-section">
-            <div class="sec-title">✊ DIRECT ACTION & EVENTS</div>
-            <div class="tag-group">
-                <div class="tag entity" onclick="add('Montgomery Bus Boycott (1955-56)')">Bus Boycott</div>
-                <div class="tag entity" onclick="add('Little Rock Nine (1957)')">Little Rock 9</div>
-                <div class="tag entity" onclick="add('Browder v. Gayle')">Browder v. Gayle</div>
-                <div class="tag entity" onclick="add('Emmett Till Murder (1955)')">Emmett Till</div>
-            </div>
-        </div>
-
-        <div class="kb-section">
-            <div class="sec-title">🚫 OPPOSITION & BARRIERS</div>
-            <div class="tag-group">
-                <div class="tag impact" onclick="add('Jim Crow Laws')">Jim Crow</div>
-                <div class="tag impact" onclick="add('Massive Resistance')">Massive Resistance</div>
-                <div class="tag impact" onclick="add('Southern Manifesto')">Southern Manifesto</div>
-                <div class="tag impact" onclick="add('White Citizens Councils')">Citizens' Councils</div>
-            </div>
-        </div>
-
-        <div class="kb-section">
-            <div class="sec-title">📊 EVALUATION CONCEPTS</div>
-            <div class="tag-group">
-                <div class="tag hist" onclick="add('De Facto vs De Jure Segregation')">De Facto/Jure</div>
-                <div class="tag hist" onclick="add('Federal Intervention (Eisenhower)')">Federal Power</div>
-                <div class="tag hist" onclick="add('Grassroots Activism')">Grassroots</div>
-                <div class="tag hist" onclick="add('Tokenism')">Tokenism</div>
+                <div class="tag ctx" onclick="add('Plessy v. Ferguson')" oncontextmenu="explain(event, 'Plessy v. Ferguson')">Plessy v. Ferguson</div>
+                <div class="tag ctx" onclick="add('Brown v. Board')" oncontextmenu="explain(event, 'Brown v. Board 1954')">Brown v. Board</div>
+                <div class="tag ctx" onclick="add('Brown II')" oncontextmenu="explain(event, 'Brown II 1955')">Brown II</div>
             </div>
         </div>
         <div class="kb-section">
-            <div class="sec-title">⚖️ ORGANIZATIONS & FIGURES</div>
+            <div class="sec-title">✊ DIRECT ACTION</div>
             <div class="tag-group">
-                <div class="tag entity" onclick="add('NAACP')">NAACP</div>
-                <div class="tag entity" onclick="add('SCLC')">SCLC</div>
-                <div class="tag entity" onclick="add('Rosa Parks')">Rosa Parks</div>
-            </div>
-        </div>
-        <div class="kb-section">
-            <div class="sec-title">📈 IMPACT & EVALUATION</div>
-            <div class="tag-group">
-                <div class="tag impact" onclick="add('Federal Enforcement')">Federal Enforcement</div>
-                <div class="tag impact" onclick="add('Massive Resistance')">Massive Resistance</div>
-                <div class="tag hist" onclick="add('Revisionist View')">Revisionist View</div>
+                <div class="tag entity" onclick="add('Montgomery Bus Boycott')" oncontextmenu="explain(event, 'Montgomery Bus Boycott')">Bus Boycott</div>
+                <div class="tag entity" onclick="add('Little Rock 9')" oncontextmenu="explain(event, 'Little Rock Nine 1957')">Little Rock 9</div>
+                <div class="tag entity" onclick="add('Emmett Till')" oncontextmenu="explain(event, 'Emmett Till Case')">Emmett Till</div>
             </div>
         </div>
     </div>
@@ -119,9 +92,8 @@ def create_page(mid, question):
     <script>
         const ID = "{mid}";
         let activeEditor = document.getElementById('p');
-        document.querySelectorAll('textarea').forEach(tx => {{
-            tx.onfocus = () => activeEditor = tx;
-        }});
+
+        document.querySelectorAll('textarea').forEach(tx => {{ tx.onfocus = () => activeEditor = tx; }});
 
         function add(text) {{
             const start = activeEditor.selectionStart;
@@ -129,42 +101,52 @@ def create_page(mid, question):
             activeEditor.focus();
         }}
 
+        // --- 核心：右键讲解功能 ---
+        async function explain(event, topic) {{
+            event.preventDefault(); // 阻止浏览器菜单
+            const resDiv = document.getElementById('ai-review-result');
+            const conDiv = document.getElementById('ai-content');
+            resDiv.style.display = 'block';
+            conDiv.innerText = "🔍 AI正在查阅史料档案: " + topic + "...";
+            
+            try {{
+                const response = await fetch('/api/explain', {{
+                    method: 'POST',
+                    headers: {{ 'Content-Type': 'application/json' }},
+                    body: JSON.stringify({{ topic: topic }})
+                }});
+                const result = await response.json();
+                conDiv.innerText = result.explanation || "未找到相关讲解";
+            }} catch (e) {{
+                conDiv.innerText = "⚠️ 连接失败，请确保后端服务已启动并支持 /api/explain";
+            }}
+        }}
+
+        async function reviewAI() {{
+            const btn = document.getElementById('ai-btn');
+            const resultDiv = document.getElementById('ai-review-result');
+            const contentDiv = document.getElementById('ai-content');
+            const data = {{ point: document.getElementById('p').value, e1: document.getElementById('e1').value, e2: document.getElementById('e2').value, l: document.getElementById('l').value }};
+            btn.innerText = "⌛ Thinking..."; btn.disabled = true;
+            resultDiv.style.display = 'block';
+            try {{
+                const response = await fetch('/api/review', {{ method: 'POST', headers: {{ 'Content-Type': 'application/json' }}, body: JSON.stringify(data) }});
+                const result = await response.json();
+                contentDiv.innerText = result.review || "反馈生成失败";
+            }} catch (e) {{ contentDiv.innerText = "⚠️ 连接失败"; }}
+            finally {{ btn.innerText = "🤖 AI Review"; btn.disabled = false; }}
+        }}
+
         function save() {{
-            const data = {{ 
-                p: document.getElementById('p').value, 
-                e1: document.getElementById('e1').value, 
-                e2: document.getElementById('e2').value, 
-                l: document.getElementById('l').value 
-            }};
+            const data = {{ p: document.getElementById('p').value, e1: document.getElementById('e1').value, e2: document.getElementById('e2').value, l: document.getElementById('l').value }};
             localStorage.setItem(ID, JSON.stringify(data));
-            alert("Draft Saved to LocalStorage!");
+            alert("Draft Saved!");
         }}
-        function toggleHub() {{
-            const sidebar = document.querySelector('.sidebar');
-            sidebar.classList.toggle('hidden');
-        }}
-
-        function exportDoc() {{
-            const content = `MISSION: ${{ID}}\\n\\n[POINT]\\n${{document.getElementById('p').value}}\\n\\n[EVIDENCE 1]\\n${{document.getElementById('e1').value}}\\n\\n[EVIDENCE 2]\\n${{document.getElementById('e2').value}}\\n\\n[LINK]\\n${{document.getElementById('l').value}}`;
-            const blob = new Blob([content], {{type:'text/plain'}});
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = `${{ID}}_draft.txt`;
-            a.click();
-        }}
-
-        window.onload = () => {{
-            const d = JSON.parse(localStorage.getItem(ID) || '{{}}');
-            if(d.p) document.getElementById('p').value = d.p;
-            if(d.e1) document.getElementById('e1').value = d.e1;
-            if(d.e2) document.getElementById('e2').value = d.e2;
-            if(d.l) document.getElementById('l').value = d.l;
-        }};
+        function toggleHub() {{ document.querySelector('.sidebar').classList.toggle('hidden'); }}
     </script>
 </body>
 </html>"""
-    # 正确写法：
-    with open(f"assets/missions/{mid}_workspace.html", "w", encoding="utf-8") as f:
+    with open(f"assets/missions/{{mid}}_workspace.html", "w", encoding="utf-8") as f:
         f.write(html)
 
 missions = [
@@ -175,8 +157,6 @@ missions = [
     ("CR_M5", "'Progress towards greater civil rights in the 1950s was mainly brought about by federal institutions.' Evaluate this view.")
 ]
 
-# 找到循环部分，确保写成这样：
 for m_id, q in missions:
     create_page(m_id, q)
-    # 注意下面这行：用 m_id 而不是 {mid}
-    print(f">>> Successfully updated: {m_id}")
+    print(f">>> Successfully updated: {{m_id}}")
