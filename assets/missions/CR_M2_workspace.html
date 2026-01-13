@@ -163,70 +163,49 @@
   <div class="main">
     <div class="nav-bar">
       <button class="btn-save" onclick="save()">💾 SAVE</button>
-      <div id="ai-review-result"
-        style="display:none;margin-top:25px;border-radius:12px;overflow:hidden;box-shadow:0 4px 15px rgba(0,0,0,0.1);border:1px solid #e0e0e0;">
-        <div
-          style="background:#2d3436;color:white;padding:10px 15px;font-weight:bold;display:flex;justify-content:space-between;">
-          <span>🤖 AI Teacher Feedback</span><span id="ai-status" style="font-size:0.8em;color:#fab1a0;"></span>
-        </div>
-        <div id="ai-content" style="background:#fff;padding:20px;line-height:1.6;color:#2d3436;min-height:100px;">AI
-          Feedback will appear here...</div>
-      </div> <button class="nav-btn ai-btn" id="ai-btn" onclick="reviewAI()"
-        style="background: #007bff; color: white;">🤖 AI
+      <button class="nav-btn ai-btn" id="ai-btn" onclick="reviewAI()" style="background: #007bff; color: white;">🤖 AI
         Review</button>
-      <div id="ai-review-result"
-        style="display:none;margin-top:25px;border-radius:12px;overflow:hidden;box-shadow:0 4px 15px rgba(0,0,0,0.1);border:1px solid #e0e0e0;">
-        <div
-          style="background:#2d3436;color:white;padding:10px 15px;font-weight:bold;display:flex;justify-content:space-between;">
-          <span>🤖 AI Teacher Feedback</span><span id="ai-status" style="font-size:0.8em;color:#fab1a0;"></span>
-        </div>
-        <div id="ai-content" style="background:#fff;padding:20px;line-height:1.6;color:#2d3436;min-height:100px;">AI
-          Feedback will appear here...</div>
-      </div> <button class="btn-export" onclick="exportDoc()">📥 EXPORT</button>
-      <div id="ai-review-result"
-        style="display:none;margin-top:25px;border-radius:12px;overflow:hidden;box-shadow:0 4px 15px rgba(0,0,0,0.1);border:1px solid #e0e0e0;">
-        <div
-          style="background:#2d3436;color:white;padding:10px 15px;font-weight:bold;display:flex;justify-content:space-between;">
-          <span>🤖 AI Teacher Feedback</span><span id="ai-status" style="font-size:0.8em;color:#fab1a0;"></span>
-        </div>
-        <div id="ai-content" style="background:#fff;padding:20px;line-height:1.6;color:#2d3436;min-height:100px;">AI
-          Feedback will appear here...</div>
-      </div> <button class="btn-menu" onclick="location.href='../../index.html'">🏠 MENU</button>
-      <div id="ai-review-result"
-        style="display:none;margin-top:25px;border-radius:12px;overflow:hidden;box-shadow:0 4px 15px rgba(0,0,0,0.1);border:1px solid #e0e0e0;">
-        <div
-          style="background:#2d3436;color:white;padding:10px 15px;font-weight:bold;display:flex;justify-content:space-between;">
-          <span>🤖 AI Teacher Feedback</span><span id="ai-status" style="font-size:0.8em;color:#fab1a0;"></span>
-        </div>
-        <div id="ai-content" style="background:#fff;padding:20px;line-height:1.6;color:#2d3436;min-height:100px;">AI
-          Feedback will appear here...</div>
-      </div> <button class="btn-menu" style="background:#6c757d;" onclick="toggleHub()">📂 HUB</button>
-      <div id="ai-review-result"
-        style="display:none;margin-top:25px;border-radius:12px;overflow:hidden;box-shadow:0 4px 15px rgba(0,0,0,0.1);border:1px solid #e0e0e0;">
-        <div
-          style="background:#2d3436;color:white;padding:10px 15px;font-weight:bold;display:flex;justify-content:space-between;">
-          <span>🤖 AI Teacher Feedback</span><span id="ai-status" style="font-size:0.8em;color:#fab1a0;"></span>
-        </div>
-        <div id="ai-content" style="background:#fff;padding:20px;line-height:1.6;color:#2d3436;min-height:100px;">AI
-          Feedback will appear here...</div>
-      </div>
+      <button class="btn-export" onclick="exportDoc()">📥 EXPORT</button>
+      <button class="btn-menu" onclick="location.href='../../index.html'">🏠 MENU</button>
+      <button class="btn-menu" style="background:#6c757d;" onclick="toggleHub()">📂 HUB</button>
     </div>
+
     <div class="header">
       <div style="color:#6c757d; font-size:11px; margin-bottom:5px;">MISSION ID: CR_M2</div>
       <div class="q-text">Evaluate how successful the Civil Rights movement was in the 1950s.</div>
     </div>
 
     <div class="editor-box">
-      <div class="label">1. Point (Thesis Statement)</div><textarea id="p"></textarea>
+      <div class="label">1. Point (Thesis Statement)</div>
+      <textarea id="p" placeholder="Enter your main argument here..."></textarea>
     </div>
     <div class="editor-box">
-      <div class="label">2. Evidence 1 + Mechanism</div><textarea id="e1"></textarea>
+      <div class="label">2. Evidence 1 + Mechanism</div>
+      <textarea id="e1" placeholder="Describe your first piece of evidence..."></textarea>
     </div>
     <div class="editor-box">
-      <div class="label">3. Evidence 2 + Mechanism</div><textarea id="e2"></textarea>
+      <div class="label">3. Evidence 2 + Mechanism</div>
+      <textarea id="e2" placeholder="Describe your second piece of evidence..."></textarea>
     </div>
     <div class="editor-box">
-      <div class="label">4. Link Back</div><textarea id="l"></textarea>
+      <div class="label">4. Link Back</div>
+      <textarea id="l" placeholder="Conclude and link back to the question..."></textarea>
+    </div>
+
+    <div id="ai-review-result"
+      style="display: none; margin-top: 30px; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.15); border: 1px solid #ddd;">
+      <div
+        style="background: #2d3436; color: white; padding: 12px 20px; font-weight: bold; display: flex; justify-content: space-between; align-items: center;">
+        <span>🤖 AI TEACHER'S REVIEW</span>
+        <button onclick="document.getElementById('ai-review-result').style.display='none'"
+          style="background:none; border:none; color:white; cursor:pointer; font-size:20px;">×</button>
+      </div>
+      <div id="ai-content"
+        style="background: #fff; padding: 25px; line-height: 1.8; color: #2d3436; min-height: 100px; white-space: pre-wrap;">
+        AI is thinking...</div>
+      <div style="background: #f9f9f9; padding: 10px 20px; border-top: 1px solid #eee; text-align: right;">
+        <small style="color: #999;">根据你的 PEEL 写作实时生成建议</small>
+      </div>
     </div>
   </div>
 
@@ -382,7 +361,7 @@
         contentDiv.innerText = feedback;
 
       } catch (error) {
-        contentDiv.innerHTML = "<span style='color:red;'>⚠️ 连接失败:</span> 请检查网络或 Vercel 部署状态。";
+        contentDiv.innerText = "⚠️ 连接失败: 请检查网络或 Vercel 部署状态。";
       } finally {
         // 恢复按钮状态
         btn.innerText = originalText;
@@ -400,24 +379,6 @@
     };
   </script>
 
-  <div id="ai-review-result"
-    style="display: none; margin: 30px 20px; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.15); border: 1px solid #ddd; clear: both;">
-    <div
-      style="background: #2d3436; color: white; padding: 12px 20px; font-weight: bold; display: flex; justify-content: space-between; align-items: center;">
-      <span style="letter-spacing: 1px;">🤖 AI TEACHER'S REVIEW</span>
-      <button onclick="document.getElementById('ai-review-result').style.display='none'"
-        style="background:none; border:none; color:white; cursor:pointer; font-size:20px; line-height:1;">×</button>
-    </div>
-
-    <div id="ai-content"
-      style="background: #fff; padding: 25px; line-height: 1.8; color: #2d3436; min-height: 120px; font-size: 1.05rem; white-space: pre-wrap;">
-      AI is thinking...
-    </div>
-
-    <div style="background: #f9f9f9; padding: 10px 20px; border-top: 1px solid #eee; text-align: right;">
-      <small style="color: #999;">根据你的 PEEL 写作实时生成</small>
-    </div>
-  </div>
 </body>
 
 </html>
