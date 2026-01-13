@@ -163,11 +163,53 @@
   <div class="main">
     <div class="nav-bar">
       <button class="btn-save" onclick="save()">💾 SAVE</button>
-      <button class="nav-btn ai-btn" id="ai-btn" onclick="reviewAI()" style="background: #007bff; color: white;">🤖 AI
+      <div id="ai-review-result"
+        style="display:none;margin-top:25px;border-radius:12px;overflow:hidden;box-shadow:0 4px 15px rgba(0,0,0,0.1);border:1px solid #e0e0e0;">
+        <div
+          style="background:#2d3436;color:white;padding:10px 15px;font-weight:bold;display:flex;justify-content:space-between;">
+          <span>🤖 AI Teacher Feedback</span><span id="ai-status" style="font-size:0.8em;color:#fab1a0;"></span>
+        </div>
+        <div id="ai-content" style="background:#fff;padding:20px;line-height:1.6;color:#2d3436;min-height:100px;">AI
+          Feedback will appear here...</div>
+      </div> <button class="nav-btn ai-btn" id="ai-btn" onclick="reviewAI()"
+        style="background: #007bff; color: white;">🤖 AI
         Review</button>
-      <button class="btn-export" onclick="exportDoc()">📥 EXPORT</button>
-      <button class="btn-menu" onclick="location.href='../../index.html'">🏠 MENU</button>
-      <button class="btn-menu" style="background:#6c757d;" onclick="toggleHub()">📂 HUB</button>
+      <div id="ai-review-result"
+        style="display:none;margin-top:25px;border-radius:12px;overflow:hidden;box-shadow:0 4px 15px rgba(0,0,0,0.1);border:1px solid #e0e0e0;">
+        <div
+          style="background:#2d3436;color:white;padding:10px 15px;font-weight:bold;display:flex;justify-content:space-between;">
+          <span>🤖 AI Teacher Feedback</span><span id="ai-status" style="font-size:0.8em;color:#fab1a0;"></span>
+        </div>
+        <div id="ai-content" style="background:#fff;padding:20px;line-height:1.6;color:#2d3436;min-height:100px;">AI
+          Feedback will appear here...</div>
+      </div> <button class="btn-export" onclick="exportDoc()">📥 EXPORT</button>
+      <div id="ai-review-result"
+        style="display:none;margin-top:25px;border-radius:12px;overflow:hidden;box-shadow:0 4px 15px rgba(0,0,0,0.1);border:1px solid #e0e0e0;">
+        <div
+          style="background:#2d3436;color:white;padding:10px 15px;font-weight:bold;display:flex;justify-content:space-between;">
+          <span>🤖 AI Teacher Feedback</span><span id="ai-status" style="font-size:0.8em;color:#fab1a0;"></span>
+        </div>
+        <div id="ai-content" style="background:#fff;padding:20px;line-height:1.6;color:#2d3436;min-height:100px;">AI
+          Feedback will appear here...</div>
+      </div> <button class="btn-menu" onclick="location.href='../../index.html'">🏠 MENU</button>
+      <div id="ai-review-result"
+        style="display:none;margin-top:25px;border-radius:12px;overflow:hidden;box-shadow:0 4px 15px rgba(0,0,0,0.1);border:1px solid #e0e0e0;">
+        <div
+          style="background:#2d3436;color:white;padding:10px 15px;font-weight:bold;display:flex;justify-content:space-between;">
+          <span>🤖 AI Teacher Feedback</span><span id="ai-status" style="font-size:0.8em;color:#fab1a0;"></span>
+        </div>
+        <div id="ai-content" style="background:#fff;padding:20px;line-height:1.6;color:#2d3436;min-height:100px;">AI
+          Feedback will appear here...</div>
+      </div> <button class="btn-menu" style="background:#6c757d;" onclick="toggleHub()">📂 HUB</button>
+      <div id="ai-review-result"
+        style="display:none;margin-top:25px;border-radius:12px;overflow:hidden;box-shadow:0 4px 15px rgba(0,0,0,0.1);border:1px solid #e0e0e0;">
+        <div
+          style="background:#2d3436;color:white;padding:10px 15px;font-weight:bold;display:flex;justify-content:space-between;">
+          <span>🤖 AI Teacher Feedback</span><span id="ai-status" style="font-size:0.8em;color:#fab1a0;"></span>
+        </div>
+        <div id="ai-content" style="background:#fff;padding:20px;line-height:1.6;color:#2d3436;min-height:100px;">AI
+          Feedback will appear here...</div>
+      </div>
     </div>
     <div class="header">
       <div style="color:#6c757d; font-size:11px; margin-bottom:5px;">MISSION ID: CR_M2</div>
@@ -251,16 +293,20 @@
   <script>
     const ID = "CR_M2";
     let activeEditor = document.getElementById('p');
+
+    // 自动追踪当前聚焦的输入框
     document.querySelectorAll('textarea').forEach(tx => {
       tx.onfocus = () => activeEditor = tx;
     });
 
+    // 从 Knowledge Hub 插入文本的功能
     function add(text) {
       const start = activeEditor.selectionStart;
       activeEditor.value = activeEditor.value.substring(0, start) + text + " " + activeEditor.value.substring(start);
       activeEditor.focus();
     }
 
+    // 保存草稿到本地
     function save() {
       const data = {
         p: document.getElementById('p').value,
@@ -271,11 +317,14 @@
       localStorage.setItem(ID, JSON.stringify(data));
       alert("Draft Saved to LocalStorage!");
     }
+
+    // 侧边栏切换
     function toggleHub() {
       const sidebar = document.querySelector('.sidebar');
       sidebar.classList.toggle('hidden');
     }
 
+    // 导出纯文本格式
     function exportDoc() {
       const content = `MISSION: ${ID}\n\n[POINT]\n${document.getElementById('p').value}\n\n[EVIDENCE 1]\n${document.getElementById('e1').value}\n\n[EVIDENCE 2]\n${document.getElementById('e2').value}\n\n[LINK]\n${document.getElementById('l').value}`;
       const blob = new Blob([content], { type: 'text/plain' });
@@ -284,8 +333,22 @@
       a.download = `${ID}_draft.txt`;
       a.click();
     }
+
+    /**
+     * 核心 AI 批改逻辑
+     * 绑定于 id="ai-btn" 的按钮
+     */
     async function reviewAI() {
       const btn = document.getElementById('ai-btn');
+      const resultDiv = document.getElementById('ai-review-result');
+      const contentDiv = document.getElementById('ai-content');
+
+      if (!btn) {
+        console.error("找不到 ID 为 ai-btn 的按钮，请检查 HTML 属性");
+        return;
+      }
+
+      // 准备提交给 AI 的数据
       const data = {
         point: document.getElementById('p').value,
         evidence1: document.getElementById('e1').value,
@@ -293,9 +356,15 @@
         link: document.getElementById('l').value
       };
 
+      // 进入等待状态
       const originalText = btn.innerText;
       btn.innerText = "⌛ Thinking...";
       btn.disabled = true;
+
+      // 展示反馈面板并自动平滑滚动
+      contentDiv.innerText = "AI 老师正在审阅你的段落，请稍候...";
+      resultDiv.style.display = 'block';
+      resultDiv.scrollIntoView({ behavior: 'smooth' });
 
       try {
         const response = await fetch('/api/review', {
@@ -303,16 +372,25 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(data)
         });
+
         const result = await response.json();
-        alert(result.review);
+
+        // 兼容不同的后端返回字段名
+        const feedback = result.review || result.feedback || "未收到有效反馈，请重试";
+
+        // 渲染反馈内容
+        contentDiv.innerText = feedback;
+
       } catch (error) {
-        alert("Connection failed. Please check Vercel.");
+        contentDiv.innerHTML = "<span style='color:red;'>⚠️ 连接失败:</span> 请检查网络或 Vercel 部署状态。";
       } finally {
+        // 恢复按钮状态
         btn.innerText = originalText;
         btn.disabled = false;
       }
     }
 
+    // 页面加载时自动恢复草稿
     window.onload = () => {
       const d = JSON.parse(localStorage.getItem(ID) || '{}');
       if (d.p) document.getElementById('p').value = d.p;
@@ -321,6 +399,25 @@
       if (d.l) document.getElementById('l').value = d.l;
     };
   </script>
+
+  <div id="ai-review-result"
+    style="display: none; margin: 30px 20px; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.15); border: 1px solid #ddd; clear: both;">
+    <div
+      style="background: #2d3436; color: white; padding: 12px 20px; font-weight: bold; display: flex; justify-content: space-between; align-items: center;">
+      <span style="letter-spacing: 1px;">🤖 AI TEACHER'S REVIEW</span>
+      <button onclick="document.getElementById('ai-review-result').style.display='none'"
+        style="background:none; border:none; color:white; cursor:pointer; font-size:20px; line-height:1;">×</button>
+    </div>
+
+    <div id="ai-content"
+      style="background: #fff; padding: 25px; line-height: 1.8; color: #2d3436; min-height: 120px; font-size: 1.05rem; white-space: pre-wrap;">
+      AI is thinking...
+    </div>
+
+    <div style="background: #f9f9f9; padding: 10px 20px; border-top: 1px solid #eee; text-align: right;">
+      <small style="color: #999;">根据你的 PEEL 写作实时生成</small>
+    </div>
+  </div>
 </body>
 
 </html>
