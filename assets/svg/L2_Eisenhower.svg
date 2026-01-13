@@ -1,0 +1,9 @@
+<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg">
+        <g fill="#E85D4F" stroke="#FFFFFF" stroke-width="3">
+            <polygon points="100,20 170,60 170,140 100,180 30,140 30,60" />
+        </g>
+        <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" 
+              font-family="Arial" font-size="16" font-weight="bold" fill="#FFFFFF">
+            Eisenhower
+        </text>
+    </svg>

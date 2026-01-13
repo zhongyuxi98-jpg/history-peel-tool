@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build-meta"
+
+[project]
+name = "geekgirl-visual-spec"
+version = "0.1.0"
+dependencies = [
+    "click",
+    "jinja2",
+]
+
+[project.scripts]
+geekgirl = "geekgirl_visual.cli.main:cli"
+
+[tool.setuptools]
+packages = ["geekgirl_visual"]

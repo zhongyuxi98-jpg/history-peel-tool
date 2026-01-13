@@ -1,0 +1,7 @@
+{
+  "title": "TRANSFORMER",
+  "level": "L0",
+  "domain": "LLM",
+  "concept": "Attention is all you need.",
+  "code": "nn.MultiheadAttention"
+}

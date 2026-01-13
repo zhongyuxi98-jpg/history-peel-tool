@@ -1,0 +1,120 @@
+import os
+
+# 1. ✅ 离散色轴 (年代感颜色)
+DISCRETE_PALETTE = {
+    "P1": "#E63946",  # 1945-52: 深暖红
+    "P2": "#F4A261",  # 1953-60: 暖橙
+    "P3": "#E9C46A",  # 1961-68: 金黄 (Civil Rights 高峰)
+    "P4": "#8AB17D",  # 1969-79: 橄榄绿 (转折期)
+    "P5": "#2A9D8F",  # 1980-88: 青蓝 (保守主义)
+    "P6": "#457B9D",  # 1989-2000: 冷蓝
+    "FOREIGN": "#6D597A"
+}
+
+# 2. ✅ 单元图标映射 (增加 META 标签)
+UNIT_ICONS = {
+    "CIVIL_RIGHTS": "CR",
+    "VIETNAM": "VN",
+    "ECONOMY": "EC",
+    "META": "PT",      # Point Template
+    "DEFAULT": "••"
+}
+
+# 3. ✅ 工程统一尺寸
+SIZE_MAP = {
+    "L0": (60, 30),
+    "L1": (60, 30),
+    "L2": (60, 30),
+    "L3": (60, 30),
+    "MECHANISM": (45, 18),
+    "META": (60, 30)   # 强制元认知贴纸为标准 60x30
+}
+
+# 4. ✅ META 元认知贴纸配置
+META_CONFIG = {
+    "color": "#1D3557",        # 深蓝
+    "font_color": "#FFFFFF",   # 白字
+    "label": "[META] Point Template"
+}
+
+def wrap_text(text, max_chars=14):
+    words = text.split(" ")
+    lines, cur = [], ""
+    for w in words:
+        if len(cur + " " + w) <= max_chars:
+            cur = (cur + " " + w).strip()
+        else:
+            if cur: lines.append(cur)
+            cur = w
+    if cur: lines.append(cur)
+    return lines[:3]
+
+def get_border_svg(level, w, h, is_meta=False):
+    """
+    边框逻辑：META 贴纸使用特殊加粗边框或不使用边框（因为已有深色底）
+    这里我们为 META 保留一个内嵌细白边框增加质感
+    """
+    if is_meta:
+        return f'<rect x="2" y="2" width="{w - 4}" height="{h - 4}" rx="1" fill="none" stroke="white" stroke-width="0.3" stroke-opacity="0.5" />'
+
+    rect_base = f'<rect x="1.5" y="1.5" width="{w - 3}" height="{h - 3}" rx="2" fill="none" '
+    if level == "L0":
+        inner = f'<rect x="3.5" y="3.5" width="{w - 7}" height="{h - 7}" rx="1" fill="none" stroke="currentColor" stroke-width="0.5"/>'
+        return f'<rect x="1.5" y="1.5" width="{w - 3}" height="{h - 3}" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/>' + inner
+    elif level == "L1":
+        return rect_base + 'stroke="currentColor" stroke-width="1.5" stroke-dasharray="4,2" />'
+    elif level == "L2":
+        return rect_base + 'stroke="currentColor" stroke-width="2" stroke-dasharray="1,2" />'
+    elif level == "L3":
+        return rect_base + 'stroke="currentColor" stroke-width="2.5" />'
+    elif level == "MECHANISM":
+        return rect_base + 'stroke="currentColor" stroke-width="1" />'
+    return rect_base + 'stroke="currentColor" stroke-width="1" />'
+
+def generate_svg(level, title, topic, period, output_path):
+    # ✅ META 强制配色与标识判断
+    is_meta = (topic == "META")
+
+    if is_meta:
+        raw_color = META_CONFIG["color"]
+        font_color = META_CONFIG["font_color"]
+        unit_tag = UNIT_ICONS["META"]
+        w, h = SIZE_MAP["META"]
+    else:
+        raw_color = "#9333EA" if level == "MECHANISM" else DISCRETE_PALETTE.get(period, "#333333")
+        font_color = raw_color
+        unit_tag = UNIT_ICONS.get(topic, UNIT_ICONS["DEFAULT"])
+        w, h = SIZE_MAP.get(level, (60, 30))
+
+    # 背景逻辑处理
+    bg_color = raw_color if is_meta else "white"
+
+    # 字体与排版
+    font_size = 4.8 if level != "MECHANISM" else 3.8
+    line_height = font_size * 1.2
+    lines = wrap_text(title, max_chars=16 if (level == "L3" or is_meta) else 14)
+    total_h = len(lines) * line_height
+    start_y = (h / 2) - (total_h / 2) + (font_size * 0.85)
+
+    text_content = ""
+    for i, line in enumerate(lines):
+        text_content += f'<text x="{w / 2}" y="{start_y + i * line_height}" text-anchor="middle" font-family="Arial, sans-serif" font-size="{font_size}" font-weight="bold" fill="{font_color}">{line}</text>'
+
+    # 组装 SVG
+    svg_content = f'''<svg width="{w}mm" height="{h}mm" viewBox="0 0 {w} {h}" xmlns="http://www.w3.org/2000/svg">
+        <rect width="{w}" height="{h}" fill="{bg_color}" stroke="#EEEEEE" stroke-width="0.2" rx="2" />
+        <g color="{raw_color}">
+            {get_border_svg(level, w, h, is_meta)}
+            {text_content}
+            <text x="3" y="6.5" font-family="Arial" font-size="2.5" fill="{font_color}" fill-opacity="0.6">[{level if not is_meta else "POINT"}]</text>
+            <g transform="translate({w - 10}, 2.5)">
+                <rect width="7.5" height="4.5" rx="1" fill="{font_color}" fill-opacity="0.1" />
+                <text x="3.75" y="3.3" text-anchor="middle" font-family="Arial" font-size="2.8" font-weight="bold" fill="{font_color}">{unit_tag}</text>
+            </g>
+        </g>
+    </svg>'''
+
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    with open(output_path, "w", encoding="utf-8") as f:
+        f.write(svg_content)
+    return w, h

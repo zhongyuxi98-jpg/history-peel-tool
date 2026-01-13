@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>PEEL Workspace - CR_M1</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #f4f7f6; display: flex; height: 100vh; margin: 0; color: #333; }
+        .main { flex: 1; padding: 40px; overflow-y: auto; }
+        .sidebar { width: 340px; background: #fff; border-left: 1px solid #dee2e6; padding: 25px; box-shadow: -5px 0 15px rgba(0,0,0,0.05); overflow-y: auto; }
+        .sidebar.hidden { 
+            display: none; 
+        }
+        .header { border-bottom: 3px solid #1d3557; margin-bottom: 30px; padding-bottom: 15px; }
+        .q-text { font-size: 20px; font-weight: 700; color: #1d3557; }
+        .nav-bar { margin-bottom: 25px; display: flex; gap: 10px; }
+        button { padding: 10px 18px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; color: white; transition: 0.2s; }
+        .btn-save { background: #2a9d8f; }
+        .btn-export { background: #f4a261; }
+        .btn-menu { background: #457b9d; }
+        button:hover { opacity: 0.9; transform: translateY(-1px); }
+        .editor-box { margin-bottom: 20px; }
+        .label { color: #e63946; font-size: 11px; font-weight: 800; text-transform: uppercase; margin-bottom: 5px; }
+        textarea { width: 100%; height: 95px; border: 1.5px solid #ced4da; border-radius: 8px; padding: 12px; font-size: 14px; resize: none; line-height: 1.5; }
+        
+        /* Knowledge Hub V2.1 样式 */
+        .kb-section { margin-bottom: 25px; }
+        .sec-title { font-size: 12px; font-weight: 800; color: #1d3557; border-bottom: 1px solid #eee; padding-bottom: 5px; margin-bottom: 10px; display: flex; align-items: center; gap: 5px; }
+        .tag-group { display: flex; flex-wrap: wrap; gap: 6px; }
+        .tag { padding: 6px 12px; border-radius: 4px; font-size: 12px; cursor: pointer; border: 1px solid #ddd; background: #fff; transition: 0.2s; border-left: 4px solid #ddd; }
+        .tag:hover { background: #1d3557; color: white; transform: scale(1.05); }
+        .ctx { border-left-color: #457b9d; }
+        .entity { border-left-color: #e63946; }
+        .impact { border-left-color: #2a9d8f; }
+        .hist { border-left-color: #8338ec; }
+    </style>
+</head>
+<body>
+    <div class="main">
+        <div class="nav-bar">
+            <button class="btn-save" onclick="save()">💾 SAVE</button>
+            <button class="btn-export" onclick="exportDoc()">📥 EXPORT</button>
+            <button class="btn-menu" onclick="location.href='../../index.html'">🏠 MENU</button>
+            <button class="btn-menu" style="background:#6c757d;" onclick="toggleHub()">📂 HUB</button>
+        </div>
+        <div class="header">
+            <div style="color:#6c757d; font-size:11px; margin-bottom:5px;">MISSION ID: CR_M1</div>
+            <div class="q-text">Assess the reasons for the opposition to the Civil Rights movement in the Southern states in the 1950s.</div>
+        </div>
+        
+        <div class="editor-box"><div class="label">1. Point (Thesis Statement)</div><textarea id="p"></textarea></div>
+        <div class="editor-box"><div class="label">2. Evidence 1 + Mechanism</div><textarea id="e1"></textarea></div>
+        <div class="editor-box"><div class="label">3. Evidence 2 + Mechanism</div><textarea id="e2"></textarea></div>
+        <div class="editor-box"><div class="label">4. Link Back</div><textarea id="l"></textarea></div>
+    </div>
+
+    <div class="sidebar">
+           
+        <h3 style="margin:0 0 20px 0; color:#1d3557;">Knowledge Hub (V2.1)</h3>
+        <div class="kb-section">
+            <div class="sec-title">⚖️ LEGAL MILESTONES (De Jure)</div>
+            <div class="tag-group">
+                <div class="tag ctx" onclick="add('Plessy v. Ferguson (1896)')">Plessy v. Ferguson</div>
+                <div class="tag ctx" onclick="add('Brown v. Board of Education (1954)')">Brown v. Board</div>
+                <div class="tag ctx" onclick="add('Brown II (1955) - With All Deliberate Speed')">Brown II</div>
+                <div class="tag ctx" onclick="add('Civil Rights Act of 1957')">1957 CR Act</div>
+            </div>
+        </div>
+
+        <div class="kb-section">
+            <div class="sec-title">✊ DIRECT ACTION & EVENTS</div>
+            <div class="tag-group">
+                <div class="tag entity" onclick="add('Montgomery Bus Boycott (1955-56)')">Bus Boycott</div>
+                <div class="tag entity" onclick="add('Little Rock Nine (1957)')">Little Rock 9</div>
+                <div class="tag entity" onclick="add('Browder v. Gayle')">Browder v. Gayle</div>
+                <div class="tag entity" onclick="add('Emmett Till Murder (1955)')">Emmett Till</div>
+            </div>
+        </div>
+
+        <div class="kb-section">
+            <div class="sec-title">🚫 OPPOSITION & BARRIERS</div>
+            <div class="tag-group">
+                <div class="tag impact" onclick="add('Jim Crow Laws')">Jim Crow</div>
+                <div class="tag impact" onclick="add('Massive Resistance')">Massive Resistance</div>
+                <div class="tag impact" onclick="add('Southern Manifesto')">Southern Manifesto</div>
+                <div class="tag impact" onclick="add('White Citizens Councils')">Citizens' Councils</div>
+            </div>
+        </div>
+
+        <div class="kb-section">
+            <div class="sec-title">📊 EVALUATION CONCEPTS</div>
+            <div class="tag-group">
+                <div class="tag hist" onclick="add('De Facto vs De Jure Segregation')">De Facto/Jure</div>
+                <div class="tag hist" onclick="add('Federal Intervention (Eisenhower)')">Federal Power</div>
+                <div class="tag hist" onclick="add('Grassroots Activism')">Grassroots</div>
+                <div class="tag hist" onclick="add('Tokenism')">Tokenism</div>
+            </div>
+        </div>
+        <div class="kb-section">
+            <div class="sec-title">⚖️ ORGANIZATIONS & FIGURES</div>
+            <div class="tag-group">
+                <div class="tag entity" onclick="add('NAACP')">NAACP</div>
+                <div class="tag entity" onclick="add('SCLC')">SCLC</div>
+                <div class="tag entity" onclick="add('Rosa Parks')">Rosa Parks</div>
+            </div>
+        </div>
+        <div class="kb-section">
+            <div class="sec-title">📈 IMPACT & EVALUATION</div>
+            <div class="tag-group">
+                <div class="tag impact" onclick="add('Federal Enforcement')">Federal Enforcement</div>
+                <div class="tag impact" onclick="add('Massive Resistance')">Massive Resistance</div>
+                <div class="tag hist" onclick="add('Revisionist View')">Revisionist View</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const ID = "CR_M1";
+        let activeEditor = document.getElementById('p');
+        document.querySelectorAll('textarea').forEach(tx => {
+            tx.onfocus = () => activeEditor = tx;
+        });
+
+        function add(text) {
+            const start = activeEditor.selectionStart;
+            activeEditor.value = activeEditor.value.substring(0, start) + text + " " + activeEditor.value.substring(start);
+            activeEditor.focus();
+        }
+
+        function save() {
+            const data = { 
+                p: document.getElementById('p').value, 
+                e1: document.getElementById('e1').value, 
+                e2: document.getElementById('e2').value, 
+                l: document.getElementById('l').value 
+            };
+            localStorage.setItem(ID, JSON.stringify(data));
+            alert("Draft Saved to LocalStorage!");
+        }
+        function toggleHub() {
+            const sidebar = document.querySelector('.sidebar');
+            sidebar.classList.toggle('hidden');
+        }
+
+        function exportDoc() {
+            const content = `MISSION: ${ID}\n\n[POINT]\n${document.getElementById('p').value}\n\n[EVIDENCE 1]\n${document.getElementById('e1').value}\n\n[EVIDENCE 2]\n${document.getElementById('e2').value}\n\n[LINK]\n${document.getElementById('l').value}`;
+            const blob = new Blob([content], {type:'text/plain'});
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `${ID}_draft.txt`;
+            a.click();
+        }
+
+        window.onload = () => {
+            const d = JSON.parse(localStorage.getItem(ID) || '{}');
+            if(d.p) document.getElementById('p').value = d.p;
+            if(d.e1) document.getElementById('e1').value = d.e1;
+            if(d.e2) document.getElementById('e2').value = d.e2;
+            if(d.l) document.getElementById('l').value = d.l;
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,120 @@
+
+    <!DOCTYPE html>
+    <html lang="zh-CN">
+    <head>
+        <meta charset="UTF-8">
+        <title>PEEL Thinking Workspace - CR_M5</title>
+        <style>
+            :root { --primary: #1d3557; --accent: #e63946; --bg: #f1faee; --text: #1d3557; --gray: #bdc3c7; }
+            body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; padding: 40px; }
+            .container { max-width: 1000px; margin: auto; display: grid; grid-template-columns: 1fr 350px; gap: 30px; }
+            
+            /* 任务区 */
+            .main-panel { background: white; padding: 30px; border-radius: 12px; shadow: 0 10px 30px rgba(0,0,0,0.1); }
+            .question-box { border-left: 5px solid var(--accent); padding-left: 20px; margin-bottom: 30px; }
+            .question-box h2 { margin: 0; font-size: 22px; }
+            
+            /* 步骤输入区 */
+            .step { margin-bottom: 25px; }
+            .step-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+            .step-title { font-weight: bold; font-size: 14px; text-transform: uppercase; color: var(--accent); }
+            textarea { width: 100%; border: 1px solid #ddd; border-radius: 6px; padding: 12px; font-size: 15px; resize: vertical; min-height: 60px; }
+            
+            /* 贴纸库 (默认隐藏) */
+            .library-panel { background: #fff; padding: 20px; border-radius: 12px; border: 1px solid #eee; height: fit-content; }
+            .lib-title { font-weight: bold; margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+            .sticker-group { display: none; margin-top: 15px; }
+            .sticker-tag { display: inline-block; background: var(--primary); color: white; padding: 4px 10px; border-radius: 4px; font-size: 12px; margin: 4px; cursor: help; }
+            .btn-show { background: var(--primary); color: white; border: none; padding: 10px; width: 100%; border-radius: 6px; cursor: pointer; }
+            
+            /* 逻辑链引导图 (视觉示意) */
+            .logic-flow { display: flex; align-items: center; gap: 10px; font-size: 12px; margin-top: 20px; color: var(--gray); }
+            .arrow { font-weight: bold; }
+        </style>
+    </head>
+    <body>
+
+    <div class="container">
+        <div class="main-panel">
+            <div class="question-box">
+                <span style="color: var(--gray); font-size: 12px;">QUESTION MISSION</span>
+                <h2>'Progress towards greater civil rights in the 1950s was mainly brought about by federal institutions.' Evaluate this view.</h2>
+            </div>
+
+            <div class="peel-builder">
+                <div class="step">
+                    <div class="step-header"><span class="step-title">1. Topic Sentence (Point)</span></div>
+                    <textarea id="p1" placeholder="建立你的核心论点..."></textarea>
+                </div>
+
+                <div class="step">
+                    <div class="step-header"><span class="step-title">2. Evidence 1 + Mechanism</span></div>
+                    <textarea id="e1" placeholder="第一个证据是什么？它如何证明你的观点？"></textarea>
+                </div>
+
+                <div class="step">
+                    <div class="step-header"><span class="step-title">3. Evidence 2 + Mechanism</span></div>
+                    <textarea id="e2" placeholder="第二个补充证据或对比证据..."></textarea>
+                </div>
+
+                <div class="step">
+                    <div class="step-header"><span class="step-title">4. Link Back</span></div>
+                    <textarea id="l1" placeholder="重申观点并正面回扣题目核心词..."></textarea>
+                </div>
+            </div>
+
+            <div class="logic-flow">
+                <span>POINT</span> <span class="arrow">➔</span>
+                <span>EVIDENCE(1)</span> <span class="arrow">➔</span>
+                <span>MECHANISM</span> <span class="arrow">➔</span>
+                <span>EVIDENCE(2)</span> <span class="arrow">➔</span>
+                <span>LINK</span>
+            </div>
+        </div>
+
+        <div class="library-panel">
+            <div class="lib-title">思维支架 (Scaffolding)</div>
+            <p style="font-size: 12px; color: #666;">如果卡住了，点击展开贴纸提示：</p>
+            <button class="btn-show" onclick="toggleLibrary()">显示贴纸库 (Show Library)</button>
+            
+            <div id="lib-content" class="sticker-group">
+                <div style="font-size: 13px; font-weight: bold; margin: 10px 0 5px;">论点模板:</div>
+                <div class="sticker-tag" style="background: #1d3557;">M3_COMPARE (Comparison/Significance)</div>
+                
+                <div style="font-size: 13px; font-weight: bold; margin: 15px 0 5px;">推荐证据:</div>
+                <div class="sticker-tag" style="background: #457b9d;">Brown v. Board (L3)</div><div class="sticker-tag" style="background: #457b9d;">Little Rock Nine (L2)</div><div class="sticker-tag" style="background: #457b9d;">Eisenhower (L2)</div>
+                
+                <div style="font-size: 13px; font-weight: bold; margin: 15px 0 5px;">逻辑连接词:</div>
+                <div class="sticker-tag" style="background: #9333EA;">Executive Action -> Social Change</div>
+                
+                <div style="font-size: 13px; font-weight: bold; margin: 15px 0 5px;">总结句式:</div>
+                <div class="sticker-tag" style="background: #bdc3c7; color: #1d3557;">LK2_IMPACT (Direct Evidence of Impact)</div>
+            </div>
+
+            <hr style="margin: 20px 0; border: none; border-top: 1px solid #eee;">
+            <div style="font-size: 12px;">
+                <strong>💡 建议流程:</strong><br>
+                1. 盲写初稿<br>
+                2. 参考贴纸完善关键词<br>
+                3. 点击“生成草稿”发送给 AI
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleLibrary() {
+            var x = document.getElementById("lib-content");
+            var btn = document.querySelector(".btn-show");
+            if (x.style.display === "block") {
+                x.style.display = "none";
+                btn.innerText = "显示贴纸库 (Show Library)";
+            } else {
+                x.style.display = "block";
+                btn.innerText = "隐藏贴纸库";
+            }
+        }
+    </script>
+
+    </body>
+    </html>
+    

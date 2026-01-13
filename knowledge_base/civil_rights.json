@@ -1,0 +1,77 @@
+[
+  {
+    "level": "L0",
+    "title": "Civil Rights Movement",
+    "attr": "Concept"
+  },
+  {
+    "level": "L0",
+    "title": "Federal Institutions",
+    "attr": "Concept"
+  },
+  {
+    "level": "L1",
+    "title": "Brown v. Board 1954",
+    "attr": "Event"
+  },
+  {
+    "level": "L1",
+    "title": "Little Rock Nine 1957",
+    "attr": "Event"
+  },
+  {
+    "level": "L1",
+    "title": "Montgomery Bus Boycott",
+    "attr": "Event"
+  },
+  {
+    "level": "L2",
+    "title": "NAACP",
+    "attr": "Actor"
+  },
+  {
+    "level": "L2",
+    "title": "MLK / SCLC",
+    "attr": "Actor"
+  },
+  {
+    "level": "L2",
+    "title": "Eisenhower",
+    "attr": "Actor"
+  },
+  {
+    "level": "L3",
+    "title": "Jim Crow Laws",
+    "attr": "Institutional"
+  },
+  {
+    "level": "L3",
+    "title": "Civil Rights Act 1964",
+    "attr": "Institutional"
+  },
+  {
+    "level": "L4",
+    "title": "Success vs Failure",
+    "attr": "Eval"
+  },
+  {
+    "level": "L4",
+    "title": "Southern Resistance",
+    "attr": "Eval"
+  },
+  {
+    "level": "MECHANISM",
+    "title": "Federal Enforcement",
+    "attr": "Mech"
+  },
+  {
+    "level": "MECHANISM",
+    "title": "Media Exposure",
+    "attr": "Mech"
+  },
+  {
+    "level": "MECHANISM",
+    "title": "Implementation Gap",
+    "attr": "Mech"
+  }
+]

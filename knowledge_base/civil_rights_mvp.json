@@ -1,0 +1,110 @@
+[
+  {
+    "level": "L0",
+    "title": "Civil Rights Movement",
+    "topic": "CIVIL_RIGHTS",
+    "period": "P2"
+  },
+  {
+    "level": "L1",
+    "title": "Montgomery Bus Boycott",
+    "topic": "CIVIL_RIGHTS",
+    "period": "P2"
+  },
+  {
+    "level": "L1",
+    "title": "Little Rock Nine 1957",
+    "topic": "CIVIL_RIGHTS",
+    "period": "P2"
+  },
+  {
+    "level": "L1",
+    "title": "Greensboro Sit-ins",
+    "topic": "CIVIL_RIGHTS",
+    "period": "P3"
+  },
+  {
+    "level": "L2",
+    "title": "Martin Luther King Jr",
+    "topic": "CIVIL_RIGHTS",
+    "period": "P3"
+  },
+  {
+    "level": "L2",
+    "title": "Rosa Parks",
+    "topic": "CIVIL_RIGHTS",
+    "period": "P2"
+  },
+  {
+    "level": "L2",
+    "title": "NAACP",
+    "topic": "CIVIL_RIGHTS",
+    "period": "P1"
+  },
+  {
+    "level": "L2",
+    "title": "SCLC",
+    "topic": "CIVIL_RIGHTS",
+    "period": "P2"
+  },
+  {
+    "level": "L2",
+    "title": "SNCC",
+    "topic": "CIVIL_RIGHTS",
+    "period": "P3"
+  },
+  {
+    "level": "L3",
+    "title": "Civil Rights Act 1964",
+    "topic": "CIVIL_RIGHTS",
+    "period": "P3"
+  },
+  {
+    "level": "L3",
+    "title": "Voting Rights Act 1965",
+    "topic": "CIVIL_RIGHTS",
+    "period": "P3"
+  },
+  {
+    "level": "L3",
+    "title": "Brown v Board 1954",
+    "topic": "CIVIL_RIGHTS",
+    "period": "P2"
+  },
+  {
+    "level": "L3",
+    "title": "Jim Crow Laws",
+    "topic": "CIVIL_RIGHTS",
+    "period": "P1"
+  },
+  {
+    "level": "MECHANISM",
+    "title": "Federal Enforcement",
+    "topic": "CIVIL_RIGHTS",
+    "period": "P3"
+  },
+  {
+    "level": "MECHANISM",
+    "title": "Court Ruling Pressure",
+    "topic": "CIVIL_RIGHTS",
+    "period": "P2"
+  },
+  {
+    "level": "MECHANISM",
+    "title": "Media Exposure",
+    "topic": "CIVIL_RIGHTS",
+    "period": "P3"
+  },
+  {
+    "level": "MECHANISM",
+    "title": "Economic Boycott",
+    "topic": "CIVIL_RIGHTS",
+    "period": "P2"
+  },
+  {
+    "level": "MECHANISM",
+    "title": "Grassroots Mobilization",
+    "topic": "CIVIL_RIGHTS",
+    "period": "P3"
+  }
+]
