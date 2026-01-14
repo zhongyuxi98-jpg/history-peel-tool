@@ -11,7 +11,9 @@ export default async function handler(req, res) {
     language,
     essay_question,
     section_type,
-    constraint
+    constraint,
+    essay_full,
+    structure
   } = req.body;
   const apiKey = process.env.DASHSCOPE_API_KEY;
 
@@ -30,13 +32,15 @@ export default async function handler(req, res) {
     ? `\n\n${constraint}`
     : "\n\nConstraint: Follow the selected language mode strictly.";
 
-  const sectionType = (section_type || "body").toLowerCase();
+  const sectionType = (section_type || "multi").toLowerCase();
   const sectionRubric =
     sectionType === "intro"
       ? "Section Type: Intro. Focus on thesis clarity, line of argument, and signposting."
       : sectionType === "conclusion"
       ? "Section Type: Conclusion. Focus on summarising key points and linking back to the question (no new evidence)."
-      : "Section Type: Body (PEEL). Diagnose Point–Evidence–Explanation–Link coherence; check evidence specificity and causal logic.";
+      : sectionType === "body"
+      ? "Section Type: Body (PEEL). Diagnose Point–Evidence–Explanation–Link coherence; check evidence specificity and causal logic."
+      : "Section Type: Full essay (Intro + Body paragraphs + Conclusion). Evaluate overall argument, paragraph balance, and how well the essay answers the question.";
 
   const outputFormat = `Return STRICTLY structured text with the following headers:
 [Score: A-E]
@@ -77,11 +81,16 @@ ${outputFormat}`
             content: `Essay Question (editable by student):
 ${essay_question || "(not provided)"}
 
-Student submission:
-Point: ${point}
-Evidence 1: ${evidence1}
-Evidence 2: ${evidence2}
-Link: ${link}
+Structure (JSON-like, modules in order): 
+${JSON.stringify(structure || [], null, 2)}
+
+Full essay text:
+${essay_full || `
+Point: ${point || "(legacy)"} 
+Evidence 1: ${evidence1 || "(legacy)"} 
+Evidence 2: ${evidence2 || "(legacy)"} 
+Link: ${link || "(legacy)"}
+`}
 `
           }
         ]

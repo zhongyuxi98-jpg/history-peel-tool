@@ -49,6 +49,20 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         .editor-box {{ margin-bottom: 15px; }}
         .label {{ color: #e63946; font-size: 11px; font-weight: 800; text-transform: uppercase; margin-bottom: 5px; }}
         textarea {{ width: 100%; height: 95px; border: 1.5px solid #ced4da; border-radius: 8px; padding: 12px; font-size: 14px; resize: none; line-height: 1.5; box-sizing: border-box; }}
+
+        /* Essay constructor layout */
+        #module-toolbar {{ display:flex; flex-wrap:wrap; gap:8px; margin: 8px 0 16px 0; }}
+        .toolbar-btn {{ padding:8px 12px; border-radius:999px; border:none; background:#1d3557; color:#fff; font-size:13px; cursor:pointer; }}
+        .toolbar-btn.secondary {{ background:#6c757d; }}
+        .toolbar-btn:hover {{ opacity:0.9; transform:translateY(-1px); }}
+
+        #essay-constructor {{ display:flex; flex-direction:column; gap:14px; }}
+        .essay-module {{ border:1px solid #dee2e6; border-radius:10px; padding:12px 14px; background:#fff; }}
+        .module-header {{ display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }}
+        .module-tag {{ font-size:12px; font-weight:700; text-transform:uppercase; color:#1d3557; }}
+        .module-delete {{ border:none; background:#fff; color:#e63946; cursor:pointer; font-size:14px; }}
+
+        #merge-view {{ margin-top:16px; }}
         
         /* 👨‍🏫 右侧讲解老师窗口 */
         #explainer-window {{
@@ -88,17 +102,19 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             </div>
         </div>
 
-        <div class="section-tabs" role="tablist" aria-label="Section type">
-            <button class="section-tab" id="tab-intro" onclick="setSectionType('intro')">Intro</button>
-            <button class="section-tab active" id="tab-body" onclick="setSectionType('body')">Body (PEEL)</button>
-            <button class="section-tab" id="tab-conclusion" onclick="setSectionType('conclusion')">Conclusion</button>
+        <div id="module-toolbar">
+            <button class="toolbar-btn" onclick="addModule('intro')">+ Add Intro</button>
+            <button class="toolbar-btn" onclick="addModule('body')">+ Add Body (PEEL)</button>
+            <button class="toolbar-btn" onclick="addModule('conclusion')">+ Add Conclusion</button>
+            <button class="toolbar-btn secondary" onclick="toggleMergeView()">👁 Merge View</button>
         </div>
-        <div class="section-hint" id="section-hint">Body mode: write a PEEL paragraph (Point → Evidence → Explanation → Link).</div>
 
-        <div class="editor-box"><div class="label">1. Point</div><textarea id="p"></textarea></div>
-        <div class="editor-box"><div class="label">2. Evidence 1</div><textarea id="e1"></textarea></div>
-        <div class="editor-box"><div class="label">3. Evidence 2</div><textarea id="e2"></textarea></div>
-        <div class="editor-box"><div class="label">4. Link Back</div><textarea id="l"></textarea></div>
+        <div id="essay-constructor"></div>
+
+        <div id="merge-view" style="display:none;">
+            <div class="label">Essay Preview (read-only)</div>
+            <textarea id="merge-content" readonly style="height:140px;"></textarea>
+        </div>
 
         <button class="ai-review-trigger" id="ai-btn" onclick="submitReview()">🚀 SUBMIT FOR AI TEACHER'S REVIEW</button>
 
@@ -137,43 +153,75 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
     <script>
         const ID = "{mid}";
-        let activeEditor = document.getElementById('p');
-        document.querySelectorAll('textarea').forEach(tx => {{ tx.onfocus = () => activeEditor = tx; }});
 
-        // --- 0. 语言模式控制 ---
+        // --- 0. 全局状态 ---
         let currentLanguageMode = document.getElementById('language-setting').value || 'dual';
-        document.getElementById('language-setting').addEventListener('change', (e) => {{
-            currentLanguageMode = e.target.value;
-            saveToLocal();
-        }});
+        let modules = []; // {{ id, type: 'intro'|'body'|'conclusion', boxes: [] }}
+        let activeTextarea = null;
 
-        // --- 0.1 段落类型控制（默认 Body） ---
-        let currentSectionType = 'body';
-        function setSectionType(t) {{
-            currentSectionType = t;
-            document.getElementById('tab-intro').classList.toggle('active', t === 'intro');
-            document.getElementById('tab-body').classList.toggle('active', t === 'body');
-            document.getElementById('tab-conclusion').classList.toggle('active', t === 'conclusion');
-            const hint = document.getElementById('section-hint');
-            if (t === 'intro') hint.innerText = "Intro mode: focus on a clear thesis + line of argument.";
-            else if (t === 'conclusion') hint.innerText = "Conclusion mode: summarise your key points and link back to the question.";
-            else hint.innerText = "Body mode: write a PEEL paragraph (Point → Evidence → Explanation → Link).";
-            saveToLocal();
-        }}
-
-        // --- 0.2 自动保存 / 恢复（防刷新丢失）---
         const STORAGE_KEY = `GGV1_STATE::${{ID}}`;
         let saveDebounceTimer = null;
 
+        // --- 0.1 实用函数 ---
+        function getLanguageConstraint() {{
+            if (currentLanguageMode === 'en') return "Constraint: You must respond in 100% English. Do not use any Chinese characters.";
+            if (currentLanguageMode === 'zh') return "约束：必须 100% 使用中文回答，即使问题是英文。";
+            return "约束：使用双语回答。采用‘中文核心解释 + 括号内对应英文专业术语’的格式。";
+        }}
+
+        function getCurrentQuestion() {{
+            const title = document.getElementById('question-title');
+            const text = (title?.innerText || "").trim();
+            return text || "{question}";
+        }}
+
+        function setActiveTextarea(el) {{
+            activeTextarea = el;
+        }}
+
+        // --- 0.2 模块与占位符 ---
+        function makeModuleId() {{
+            return 'm_' + Math.random().toString(36).slice(2, 9) + Date.now().toString(36);
+        }}
+
+        function getBoxConfig(type) {{
+            if (type === 'intro') {{
+                return [
+                    {{ label: "Intro Box 1", placeholder: "Define issue & background... (e.g., The issue of [topic] was significant...)" }},
+                    {{ label: "Intro Box 2", placeholder: "Show debate... (e.g., Historians have debated...)" }},
+                    {{ label: "Intro Box 3", placeholder: "Thesis statement... (e.g., This essay will argue that...)" }}
+                ];
+            }} else if (type === 'conclusion') {{
+                return [
+                    {{ label: "Conclusion Box 1", placeholder: "Direct answer (In conclusion...)" }},
+                    {{ label: "Conclusion Box 2", placeholder: "Weighting judgement (Their impact was mainly...)" }},
+                    {{ label: "Conclusion Box 3", placeholder: "Final evaluation (While [success], [limitation]...)" }}
+                ];
+            }} else {{
+                return [
+                    {{ label: "PEEL Box 1", placeholder: "Point (One important way...)" }},
+                    {{ label: "PEEL Box 2", placeholder: "Evidence (This can be seen in...)" }},
+                    {{ label: "PEEL Box 3", placeholder: "Explain (This was important because...)" }},
+                    {{ label: "PEEL Box 4", placeholder: "Link back (Therefore, this shows...)" }}
+                ];
+            }}
+        }}
+
+        function createEmptyModule(type) {{
+            const cfg = getBoxConfig(type);
+            return {{
+                id: makeModuleId(),
+                type,
+                boxes: new Array(cfg.length).fill("")
+            }};
+        }}
+
+        // --- 0.3 保存 / 恢复 ---
         function getState() {{
             return {{
                 question: getCurrentQuestion(),
-                p: document.getElementById('p').value,
-                e1: document.getElementById('e1').value,
-                e2: document.getElementById('e2').value,
-                l: document.getElementById('l').value,
                 language: currentLanguageMode,
-                section: currentSectionType,
+                modules,
                 updatedAt: Date.now()
             }};
         }}
@@ -195,42 +243,148 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 if (!raw) return;
                 const s = JSON.parse(raw);
                 if (s.question) document.getElementById('question-title').innerText = s.question;
-                if (typeof s.p === 'string') document.getElementById('p').value = s.p;
-                if (typeof s.e1 === 'string') document.getElementById('e1').value = s.e1;
-                if (typeof s.e2 === 'string') document.getElementById('e2').value = s.e2;
-                if (typeof s.l === 'string') document.getElementById('l').value = s.l;
                 if (s.language) {{
                     currentLanguageMode = s.language;
                     document.getElementById('language-setting').value = s.language;
                 }}
-                if (s.section) setSectionType(s.section);
+                if (Array.isArray(s.modules) && s.modules.length) {{
+                    modules = s.modules;
+                }}
             }} catch (e) {{}}
         }}
 
-        document.getElementById('question-title').addEventListener('blur', () => saveToLocal());
-        document.querySelectorAll('textarea').forEach(tx => {{
-            tx.addEventListener('input', scheduleSave);
+        // --- 1. 模块渲染与编辑 ---
+        function renderModules() {{
+            const container = document.getElementById('essay-constructor');
+            if (!container) return;
+
+            if (!modules.length) {{
+                container.innerHTML = '<div style="color:#6c757d; font-size:13px;">Use the buttons above to add an Intro, Body paragraph, or Conclusion.</div>';
+                return;
+            }}
+
+            let bodyIndex = 0;
+            const html = modules.map((m) => {{
+                const cfg = getBoxConfig(m.type);
+                let label = "";
+                if (m.type === 'intro') label = "Intro";
+                else if (m.type === 'conclusion') label = "Conclusion";
+                else {{
+                    bodyIndex += 1;
+                    label = "Body Paragraph " + bodyIndex;
+                }}
+
+                const boxesHtml = cfg.map((boxCfg, idx) => {{
+                    const value = (m.boxes && typeof m.boxes[idx] === 'string') ? m.boxes[idx] : "";
+                    return `
+                        <div class="editor-box">
+                            <div class="label">${{boxCfg.label}}</div>
+                            <textarea 
+                                data-module="${{m.id}}" 
+                                data-box="${{idx}}" 
+                                placeholder="${{boxCfg.placeholder}}"
+                                onfocus="setActiveTextarea(this)"
+                                oninput="onBoxInput('${{m.id}}', ${{idx}}, this.value)"
+                            >${{value}}</textarea>
+                        </div>
+                    `;
+                }}).join("");
+
+                return `
+                    <div class="essay-module" data-id="${{m.id}}">
+                        <div class="module-header">
+                            <span class="module-tag">${{label}}</span>
+                            <button class="module-delete" onclick="removeModule('${{m.id}}')">✕</button>
+                        </div>
+                        ${{boxesHtml}}
+                    </div>
+                `;
+            }}).join("");
+
+            container.innerHTML = html;
+        }}
+
+        function addModule(type) {{
+            modules.push(createEmptyModule(type));
+            renderModules();
+            saveToLocal();
+        }}
+
+        function removeModule(id) {{
+            modules = modules.filter(m => m.id !== id);
+            renderModules();
+            saveToLocal();
+        }}
+
+        function onBoxInput(id, index, value) {{
+            const m = modules.find(m => m.id === id);
+            if (!m) return;
+            if (!Array.isArray(m.boxes)) m.boxes = [];
+            m.boxes[index] = value;
+            scheduleSave();
+        }}
+
+        // --- 2. 合并视图与全文构建 ---
+        function buildEssayText() {{
+            const parts = [];
+            modules.forEach((m) => {{
+                if (!Array.isArray(m.boxes)) return;
+                const text = m.boxes.map(b => (b || "").trim()).filter(Boolean).join(" ");
+                if (!text) return;
+                let prefix = "";
+                if (m.type === 'intro') prefix = "[Intro] ";
+                else if (m.type === 'conclusion') prefix = "[Conclusion] ";
+                else prefix = "[Body] ";
+                parts.push(prefix + text);
+            }});
+            return parts.join("\\n\\n");
+        }}
+
+        function getStructureSummary() {{
+            return modules.map((m) => ({{
+                type: m.type,
+                text: Array.isArray(m.boxes) ? m.boxes.join(" ").trim() : ""
+            }}));
+        }}
+
+        function toggleMergeView() {{
+            const panel = document.getElementById('merge-view');
+            const box = document.getElementById('merge-content');
+            if (!panel || !box) return;
+            if (panel.style.display === 'none' || panel.style.display === '') {{
+                box.value = buildEssayText();
+                panel.style.display = 'block';
+            }} else {{
+                panel.style.display = 'none';
+            }}
+        }}
+
+        // --- 3. 语言与自动保存事件 ---
+        document.getElementById('language-setting').addEventListener('change', (e) => {{
+            currentLanguageMode = e.target.value;
+            saveToLocal();
         }});
 
-        function getLanguageConstraint() {{
-            if (currentLanguageMode === 'en') return "Constraint: You must respond in 100% English. Do not use any Chinese characters.";
-            if (currentLanguageMode === 'zh') return "约束：必须 100% 使用中文回答，即使问题是英文。";
-            return "约束：使用双语回答。采用‘中文核心解释 + 括号内对应英文专业术语’的格式。";
-        }}
+        document.getElementById('question-title').addEventListener('blur', () => saveToLocal());
 
-        function getCurrentQuestion() {{
-            const title = document.getElementById('question-title');
-            const text = (title?.innerText || "").trim();
-            return text || "{question}";
-        }}
-
+        // --- 4. 知识 Hub 插入：针对当前激活 textarea ---
         function add(text) {{
-            const start = activeEditor.selectionStart;
-            activeEditor.value = activeEditor.value.substring(0, start) + text + " " + activeEditor.value.substring(start);
-            activeEditor.focus();
+            if (!activeTextarea) return;
+            const start = activeTextarea.selectionStart ?? activeTextarea.value.length;
+            const end = activeTextarea.selectionEnd ?? start;
+            const v = activeTextarea.value;
+            activeTextarea.value = v.substring(0, start) + text + " " + v.substring(end);
+            activeTextarea.focus();
+
+            const mId = activeTextarea.getAttribute('data-module');
+            const idxStr = activeTextarea.getAttribute('data-box');
+            const idx = idxStr ? parseInt(idxStr, 10) : NaN;
+            if (mId && !Number.isNaN(idx)) {{
+                onBoxInput(mId, idx, activeTextarea.value);
+            }}
         }}
 
-        // --- 1. 侧边栏讲解老师 ---
+        // --- 5. 侧边栏讲解老师 ---
         async function getExplanation(topic) {{
             const box = document.getElementById('explain-box');
             const lang = currentLanguageMode;
@@ -245,7 +399,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                         topic,
                         language: lang,
                         essay_question,
-                        section_type: currentSectionType,
+                        structure: getStructureSummary(),
                         constraint
                     }})
                 }});
@@ -254,20 +408,20 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             }} catch (e) {{ box.innerText = "⚠️ Connection error."; }}
         }}
 
-        // --- 2. 底部批改功能 ---
+        // --- 6. 底部批改：整篇 Essay 级别 ---
         async function submitReview() {{
             const btn = document.getElementById('ai-btn');
             const resultDiv = document.getElementById('ai-review-result');
             const contentDiv = document.getElementById('ai-content');
             const essay_question = getCurrentQuestion();
             const constraint = getLanguageConstraint();
+            const essay_full = buildEssayText();
+            const structure = getStructureSummary();
+
             const data = {{ 
-                point: document.getElementById('p').value, 
-                evidence1: document.getElementById('e1').value, 
-                evidence2: document.getElementById('e2').value, 
-                link: document.getElementById('l').value,
                 essay_question,
-                section_type: currentSectionType,
+                essay_full,
+                structure,
                 language: currentLanguageMode,
                 constraint
             }};
@@ -288,22 +442,27 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             finally {{ btn.innerText = "🚀 SUBMIT FOR AI TEACHER'S REVIEW"; btn.disabled = false; }}
         }}
 
+        // 传统 SAVE / EXPORT 适配整篇 essay
         function save() {{
-            const data = {{ p: document.getElementById('p').value, e1: document.getElementById('e1').value, e2: document.getElementById('e2').value, l: document.getElementById('l').value }};
-            localStorage.setItem(ID, JSON.stringify(data));
+            saveToLocal();
             alert("Work Saved!");
         }}
 
         function exportDoc() {{
             const aiContent = document.getElementById('ai-content').innerText;
-            const content = `WORK: ${{ID}}\\nP: ${{document.getElementById('p').value}}\\nE1: ${{document.getElementById('e1').value}}\\nE2: ${{document.getElementById('e2').value}}\\nL: ${{document.getElementById('l').value}}\\n\\n[AI FEEDBACK]\\n${{aiContent}}`;
+            const essayText = buildEssayText();
+            const content = `WORK: ${{ID}}\\nQUESTION: ${{getCurrentQuestion()}}\\n\\n[ESSAY]\\n${{essayText}}\\n\\n[AI FEEDBACK]\\n${{aiContent}}`;
             const blob = new Blob([content], {{ type: 'text/plain' }});
             const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `Submission_${{ID}}.txt`; a.click();
         }}
 
-        // 初始恢复
+        // 初始恢复 + 默认 body 模块
         window.addEventListener('load', () => {{
             loadFromLocal();
+            if (!modules.length) {{
+                modules.push(createEmptyModule('body'));
+            }}
+            renderModules();
         }});
     </script>
 </body>
