@@ -81,7 +81,28 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         #explain-box {{ font-size: 13px; line-height: 1.6; color: #f1faee; min-height: 110px; white-space: pre-wrap; }}
 
         /* 🚀 底部 AI Review 样式 */
-        .ai-review-trigger {{ background: #e63946; color: white; width: 100%; padding: 20px; font-size: 18px; margin: 30px 0; box-shadow: 0 4px 15px rgba(230,57,70,0.3); }}
+        .review-actions {{ display: flex; gap: 12px; margin: 30px 0; }}
+        .ai-review-trigger {{ background: #e63946; color: white; flex: 1; padding: 20px; font-size: 18px; box-shadow: 0 4px 15px rgba(230,57,70,0.3); }}
+        .preview-btn {{ background: #457b9d; color: white; flex: 1; padding: 20px; font-size: 18px; box-shadow: 0 4px 15px rgba(69,123,157,0.3); }}
+        
+        /* Preview Modal */
+        #preview-modal {{ display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; overflow-y: auto; }}
+        #preview-modal .modal-content {{ background: #fff; margin: 40px auto; max-width: 900px; border-radius: 12px; padding: 30px; box-shadow: 0 10px 40px rgba(0,0,0,0.3); position: relative; }}
+        .modal-header {{ font-size: 24px; font-weight: 700; color: #1d3557; margin-bottom: 20px; }}
+        .modal-body {{ max-height: 60vh; overflow-y: auto; padding: 20px; background: #f8f9fa; border-radius: 8px; line-height: 1.8; white-space: pre-wrap; }}
+        .modal-footer {{ display: flex; gap: 12px; margin-top: 20px; justify-content: flex-end; }}
+        .modal-btn {{ padding: 12px 24px; border-radius: 6px; border: none; cursor: pointer; font-weight: 600; }}
+        .modal-btn-secondary {{ background: #6c757d; color: white; }}
+        .modal-btn-primary {{ background: #e63946; color: white; }}
+        
+        /* 批改视图：两栏布局 */
+        #feedback-view {{ display: none; margin-top: 30px; }}
+        .feedback-container {{ display: flex; gap: 20px; min-height: 500px; }}
+        .feedback-left {{ flex: 1; background: #f8f9fa; border-radius: 12px; padding: 20px; overflow-y: auto; max-height: 70vh; }}
+        .feedback-right {{ flex: 1; background: #fff; border: 2px solid #e63946; border-radius: 12px; padding: 20px; overflow-y: auto; max-height: 70vh; }}
+        .feedback-left h3 {{ color: #1d3557; margin-bottom: 15px; }}
+        .feedback-right h3 {{ color: #e63946; margin-bottom: 15px; }}
+        .edit-back-btn {{ background: #2a9d8f; color: white; padding: 15px 30px; font-size: 16px; border-radius: 8px; border: none; cursor: pointer; font-weight: 700; margin-bottom: 20px; width: 100%; }}
         #ai-review-result {{ border: 2px solid #e63946; border-radius: 12px; background: white; margin-bottom: 40px; overflow: hidden; }}
     </style>
 </head>
@@ -114,11 +135,36 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
         <div id="essay-constructor"></div>
 
-        <button class="ai-review-trigger" id="ai-btn" onclick="submitReview()">🚀 SUBMIT FOR AI TEACHER'S REVIEW</button>
+        <div class="review-actions">
+            <button class="preview-btn" onclick="showPreviewModal()">👁 Preview Essay</button>
+            <button class="ai-review-trigger" id="ai-btn" onclick="showPreviewModal()">🚀 SUBMIT FOR AI TEACHER'S REVIEW</button>
+        </div>
 
-        <div id="ai-review-result" style="display: none;">
-            <div style="background: #e63946; color: white; padding: 12px 20px; font-weight: bold;">🎯 ACADEMIC REVIEW</div>
-            <div id="ai-content" style="padding: 25px; line-height: 1.8; font-size: 15px;">AI is analyzing...</div>
+        <!-- Preview Modal -->
+        <div id="preview-modal">
+            <div class="modal-content">
+                <div class="modal-header">📄 Essay Preview</div>
+                <div class="modal-body" id="preview-content"></div>
+                <div class="modal-footer">
+                    <button class="modal-btn modal-btn-secondary" onclick="closePreviewModal()">← Back to Edit</button>
+                    <button class="modal-btn modal-btn-primary" onclick="confirmSubmit()">✓ Confirm & Submit</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 批改视图：两栏布局 -->
+        <div id="feedback-view">
+            <button class="edit-back-btn" onclick="backToEdit()">✏️ Edit This Essay</button>
+            <div class="feedback-container">
+                <div class="feedback-left">
+                    <h3>📄 Essay Preview</h3>
+                    <div id="feedback-essay" style="line-height: 1.8; white-space: pre-wrap;"></div>
+                </div>
+                <div class="feedback-right">
+                    <h3>🎯 Academic Review</h3>
+                    <div id="ai-content" style="line-height: 1.8; font-size: 15px;">AI is analyzing...</div>
+                </div>
+            </div>
         </div>
 
         <div id="export-preview">
@@ -516,10 +562,42 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             }} catch (e) {{ box.innerText = "⚠️ Connection error."; }}
         }}
 
-        // --- 6. 底部批改：整篇 Essay 级别 ---
+        // --- 6. 预览前置逻辑 ---
+        function showPreviewModal() {{
+            const modal = document.getElementById('preview-modal');
+            const content = document.getElementById('preview-content');
+            if (!modal || !content) return;
+            
+            const essayText = buildEssayText();
+            if (!essayText.trim()) {{
+                alert('Please write something before previewing.');
+                return;
+            }}
+            
+            content.innerText = essayText;
+            modal.style.display = 'block';
+            
+            // 点击 Modal 外部关闭
+            modal.onclick = (e) => {{
+                if (e.target === modal) closePreviewModal();
+            }};
+        }}
+
+        function closePreviewModal() {{
+            const modal = document.getElementById('preview-modal');
+            if (modal) modal.style.display = 'none';
+        }}
+
+        function confirmSubmit() {{
+            closePreviewModal();
+            submitReview();
+        }}
+
+        // --- 7. 底部批改：整篇 Essay 级别 ---
         async function submitReview() {{
             const btn = document.getElementById('ai-btn');
-            const resultDiv = document.getElementById('ai-review-result');
+            const feedbackView = document.getElementById('feedback-view');
+            const essayPreview = document.getElementById('feedback-essay');
             const contentDiv = document.getElementById('ai-content');
             const essay_question = getCurrentQuestion();
             const constraint = getLanguageConstraint();
@@ -534,9 +612,19 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 constraint
             }};
             
+            // 隐藏编辑区，显示批改视图
+            document.getElementById('essay-constructor').style.display = 'none';
+            document.getElementById('module-toolbar').style.display = 'none';
+            document.querySelector('.review-actions').style.display = 'none';
+            feedbackView.style.display = 'block';
+            
+            // 左侧显示 Essay Preview
+            if (essayPreview) {{
+                essayPreview.innerText = essay_full || 'No content yet.';
+            }}
+            
             btn.innerText = "⌛ Teacher is grading..."; btn.disabled = true;
-            resultDiv.style.display = 'block';
-            resultDiv.scrollIntoView({{ behavior: 'smooth' }});
+            contentDiv.innerText = "AI is analyzing your essay...";
 
             try {{
                 const response = await fetch('/api/review', {{ 
@@ -547,7 +635,26 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 const result = await response.json();
                 contentDiv.innerText = result.review || "Feedback failed.";
             }} catch (e) {{ contentDiv.innerText = "⚠️ Connection failed."; }}
-            finally {{ btn.innerText = "🚀 SUBMIT FOR AI TEACHER'S REVIEW"; btn.disabled = false; }}
+            finally {{ 
+                btn.innerText = "🚀 SUBMIT FOR AI TEACHER'S REVIEW"; 
+                btn.disabled = false;
+                feedbackView.scrollIntoView({{ behavior: 'smooth' }});
+            }}
+        }}
+
+        // --- 8. 编辑回溯 ---
+        function backToEdit() {{
+            const feedbackView = document.getElementById('feedback-view');
+            const constructor = document.getElementById('essay-constructor');
+            const toolbar = document.getElementById('module-toolbar');
+            const actions = document.querySelector('.review-actions');
+            
+            if (feedbackView) feedbackView.style.display = 'none';
+            if (constructor) constructor.style.display = 'block';
+            if (toolbar) toolbar.style.display = 'flex';
+            if (actions) actions.style.display = 'flex';
+            
+            constructor.scrollIntoView({{ behavior: 'smooth' }});
         }}
 
         // 传统 SAVE / EXPORT 适配整篇 essay
