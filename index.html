@@ -3,16 +3,92 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GeekGirl Academic Lab</title>
+    <title>My Writing Dashboard</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
         body { 
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #f5f7fa;
             min-height: 100vh;
-            padding: 0;
-            color: #1a1a1a;
+            color: #2c3e50;
+            line-height: 1.6;
+        }
+
+        /* 顶部导航栏 */
+        .top-nav {
+            background: #fff;
+            border-bottom: 1px solid #e1e4e8;
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .dashboard-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        /* Profile 区域 */
+        .profile-section {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .profile-logged-in {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .profile-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        .profile-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .profile-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .profile-stats {
+            font-size: 12px;
+            color: #6c757d;
+        }
+
+        .profile-login-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .profile-login-btn:hover {
+            background: #5568d3;
         }
 
         .container {
@@ -21,283 +97,299 @@
             padding: 40px 20px;
         }
 
-        /* 顶部标题区域 */
-        .header-section {
-            text-align: center;
-            margin-bottom: 50px;
-            background: rgba(255, 255, 255, 0.95);
-            padding: 40px;
-            border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-        }
-
-        .main-title {
-            font-size: 3rem;
-            font-weight: 800;
-            color: #2c3e50;
-            margin-bottom: 30px;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-        }
-
-        /* 学习曲线占位图 */
-        .progress-chart {
-            width: 100%;
-            height: 200px;
-            background: #f8f9fa;
-            border-radius: 12px;
-            padding: 20px;
-            margin-top: 20px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .chart-line {
-            stroke: #667eea;
-            stroke-width: 3;
-            fill: none;
-        }
-
-        .chart-area {
-            fill: url(#gradient);
-            opacity: 0.3;
-        }
-
-        /* Mode A: Quick Audit */
+        /* 区块一：Quick Audit（单次批改模式） */
         .quick-audit-section {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 20px;
+            background: #fff;
+            border-radius: 12px;
             padding: 40px;
             margin-bottom: 40px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            max-width: 900px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 30px;
         }
 
         .section-title {
-            font-size: 1.8rem;
-            font-weight: 700;
+            font-size: 1.5rem;
+            font-weight: 600;
             color: #2c3e50;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
+            margin-bottom: 8px;
+        }
+
+        .section-subtitle {
+            font-size: 0.95rem;
+            color: #6c757d;
         }
 
         .audit-textarea {
             width: 100%;
-            min-height: 300px;
+            min-height: 350px;
             padding: 20px;
-            border: 3px solid #e1e4e8;
-            border-radius: 12px;
-            font-size: 16px;
+            border: 2px solid #e1e4e8;
+            border-radius: 8px;
+            font-size: 15px;
             line-height: 1.8;
             font-family: inherit;
             resize: vertical;
             transition: border-color 0.3s;
+            background: #fafbfc;
         }
 
         .audit-textarea:focus {
             outline: none;
             border-color: #667eea;
+            background: #fff;
         }
 
         .audit-btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #667eea;
             color: white;
             border: none;
-            padding: 18px 40px;
-            font-size: 1.2rem;
-            font-weight: 700;
-            border-radius: 12px;
+            padding: 14px 32px;
+            font-size: 16px;
+            font-weight: 600;
+            border-radius: 8px;
             cursor: pointer;
             margin-top: 20px;
-            transition: transform 0.2s, box-shadow 0.2s;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            width: 100%;
+            transition: background 0.2s;
         }
 
         .audit-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+            background: #5568d3;
         }
 
         .audit-btn:active {
-            transform: translateY(0);
+            transform: translateY(1px);
         }
 
-        /* Mode B: Missions */
+        /* 区块二：Guided Missions（练习模式） */
         .missions-section {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 20px;
-            padding: 40px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            background: #fff;
+            border-radius: 12px;
+            padding: 32px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .missions-header {
+            margin-bottom: 24px;
+        }
+
+        .missions-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 4px;
+        }
+
+        .missions-subtitle {
+            font-size: 0.9rem;
+            color: #6c757d;
         }
 
         .mission-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 25px;
-            margin-top: 30px;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 16px;
         }
 
         .mission-card {
-            background: white;
-            border-radius: 16px;
-            padding: 24px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05), 0 1px 3px rgba(0,0,0,0.1);
-            transition: transform 0.2s, box-shadow 0.2s;
+            background: #fafbfc;
+            border: 1px solid #e1e4e8;
+            border-radius: 8px;
+            padding: 20px;
             cursor: pointer;
-            border: 2px solid #e1e4e8;
+            transition: all 0.2s;
             display: flex;
             flex-direction: column;
-            min-height: 200px;
         }
 
         .mission-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 12px 20px rgba(0,0,0,0.1);
             border-color: #667eea;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+            transform: translateY(-2px);
         }
 
-        .mid-tag {
-            background: #e1f5fe;
-            color: #0288d1;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 0.85rem;
+        .mission-tag {
+            font-size: 0.75rem;
             font-weight: 600;
-            align-self: flex-start;
-            margin-bottom: 15px;
+            color: #667eea;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
         }
 
         .mission-card h3 {
-            margin: 10px 0;
+            font-size: 1.1rem;
+            font-weight: 600;
             color: #2c3e50;
-            font-size: 1.4rem;
+            margin-bottom: 12px;
         }
 
-        .question-box {
-            background: #f8f9fa;
-            border-left: 4px solid #667eea;
-            padding: 12px;
-            margin-top: auto;
-            border-radius: 4px;
-        }
-
-        .question-box p {
-            margin: 0;
+        .mission-question {
+            font-size: 0.9rem;
+            color: #6c757d;
+            line-height: 1.5;
             font-style: italic;
-            color: #5f6368;
-            font-size: 0.95rem;
+            margin-top: auto;
         }
 
         @media (max-width: 768px) {
-            .main-title { font-size: 2rem; }
+            .container { padding: 20px 16px; }
+            .quick-audit-section { padding: 24px; }
             .mission-grid { grid-template-columns: 1fr; }
-            .container { padding: 20px 10px; }
+            .top-nav { padding: 12px 16px; }
+            .dashboard-title { font-size: 1.25rem; }
         }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <!-- 顶部标题 + 学习曲线 -->
-        <div class="header-section">
-            <h1 class="main-title">GeekGirl Academic Lab</h1>
-            <div class="progress-chart">
-                <svg width="100%" height="100%" viewBox="0 0 800 200" preserveAspectRatio="none">
-                    <defs>
-                        <linearGradient id="gradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#764ba2;stop-opacity:0" />
-                        </linearGradient>
-                    </defs>
-                    <!-- 背景网格 -->
-                    <g stroke="#e1e4e8" stroke-width="1" opacity="0.5">
-                        <line x1="0" y1="40" x2="800" y2="40" />
-                        <line x1="0" y1="80" x2="800" y2="80" />
-                        <line x1="0" y1="120" x2="800" y2="120" />
-                        <line x1="0" y1="160" x2="800" y2="160" />
-                    </g>
-                    <!-- 折线图 -->
-                    <path class="chart-area" d="M 0,180 L 100,150 L 200,120 L 300,100 L 400,80 L 500,60 L 600,50 L 700,40 L 800,30 L 800,200 L 0,200 Z" />
-                    <path class="chart-line" d="M 0,180 L 100,150 L 200,120 L 300,100 L 400,80 L 500,60 L 600,50 L 700,40 L 800,30" />
-                    <!-- 数据点 -->
-                    <circle cx="100" cy="150" r="5" fill="#667eea" />
-                    <circle cx="200" cy="120" r="5" fill="#667eea" />
-                    <circle cx="300" cy="100" r="5" fill="#667eea" />
-                    <circle cx="400" cy="80" r="5" fill="#667eea" />
-                    <circle cx="500" cy="60" r="5" fill="#667eea" />
-                    <circle cx="600" cy="50" r="5" fill="#667eea" />
-                    <circle cx="700" cy="40" r="5" fill="#667eea" />
-                    <circle cx="800" cy="30" r="5" fill="#667eea" />
-                </svg>
-            </div>
+    <!-- 顶部导航栏 -->
+    <div class="top-nav">
+        <div class="dashboard-title">My Writing Dashboard</div>
+        <div class="profile-section" id="profile-section">
+            <!-- 默认显示：未登录状态 -->
+            <button class="profile-login-btn" onclick="showLoginModal()">Login / Enter Activation Code</button>
         </div>
+    </div>
 
-        <!-- Mode A: Quick Audit -->
+    <div class="container">
+        <!-- 区块一：Quick Audit（单次批改模式） -->
         <div class="quick-audit-section">
-            <h2 class="section-title">⚡ Mode A: Quick Audit</h2>
+            <div class="section-header">
+                <h2 class="section-title">Quick Audit</h2>
+                <p class="section-subtitle">Paste your completed essay for instant diagnostic feedback</p>
+            </div>
             <textarea 
                 id="audit-input" 
                 class="audit-textarea" 
-                placeholder="Paste your essay here for a 3-second PEEL audit..."
+                placeholder="Paste your essay here for a comprehensive PEEL audit and diagnostic report..."
             ></textarea>
-            <button class="audit-btn" onclick="processQuickAudit()">🚀 Audit Now</button>
+            <button class="audit-btn" onclick="processQuickAudit()">Generate Audit Report</button>
         </div>
 
-        <!-- Mode B: Missions -->
+        <!-- 区块二：Guided Missions（练习模式） -->
         <div class="missions-section">
-            <h2 class="section-title">📚 Mode B: Missions</h2>
+            <div class="missions-header">
+                <h2 class="missions-title">Guided Missions</h2>
+                <p class="missions-subtitle">Structured practice exercises with step-by-step guidance</p>
+            </div>
             <div class="mission-grid">
-                <div class="mission-card" onclick="location.href='assets/missions/CR_M1_workspace.html'">
-                    <span class="mid-tag">Mission CR_M1</span>
+                <div class="mission-card" onclick="enterPracticeMode('assets/missions/CR_M1_workspace.html')">
+                    <div class="mission-tag">CR_M1</div>
                     <h3>Opposition in the 1950s</h3>
-                    <div class="question-box">
-                        <p>"Assess the reasons for the opposition to the Civil Rights movement in the Southern states in the 1950s."</p>
-                    </div>
+                    <div class="mission-question">"Assess the reasons for the opposition to the Civil Rights movement in the Southern states in the 1950s."</div>
                 </div>
 
-                <div class="mission-card" onclick="location.href='assets/missions/CR_M2_workspace.html'">
-                    <span class="mid-tag">Mission CR_M2</span>
+                <div class="mission-card" onclick="enterPracticeMode('assets/missions/CR_M2_workspace.html')">
+                    <div class="mission-tag">CR_M2</div>
                     <h3>Success in the 1950s</h3>
-                    <div class="question-box">
-                        <p>"Evaluate how successful the Civil Rights movement was in the 1950s."</p>
-                    </div>
+                    <div class="mission-question">"Evaluate how successful the Civil Rights movement was in the 1950s."</div>
                 </div>
 
-                <div class="mission-card" onclick="location.href='assets/missions/CR_M3_workspace.html'">
-                    <span class="mid-tag">Mission CR_M3</span>
+                <div class="mission-card" onclick="enterPracticeMode('assets/missions/CR_M3_workspace.html')">
+                    <div class="mission-tag">CR_M3</div>
                     <h3>Federal Institutions</h3>
-                    <div class="question-box">
-                        <p>"Assess the impact of federal institutions on civil rights in the late 1940s and 1950s."</p>
-                    </div>
+                    <div class="mission-question">"Assess the impact of federal institutions on civil rights in the late 1940s and 1950s."</div>
                 </div>
 
-                <div class="mission-card" onclick="location.href='assets/missions/CR_M4_workspace.html'">
-                    <span class="mid-tag">Mission CR_M4</span>
+                <div class="mission-card" onclick="enterPracticeMode('assets/missions/CR_M4_workspace.html')">
+                    <div class="mission-tag">CR_M4</div>
                     <h3>NAACP Effectiveness</h3>
-                    <div class="question-box">
-                        <p>"Analyse the effectiveness of the NAACP in promoting civil rights in the late 1940s and 1950s."</p>
-                    </div>
+                    <div class="mission-question">"Analyse the effectiveness of the NAACP in promoting civil rights in the late 1940s and 1950s."</div>
                 </div>
 
-                <div class="mission-card" onclick="location.href='assets/missions/CR_M5_workspace.html'">
-                    <span class="mid-tag">Mission CR_M5</span>
+                <div class="mission-card" onclick="enterPracticeMode('assets/missions/CR_M5_workspace.html')">
+                    <div class="mission-tag">CR_M5</div>
                     <h3>Federal vs Grassroots</h3>
-                    <div class="question-box">
-                        <p>"'Progress towards greater civil rights in the 1950s was mainly brought about by federal institutions.' Evaluate this view."</p>
-                    </div>
+                    <div class="mission-question">"'Progress towards greater civil rights in the 1950s was mainly brought about by federal institutions.' Evaluate this view."</div>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
+        // Profile 状态管理（示例：可以从 localStorage 或 API 获取）
+        let userProfile = {
+            isLoggedIn: false,
+            name: "",
+            avatar: "",
+            credits: 0,
+            auditsRemaining: 0
+        };
+
+        // 检查登录状态
+        function checkLoginStatus() {
+            const stored = localStorage.getItem('userProfile');
+            if (stored) {
+                try {
+                    userProfile = JSON.parse(stored);
+                } catch (e) {
+                    console.error('Failed to parse user profile:', e);
+                }
+            }
+            renderProfile();
+        }
+
+        // 渲染 Profile 区域
+        function renderProfile() {
+            const profileSection = document.getElementById('profile-section');
+            if (!profileSection) return;
+
+            if (userProfile.isLoggedIn) {
+                const initials = userProfile.name ? userProfile.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : 'U';
+                profileSection.innerHTML = `
+                    <div class="profile-logged-in">
+                        <div class="profile-avatar">${initials}</div>
+                        <div class="profile-info">
+                            <div class="profile-name">${userProfile.name || 'User'}</div>
+                            <div class="profile-stats">${userProfile.auditsRemaining || 0} audits remaining</div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                profileSection.innerHTML = `
+                    <button class="profile-login-btn" onclick="showLoginModal()">Login / Enter Activation Code</button>
+                `;
+            }
+        }
+
+        // 显示登录模态框（占位功能）
+        function showLoginModal() {
+            const code = prompt('Enter your activation code:');
+            if (code && code.trim()) {
+                // 示例：设置用户信息（实际应该调用 API 验证）
+                userProfile = {
+                    isLoggedIn: true,
+                    name: "Student User",
+                    avatar: "",
+                    credits: 100,
+                    auditsRemaining: 10
+                };
+                localStorage.setItem('userProfile', JSON.stringify(userProfile));
+                renderProfile();
+            }
+        }
+
+        // Quick Audit 处理
         function processQuickAudit() {
             const textarea = document.getElementById('audit-input');
             const text = textarea.value.trim();
             
             if (!text) {
                 alert('Please paste your essay first!');
+                return;
+            }
+
+            // 检查剩余批改次数（如果已登录）
+            if (userProfile.isLoggedIn && userProfile.auditsRemaining <= 0) {
+                alert('You have no audits remaining. Please purchase more credits.');
                 return;
             }
 
@@ -324,6 +416,16 @@
             const bodies = paragraphs.slice(1, paragraphs.length - 1);
             localStorage.setItem('pendingBodies', JSON.stringify(bodies));
 
+            // 标记为 Audit Mode
+            localStorage.setItem('workspaceMode', 'audit');
+
+            // 减少批改次数（如果已登录）
+            if (userProfile.isLoggedIn) {
+                userProfile.auditsRemaining = Math.max(0, userProfile.auditsRemaining - 1);
+                localStorage.setItem('userProfile', JSON.stringify(userProfile));
+                renderProfile();
+            }
+
             // 跳转到默认练习页面
             window.location.href = 'assets/missions/CR_M1_workspace.html';
         }
@@ -333,6 +435,18 @@
             if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
                 processQuickAudit();
             }
+        });
+
+        // 进入 Practice Mode
+        function enterPracticeMode(url) {
+            // 标记为 Practice Mode
+            localStorage.setItem('workspaceMode', 'practice');
+            window.location.href = url;
+        }
+
+        // 页面加载时检查登录状态
+        window.addEventListener('load', () => {
+            checkLoginStatus();
         });
     </script>
 

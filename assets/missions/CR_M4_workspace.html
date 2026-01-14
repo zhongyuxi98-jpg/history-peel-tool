@@ -31,7 +31,7 @@
         button { border: none; border-radius: 6px; cursor: pointer; font-weight: 600; transition: 0.2s; }
         .btn-save { background: #2a9d8f; color: white; padding: 10px 18px; }
         .btn-export { background: #f4a261; color: white; padding: 10px 18px; }
-
+        
         /* 💡 显式按钮样式 */
         .tag-row { display: flex; align-items: center; gap: 5px; margin-bottom: 8px; }
         .tag { flex: 1; padding: 8px; border-radius: 4px; font-size: 12px; cursor: pointer; border: 1px solid #ddd; background: #fff; border-left: 4px solid #457b9d; text-align: left; }
@@ -49,7 +49,8 @@
         .toolbar-btn:hover { opacity:0.9; transform:translateY(-1px); }
 
         #essay-constructor { display:flex; flex-direction:column; gap:14px; }
-        .essay-module { border:1px solid #dee2e6; border-radius:10px; padding:12px 14px; background:#fff; }
+        .essay-module { border:1px solid #dee2e6; border-radius:10px; padding:12px 14px; background:#fff; max-width: 1000px; width: 100%; }
+        .main { max-width: 1000px; width: 90%; }
         .module-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; gap:8px; }
         .module-controls-left { display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
         .module-controls-right { display:flex; align-items:center; gap:6px; }
@@ -111,7 +112,7 @@
         .toast-icon {
             font-size: 20px;
         }
-        
+
         /* 🚀 底部 AI Review 样式 */
         .review-actions { display: flex; gap: 12px; margin: 30px 0; }
         .ai-review-trigger { background: #e63946; color: white; flex: 1; padding: 20px; font-size: 18px; box-shadow: 0 4px 15px rgba(230,57,70,0.3); }
@@ -119,23 +120,150 @@
         
         /* Preview Modal */
         #preview-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; overflow-y: auto; }
-        #preview-modal .modal-content { background: #fff; margin: 40px auto; max-width: 900px; border-radius: 12px; padding: 30px; box-shadow: 0 10px 40px rgba(0,0,0,0.3); position: relative; }
+        #preview-modal .modal-content { background: #fff; margin: 40px auto; max-width: 1000px; width: 90%; border-radius: 12px; padding: 30px; box-shadow: 0 10px 40px rgba(0,0,0,0.3); position: relative; }
         .modal-header { font-size: 24px; font-weight: 700; color: #1d3557; margin-bottom: 20px; }
         .modal-body { max-height: 60vh; overflow-y: auto; padding: 20px; background: #f8f9fa; border-radius: 8px; line-height: 1.8; white-space: pre-wrap; }
+        .modal-body p { margin: 0 0 16px 0; }
+        .modal-body p:last-child { margin-bottom: 0; }
         .modal-footer { display: flex; gap: 12px; margin-top: 20px; justify-content: flex-end; }
         .modal-btn { padding: 12px 24px; border-radius: 6px; border: none; cursor: pointer; font-weight: 600; }
         .modal-btn-secondary { background: #6c757d; color: white; }
         .modal-btn-primary { background: #e63946; color: white; }
         
-        /* 批改视图：两栏布局 */
+        /* 批改视图：左右双栏布局（同屏对照修改） */
         #feedback-view { display: none; margin-top: 30px; }
         .feedback-container { display: flex; gap: 20px; min-height: 500px; }
-        .feedback-left { flex: 1; background: #f8f9fa; border-radius: 12px; padding: 20px; overflow-y: auto; max-height: 70vh; }
-        .feedback-right { flex: 1; background: #fff; border: 2px solid #e63946; border-radius: 12px; padding: 20px; overflow-y: auto; max-height: 70vh; }
-        .feedback-left h3 { color: #1d3557; margin-bottom: 15px; }
+        .feedback-left {
+            flex: 1;
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            overflow-y: auto;
+            max-height: 80vh;
+        }
+        .feedback-right {
+            flex: 1;
+            background: #fff;
+            border: 2px solid #e63946;
+            border-radius: 12px;
+            padding: 20px;
+            overflow-y: auto;
+            max-height: 80vh;
+        }
+        .feedback-left h3 { color: #1d3557; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
         .feedback-right h3 { color: #e63946; margin-bottom: 15px; }
-        .edit-back-btn { background: #2a9d8f; color: white; padding: 15px 30px; font-size: 16px; border-radius: 8px; border: none; cursor: pointer; font-weight: 700; margin-bottom: 20px; width: 100%; }
+        .view-mode-toggle {
+            background: #457b9d;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        .view-mode-toggle:hover { opacity: 0.9; }
+        
+        /* 呼吸灯高亮效果 */
+        @keyframes breathe {
+            0%, 100% { box-shadow: 0 0 0 rgba(102, 126, 234, 0); }
+            50% { box-shadow: 0 0 20px rgba(102, 126, 234, 0.8); }
+        }
+        .essay-module.highlight {
+            animation: breathe 2s ease-in-out infinite;
+            border: 2px solid #667eea !important;
+        }
+        
+        /* AI 反馈卡片样式 */
+        .ai-feedback-card {
+            background: #fff;
+            border-left: 4px solid #e63946;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .locate-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            font-weight: 600;
+            margin-top: 8px;
+        }
+        .locate-btn:hover { opacity: 0.9; }
+        
         #ai-review-result { border: 2px solid #e63946; border-radius: 12px; background: white; margin-bottom: 40px; overflow: hidden; }
+        
+        /* 模式标签样式 */
+        .mode-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-left: 12px;
+        }
+        .mode-badge.audit {
+            background: #fff3cd;
+            color: #856404;
+        }
+        .mode-badge.practice {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        
+        /* Mission Lab 抽屉样式 */
+        #mission-lab-drawer .mission-card {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05), 0 1px 3px rgba(0,0,0,0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+            border: 2px solid #e1e4e8;
+            display: flex;
+            flex-direction: column;
+            min-height: 200px;
+        }
+        #mission-lab-drawer .mission-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 20px rgba(0,0,0,0.1);
+            border-color: #667eea;
+        }
+        #mission-lab-drawer .mid-tag {
+            background: #e1f5fe;
+            color: #0288d1;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            align-self: flex-start;
+            margin-bottom: 15px;
+        }
+        #mission-lab-drawer .mission-card h3 {
+            margin: 10px 0;
+            color: #2c3e50;
+            font-size: 1.4rem;
+        }
+        #mission-lab-drawer .question-box {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 12px;
+            margin-top: auto;
+            border-radius: 4px;
+        }
+        #mission-lab-drawer .question-box p {
+            margin: 0;
+            font-style: italic;
+            color: #5f6368;
+            font-size: 0.95rem;
+        }
     </style>
 </head>
 
@@ -143,6 +271,7 @@
     <div class="main">
         <div class="nav-bar">
             <button class="btn-save" onclick="save()">💾 SAVE</button>
+            <button class="btn-mission-lab" onclick="showMissionLab()" style="background: #764ba2; color: white; padding: 10px 18px; border-radius: 6px; border: none; cursor: pointer; font-weight: 600;">📚 Mission Lab</button>
             <select id="language-setting" style="padding: 10px; border-radius: 6px; border: 1.5px solid #007bff;">
                 <option value="dual" selected>🌓 Dual-Language</option>
                 <option value="en">🇬🇧 English Only</option>
@@ -151,8 +280,48 @@
             <button class="btn-export" onclick="exportDoc()">📥 EXPORT + FEEDBACK</button>
         </div>
 
-        <div class="header">
-            <div style="color:#6c757d; font-size:11px; margin-bottom:5px;">MISSION ID: CR_M4</div>
+        <!-- Mission Lab 抽屉 -->
+        <div id="mission-lab-drawer" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 2000; overflow-y: auto;">
+            <div style="background: #fff; margin: 40px auto; max-width: 1000px; border-radius: 12px; padding: 30px; box-shadow: 0 10px 40px rgba(0,0,0,0.3);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+                    <h2 style="font-size: 28px; color: #1d3557;">📚 Mission Lab</h2>
+                    <button onclick="closeMissionLab()" style="background: #6c757d; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: 600;">✕ Close</button>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 25px;">
+                    <div class="mission-card" onclick="location.href='assets/missions/CR_M1_workspace.html'">
+                        <span class="mid-tag">Mission CR_M1</span>
+                        <h3>Opposition in the 1950s</h3>
+                        <div class="question-box"><p>"Assess the reasons for the opposition to the Civil Rights movement in the Southern states in the 1950s."</p></div>
+                    </div>
+                    <div class="mission-card" onclick="location.href='assets/missions/CR_M2_workspace.html'">
+                        <span class="mid-tag">Mission CR_M2</span>
+                        <h3>Success in the 1950s</h3>
+                        <div class="question-box"><p>"Evaluate how successful the Civil Rights movement was in the 1950s."</p></div>
+                    </div>
+                    <div class="mission-card" onclick="location.href='assets/missions/CR_M3_workspace.html'">
+                        <span class="mid-tag">Mission CR_M3</span>
+                        <h3>Federal Institutions</h3>
+                        <div class="question-box"><p>"Assess the impact of federal institutions on civil rights in the late 1940s and 1950s."</p></div>
+                    </div>
+                    <div class="mission-card" onclick="location.href='assets/missions/CR_M4_workspace.html'">
+                        <span class="mid-tag">Mission CR_M4</span>
+                        <h3>NAACP Effectiveness</h3>
+                        <div class="question-box"><p>"Analyse the effectiveness of the NAACP in promoting civil rights in the late 1940s and 1950s."</p></div>
+                    </div>
+                    <div class="mission-card" onclick="location.href='assets/missions/CR_M5_workspace.html'">
+                        <span class="mid-tag">Mission CR_M5</span>
+                        <h3>Federal vs Grassroots</h3>
+                        <div class="question-box"><p>"'Progress towards greater civil rights in the 1950s was mainly brought about by federal institutions.' Evaluate this view."</p></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="header" id="header-section">
+            <div style="color:#6c757d; font-size:11px; margin-bottom:5px;">
+                MISSION ID: CR_M4
+                <span id="mode-badge" class="mode-badge" style="display:none;"></span>
+            </div>
             <div style="display:flex; align-items:center; gap:10px;">
                 <h1 class="q-text" id="question-title" contenteditable="true" spellcheck="false" style="outline:none; margin:0; flex:1;">Analyse the effectiveness of the NAACP in promoting civil rights in the late 1940s and 1950s.</h1>
                 <span title="Click to edit the question" style="font-size:18px; color:#457b9d;">✏️</span>
@@ -168,34 +337,38 @@
         <div id="essay-constructor"></div>
 
         <div class="review-actions">
-            <button class="preview-btn" onclick="showPreviewModal()">👁 Preview Essay</button>
-            <button class="ai-review-trigger" id="ai-btn" onclick="showPreviewModal()">🚀 SUBMIT FOR AI TEACHER'S REVIEW</button>
+            <button class="ai-review-trigger" id="ai-btn" onclick="showPreviewView()">🚀 SUBMIT FOR AI TEACHER'S REVIEW</button>
         </div>
 
-        <!-- Preview Modal -->
-        <div id="preview-modal">
-            <div class="modal-content">
-                <div class="modal-header">📄 Essay Preview</div>
-                <div class="modal-body" id="preview-content"></div>
-                <div class="modal-footer">
-                    <button class="modal-btn modal-btn-secondary" onclick="closePreviewModal()">← Back to Edit</button>
-                    <button class="modal-btn modal-btn-primary" onclick="confirmSubmit()">✓ Confirm & Submit</button>
+        <!-- Preview View (直接显示，不再用 Modal) -->
+        <div id="preview-view" style="display: none;">
+            <div style="background: #fff; border-radius: 12px; padding: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); max-width: 1000px; width: 100%;">
+                <div style="font-size: 24px; font-weight: 700; color: #1d3557; margin-bottom: 20px;">📄 Essay Preview</div>
+                <div id="preview-content" style="max-height: 60vh; overflow-y: auto; padding: 20px; background: #f8f9fa; border-radius: 8px; line-height: 1.8; white-space: pre-wrap; margin-bottom: 20px;"></div>
+                <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                    <button class="modal-btn modal-btn-secondary" onclick="backFromPreview()">← Back to Edit</button>
+                    <button class="modal-btn modal-btn-primary" onclick="confirmSubmitFromPreview()">✓ Confirm & Submit for Review</button>
                 </div>
             </div>
         </div>
 
-        <!-- 批改视图：两栏布局 -->
+        <!-- 批改视图：左右双栏（同屏对照修改） -->
         <div id="feedback-view">
-            <button class="edit-back-btn" onclick="backToEdit()">✏️ Edit This Essay</button>
             <div class="feedback-container">
                 <div class="feedback-left">
-                    <h3>📄 Essay Preview</h3>
-                    <div id="feedback-essay" style="line-height: 1.8; white-space: pre-wrap;"></div>
+                    <h3>
+                        📝 Your Essay
+                        <button class="view-mode-toggle" id="view-mode-toggle" onclick="toggleEditViewMode()">Switch to Text Mode</button>
+                    </h3>
+                    <div id="feedback-essay-editable"></div>
                 </div>
                 <div class="feedback-right">
                     <h3>🎯 Academic Review</h3>
                     <div id="ai-content" style="line-height: 1.8; font-size: 15px;">AI is analyzing...</div>
                 </div>
+            </div>
+            <div style="margin-top: 20px; text-align: center;">
+                <button class="ai-review-trigger" id="resubmit-btn" onclick="resubmitForReview()" style="display: none;">🔄 Re-submit for Improved Score</button>
             </div>
         </div>
 
@@ -211,15 +384,15 @@
     <div class="sidebar">
         <div class="sidebar-content">
             <h3 style="margin:0 0 14px 0; color:#1d3557;">Knowledge Hub</h3>
-            
-            <div class="kb-section">
-                <div style="font-size:12px; font-weight:800; color:#1d3557; margin-bottom:10px; border-bottom:1px solid #eee;">⚖️ LEGAL MILESTONES</div>
+        
+        <div class="kb-section">
+            <div style="font-size:12px; font-weight:800; color:#1d3557; margin-bottom:10px; border-bottom:1px solid #eee;">⚖️ LEGAL MILESTONES</div>
                 <div class="tag-row"><div class="tag" onclick="add('Brown v. Board (1954)')">Brown v. Board</div><button class="explain-btn" onclick="getExplanation('Brown v. Board')">💡</button></div>
                 <div class="tag-row"><div class="tag" onclick="add('Civil Rights Act (1957)')">1957 CR Act</div><button class="explain-btn" onclick="getExplanation('Civil Rights Act 1957')">💡</button></div>
-            </div>
+        </div>
 
-            <div class="kb-section" style="margin-top:20px;">
-                <div style="font-size:12px; font-weight:800; color:#1d3557; margin-bottom:10px; border-bottom:1px solid #eee;">✊ DIRECT ACTION</div>
+        <div class="kb-section" style="margin-top:20px;">
+            <div style="font-size:12px; font-weight:800; color:#1d3557; margin-bottom:10px; border-bottom:1px solid #eee;">✊ DIRECT ACTION</div>
                 <div class="tag-row"><div class="tag" onclick="add('Montgomery Bus Boycott (1955–56)')">Bus Boycott</div><button class="explain-btn" onclick="getExplanation('Montgomery Bus Boycott')">💡</button></div>
                 <div class="tag-row"><div class="tag" onclick="add('Little Rock Nine (1957)')">Little Rock 9</div><button class="explain-btn" onclick="getExplanation('Little Rock Nine')">💡</button></div>
                 <div class="tag-row"><div class="tag" onclick="add('Jim Crow laws')">Jim Crow</div><button class="explain-btn" onclick="getExplanation('Jim Crow laws')">💡</button></div>
@@ -242,9 +415,43 @@
         let currentLanguageMode = document.getElementById('language-setting').value || 'dual';
         let modules = []; // { id, type: 'intro'|'body'|'conclusion', boxes: [] }
         let activeTextarea = null;
+        let workspaceMode = 'practice'; // 'audit' or 'practice'
 
         const STORAGE_KEY = `GGV1_STATE::${ID}`;
         let saveDebounceTimer = null;
+
+        // --- 0.0 模式检测与初始化 ---
+        function detectWorkspaceMode() {
+            const mode = localStorage.getItem('workspaceMode') || 'practice';
+            workspaceMode = mode;
+            
+            // 显示模式标签
+            const badge = document.getElementById('mode-badge');
+            if (badge) {
+                if (mode === 'audit') {
+                    badge.className = 'mode-badge audit';
+                    badge.innerText = 'Audit Mode';
+                    badge.style.display = 'inline-block';
+                } else {
+                    badge.className = 'mode-badge practice';
+                    badge.innerText = 'Practice Mode';
+                    badge.style.display = 'inline-block';
+                }
+            }
+            
+            // Audit Mode：隐藏题目背景和 Knowledge Hub
+            if (mode === 'audit') {
+                const header = document.getElementById('header-section');
+                const sidebar = document.querySelector('.sidebar');
+                const toolbar = document.getElementById('module-toolbar');
+                
+                if (header) header.style.display = 'none';
+                if (sidebar) sidebar.style.display = 'none';
+                if (toolbar) toolbar.style.display = 'none';
+            }
+            
+            return mode;
+        }
 
         // --- 0.1 实用函数 ---
         function getLanguageConstraint() {
@@ -455,6 +662,9 @@
         }
 
         function toggleModuleMode(id) {
+            // 致命 Bug 修复：切换前强制保存
+            saveToLocal();
+            
             const m = modules.find(m => m.id === id);
             if (!m) return;
             const cfg = getBoxConfig(m.type);
@@ -477,7 +687,10 @@
                 m.mode = 'guided';
             }
             renderModules();
-            saveToLocal();
+            
+            // 致命 Bug 修复：重绘后强制恢复
+            loadFromLocal();
+            renderModules(); // 再次渲染确保数据正确显示
         }
 
         function moveModule(id, direction) {
@@ -597,11 +810,11 @@
             } catch (e) { box.innerText = "⚠️ Connection error."; }
         }
 
-        // --- 6. 预览前置逻辑 ---
-        function showPreviewModal() {
-            const modal = document.getElementById('preview-modal');
+        // --- 6. 预览视图逻辑（精简流程：直接显示，无 Modal） ---
+        function showPreviewView() {
+            const previewView = document.getElementById('preview-view');
             const content = document.getElementById('preview-content');
-            if (!modal || !content) return;
+            if (!previewView || !content) return;
             
             const essayText = buildEssayText();
             if (!essayText.trim()) {
@@ -609,31 +822,53 @@
                 return;
             }
             
-            content.innerText = essayText;
-            modal.style.display = 'block';
+            // 格式化文本：按段落清晰排版
+            const formatted = essayText
+                .split('\n\n')
+                .map(p => p.trim())
+                .filter(p => p.length > 0)
+                .join('\n\n');
             
-            // 点击 Modal 外部关闭
-            modal.onclick = (e) => {
-                if (e.target === modal) closePreviewModal();
-            };
+            content.innerText = formatted;
+            
+            // 隐藏编辑区，显示预览视图
+            document.getElementById('essay-constructor').style.display = 'none';
+            document.getElementById('module-toolbar').style.display = 'none';
+            document.querySelector('.review-actions').style.display = 'none';
+            previewView.style.display = 'block';
+            previewView.scrollIntoView({ behavior: 'smooth' });
         }
 
-        function closePreviewModal() {
-            const modal = document.getElementById('preview-modal');
-            if (modal) modal.style.display = 'none';
+        function backFromPreview() {
+            const previewView = document.getElementById('preview-view');
+            const constructor = document.getElementById('essay-constructor');
+            const toolbar = document.getElementById('module-toolbar');
+            const actions = document.querySelector('.review-actions');
+            
+            if (previewView) previewView.style.display = 'none';
+            if (constructor) constructor.style.display = 'block';
+            if (toolbar) toolbar.style.display = 'flex';
+            if (actions) actions.style.display = 'flex';
+            
+            constructor.scrollIntoView({ behavior: 'smooth' });
         }
 
-        function confirmSubmit() {
-            closePreviewModal();
+        function confirmSubmitFromPreview() {
+            // 直接提交，无需关闭预览
             submitReview();
         }
 
-        // --- 7. 底部批改：整篇 Essay 级别 ---
-        async function submitReview() {
+        // --- 7. 底部批改：整篇 Essay 级别（同屏对照修改） ---
+        let isResubmit = false;
+        let previousReview = "";
+        
+        async function submitReview(isResubmitFlag = false) {
+            isResubmit = isResubmitFlag;
             const btn = document.getElementById('ai-btn');
             const feedbackView = document.getElementById('feedback-view');
-            const essayPreview = document.getElementById('feedback-essay');
+            const editableArea = document.getElementById('feedback-essay-editable');
             const contentDiv = document.getElementById('ai-content');
+            const resubmitBtn = document.getElementById('resubmit-btn');
             const essay_question = getCurrentQuestion();
             const constraint = getLanguageConstraint();
             const essay_full = buildEssayText();
@@ -644,7 +879,9 @@
                 essay_full,
                 structure,
                 language: currentLanguageMode,
-                constraint
+                constraint,
+                is_resubmit: isResubmit,
+                previous_review: previousReview
             };
             
             // 隐藏编辑区，显示批改视图
@@ -653,13 +890,12 @@
             document.querySelector('.review-actions').style.display = 'none';
             feedbackView.style.display = 'block';
             
-            // 左侧显示 Essay Preview
-            if (essayPreview) {
-                essayPreview.innerText = essay_full || 'No content yet.';
-            }
+            // 左侧显示可编辑的模块（PEEL 格子模式）
+            renderEditableModules(editableArea);
             
             btn.innerText = "⌛ Teacher is grading..."; btn.disabled = true;
             contentDiv.innerText = "AI is analyzing your essay...";
+            if (resubmitBtn) resubmitBtn.style.display = 'none';
 
             try {
                 const response = await fetch('/api/review', { 
@@ -668,7 +904,9 @@
                     body: JSON.stringify(data) 
                 });
                 const result = await response.json();
-                contentDiv.innerText = result.review || "Feedback failed.";
+                previousReview = result.review || "";
+                renderAIFeedback(contentDiv, previousReview);
+                if (resubmitBtn) resubmitBtn.style.display = 'block';
             } catch (e) { contentDiv.innerText = "⚠️ Connection failed."; }
             finally { 
                 btn.innerText = "🚀 SUBMIT FOR AI TEACHER'S REVIEW"; 
@@ -677,20 +915,177 @@
             }
         }
 
-        // --- 8. 编辑回溯 ---
-        function backToEdit() {
-            const feedbackView = document.getElementById('feedback-view');
-            const constructor = document.getElementById('essay-constructor');
-            const toolbar = document.getElementById('module-toolbar');
-            const actions = document.querySelector('.review-actions');
-            
-            if (feedbackView) feedbackView.style.display = 'none';
-            if (constructor) constructor.style.display = 'block';
-            if (toolbar) toolbar.style.display = 'flex';
-            if (actions) actions.style.display = 'flex';
-            
-            constructor.scrollIntoView({ behavior: 'smooth' });
+        // 渲染可编辑模块（在 Review 页面左侧）
+        function renderEditableModules(container) {
+            if (!container) return;
+            const html = modules.map((m) => {
+                const cfg = getBoxConfig(m.type);
+                let label = "";
+                if (m.type === 'intro') label = "Intro";
+                else if (m.type === 'conclusion') label = "Conclusion";
+                else {
+                    const bodyIdx = modules.filter(mm => mm.type === 'body' && modules.indexOf(mm) <= modules.indexOf(m)).length;
+                    label = "Body Paragraph " + bodyIdx;
+                }
+                
+                if (m.mode === 'free') {
+                    const freeText = (m.freeText || "").trim();
+                    return `
+                        <div class="essay-module" data-id="${m.id}" data-type="${m.type}">
+                            <div class="module-header">
+                                <span class="module-tag">${label}</span>
+                            </div>
+                            <div class="editor-box">
+                                <textarea 
+                                    data-module="${m.id}"
+                                    data-free="1"
+                                    style="width:100%; min-height:120px; padding:12px; border:1.5px solid #ced4da; border-radius:8px; font-size:14px; line-height:1.5;"
+                                    oninput="onFreeInput('${m.id}', this.value)"
+                                >${freeText}</textarea>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    const boxesHtml = cfg.map((boxCfg, idx) => {
+                        const value = (m.boxes && typeof m.boxes[idx] === 'string') ? m.boxes[idx] : "";
+                        return `
+                            <div class="editor-box">
+                                <div class="label">${boxCfg.label}</div>
+                                <textarea 
+                                    data-module="${m.id}" 
+                                    data-box="${idx}" 
+                                    style="width:100%; height:95px; padding:12px; border:1.5px solid #ced4da; border-radius:8px; font-size:14px; line-height:1.5;"
+                                    oninput="onBoxInput('${m.id}', ${idx}, this.value)"
+                                >${value}</textarea>
+                            </div>
+                        `;
+                    }).join("");
+                    return `
+                        <div class="essay-module" data-id="${m.id}" data-type="${m.type}">
+                            <div class="module-header">
+                                <span class="module-tag">${label}</span>
+                            </div>
+                            ${boxesHtml}
+                        </div>
+                    `;
+                }
+            }).join("");
+            container.innerHTML = html;
         }
+
+        // 切换编辑视图模式（PEEL 格子 / 纯文本）
+        let editViewMode = 'peel'; // 'peel' or 'text'
+        function toggleEditViewMode() {
+            const container = document.getElementById('feedback-essay-editable');
+            const toggleBtn = document.getElementById('view-mode-toggle');
+            if (!container) return;
+            
+            editViewMode = editViewMode === 'peel' ? 'text' : 'peel';
+            
+            if (editViewMode === 'text') {
+                // 切换到纯文本模式
+                const essayText = buildEssayText();
+                container.innerHTML = `
+                    <textarea 
+                        id="essay-text-editor"
+                        style="width:100%; min-height:400px; padding:20px; border:1.5px solid #ced4da; border-radius:8px; font-size:14px; line-height:1.8; font-family:inherit;"
+                        oninput="onTextEditorInput(this.value)"
+                    >${essayText}</textarea>
+                `;
+                if (toggleBtn) toggleBtn.innerText = 'Switch to PEEL Mode';
+            } else {
+                // 切换回 PEEL 格子模式
+                renderEditableModules(container);
+                if (toggleBtn) toggleBtn.innerText = 'Switch to Text Mode';
+            }
+        }
+
+        function onTextEditorInput(value) {
+            // 纯文本模式下的输入同步到 modules（简单实现：按段落拆分）
+            const paragraphs = value.split('\n\n').map(p => p.trim()).filter(p => p.length > 0);
+            // 这里可以更智能地匹配到现有模块，暂时简单处理
+            scheduleSave();
+        }
+
+        // 渲染 AI 反馈（带 Locate 功能）
+        function renderAIFeedback(container, reviewText) {
+            if (!container) return;
+            
+            // 解析 AI 反馈，查找段落引用（如 "Body 2", "Body Paragraph 2", "Body 2" 等）
+            const bodyPattern = /Body\s+(?:Paragraph\s+)?(\d+)/gi;
+            const matches = [...reviewText.matchAll(bodyPattern)];
+            const bodyRefs = [...new Set(matches.map(m => parseInt(m[1])))];
+            
+            // 将反馈分段，为每个提到 Body 的段落添加 Locate 按钮
+            let html = '<div class="ai-feedback-card">';
+            const paragraphs = reviewText.split('\n\n').filter(p => p.trim());
+            
+            paragraphs.forEach(para => {
+                const paraMatches = [...para.matchAll(bodyPattern)];
+                const paraBodyRefs = [...new Set(paraMatches.map(m => parseInt(m[1])))];
+                
+                html += `<p style="margin:0 0 12px 0; line-height:1.8;">${para}</p>`;
+                
+                if (paraBodyRefs.length > 0) {
+                    paraBodyRefs.forEach(bodyNum => {
+                        html += `<button class="locate-btn" onclick="locateBodyParagraph(${bodyNum})">📍 Locate Body ${bodyNum}</button> `;
+                    });
+                }
+            });
+            
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        // Locate 功能：高亮对应模块
+        function locateBodyParagraph(bodyNum) {
+            // 找到对应的 Body 模块
+            const bodyModules = modules.filter(m => m.type === 'body');
+            if (bodyNum < 1 || bodyNum > bodyModules.length) return;
+            
+            const targetModule = bodyModules[bodyNum - 1];
+            const moduleEl = document.querySelector(`[data-id="${targetModule.id}"]`);
+            
+            if (moduleEl) {
+                // 移除之前的高亮
+                document.querySelectorAll('.essay-module').forEach(el => el.classList.remove('highlight'));
+                
+                // 添加高亮
+                moduleEl.classList.add('highlight');
+                moduleEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                
+                // 3 秒后移除高亮
+                setTimeout(() => {
+                    moduleEl.classList.remove('highlight');
+                }, 3000);
+            }
+        }
+
+        // Re-submit 逻辑
+        async function resubmitForReview() {
+            await submitReview(true);
+        }
+
+        // --- 11. Mission Lab 抽屉 ---
+        function showMissionLab() {
+            const drawer = document.getElementById('mission-lab-drawer');
+            if (drawer) drawer.style.display = 'block';
+        }
+
+        function closeMissionLab() {
+            const drawer = document.getElementById('mission-lab-drawer');
+            if (drawer) drawer.style.display = 'none';
+        }
+
+        // 点击抽屉外部关闭
+        document.addEventListener('DOMContentLoaded', () => {
+            const drawer = document.getElementById('mission-lab-drawer');
+            if (drawer) {
+                drawer.onclick = (e) => {
+                    if (e.target === drawer) closeMissionLab();
+                };
+            }
+        });
 
         // 传统 SAVE / EXPORT 适配整篇 essay
         function save() {
@@ -802,11 +1197,24 @@
             // 显示 Toast 反馈提示
             showToast("Audit Complete: We've split your text into PEEL blocks. Review the logic below!");
             
+            // Audit Mode：自动提交批改
+            if (workspaceMode === 'audit') {
+                setTimeout(() => {
+                    showPreviewView();
+                    setTimeout(() => {
+                        confirmSubmitFromPreview();
+                    }, 500);
+                }, 1000);
+            }
+            
             return true; // 成功处理
         }
 
         // 初始恢复 + 默认 body 模块 + Quick Audit 数据导入
         window.addEventListener('load', () => {
+            // 首先检测模式
+            detectWorkspaceMode();
+            
             // 优先处理 Quick Audit 数据
             const hasQuickAuditData = processQuickAuditData();
             
@@ -815,8 +1223,8 @@
                 loadFromLocal();
             }
             
-            // 如果没有模块，创建默认 body 模块
-            if (!modules.length) {
+            // 如果没有模块，创建默认 body 模块（仅在 Practice Mode）
+            if (!modules.length && workspaceMode === 'practice') {
                 modules.push(createEmptyModule('body'));
             }
             

@@ -2,7 +2,7 @@ export default async function handler(req, res) {
   // 仅允许 POST 请求
   if (req.method !== 'POST') return res.status(405).json({ review: "Method Not Allowed" });
 
-  // 接收：写作内容 + 动态题目 + 段落类型 + 语言约束
+  // 接收：写作内容 + 动态题目 + 段落类型 + 语言约束 + Re-submit 标志
   const {
     point,
     evidence1,
@@ -13,7 +13,9 @@ export default async function handler(req, res) {
     section_type,
     constraint,
     essay_full,
-    structure
+    structure,
+    is_resubmit,
+    previous_review
   } = req.body;
   const apiKey = process.env.DASHSCOPE_API_KEY;
 
@@ -78,7 +80,30 @@ ${outputFormat}`
           },
           {
             role: "user",
-            content: `Essay Question (editable by student):
+            content: is_resubmit && previous_review
+              ? `这是学生的修改稿。请对比上次的评价，重点指出进步点和仍需改进的地方。
+
+上次评价：
+${previous_review}
+
+当前 Essay Question: ${essay_question || "(not provided)"}
+
+当前 Essay Structure (JSON-like, modules in order): 
+${JSON.stringify(structure || [], null, 2)}
+
+当前 Full essay text:
+${essay_full || `
+Point: ${point || "(legacy)"} 
+Evidence 1: ${evidence1 || "(legacy)"} 
+Evidence 2: ${evidence2 || "(legacy)"} 
+Link: ${link || "(legacy)"}
+`}
+
+请给出改进后的 Review，重点关注：
+1. 相比上次评价，哪些地方有进步？
+2. 还有哪些地方需要继续改进？
+3. 给出具体的修改建议。`
+              : `Essay Question (editable by student):
 ${essay_question || "(not provided)"}
 
 Structure (JSON-like, modules in order): 
