@@ -6,8 +6,19 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     <meta charset="UTF-8">
     <title>PEEL Workspace - {mid}</title>
     <style>
-        body {{ font-family: 'Segoe UI', sans-serif; background: #f4f7f6; display: flex; height: 100vh; margin: 0; color: #333; }}
-        .main {{ flex: 1; padding: 40px; overflow-y: auto; }}
+        body {{ font-family: 'Segoe UI', sans-serif; background: #f4f7f6; margin: 0; color: #333; }}
+        .main-wrapper {{
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }}
+        .main {{ 
+            flex: 1; 
+            flex-grow: 1;
+            padding: 40px; 
+            overflow-y: auto;
+            transition: margin-right 0.3s ease;
+        }}
 
         /* 可折叠侧边栏 */
         .sidebar-toggle {{
@@ -43,9 +54,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         
         /* 右侧双窗口：上方知识区可滚动；下方 explainer-window 固定 */
         .sidebar {{
-            position: fixed;
-            right: 0;
-            top: 0;
             width: 380px;
             height: 100vh;
             background: #fff;
@@ -56,13 +64,12 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             flex-direction: column;
             gap: 14px;
             box-sizing: border-box;
-            z-index: 999;
-            transform: translateX(100%);
-            transition: transform 0.3s ease;
             overflow-y: auto;
+            margin-right: -380px;
+            transition: margin-right 0.3s ease;
         }}
         .sidebar.expanded {{
-            transform: translateX(0);
+            margin-right: 0;
         }}
         .sidebar-content {{
             flex: 1;
@@ -656,6 +663,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 </head>
 
 <body>
+    <div class="main-wrapper">
     <div class="main">
         <div class="nav-bar">
             <button class="btn-workspace" onclick="backToWorkspace()" style="background: #6c757d; color: white; padding: 10px 18px; border-radius: 6px; border: none; cursor: pointer; font-weight: 600;">← Workspace</button>
@@ -785,6 +793,44 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             <div id="export-essay"></div>
         </div>
     </div>
+    
+    <!-- 侧边栏切换按钮 -->
+    <button class="sidebar-toggle collapsed" id="sidebar-toggle" onclick="toggleSidebar()" title="Toggle Knowledge Hub">📚</button>
+    
+    <!-- 侧边栏遮罩层 -->
+    <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
+
+    <!-- 可折叠侧边栏 -->
+    <div class="sidebar" id="knowledge-sidebar">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+            <h3 style="margin:0; color:#1d3557;">Knowledge Hub</h3>
+            <button onclick="closeSidebar()" style="background: none; border: none; font-size: 20px; cursor: pointer; color: #6c757d; padding: 0; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;">✕</button>
+        </div>
+        <div class="sidebar-content">
+            <div class="kb-section">
+                <div style="font-size:12px; font-weight:800; color:#1d3557; margin-bottom:10px; border-bottom:1px solid #eee;">⚖️ LEGAL MILESTONES</div>
+                    <div class="tag-row"><div class="tag" onclick="add('Brown v. Board (1954)')">Brown v. Board</div><button class="explain-btn" onclick="getExplanation('Brown v. Board')">💡</button></div>
+                    <div class="tag-row"><div class="tag" onclick="add('Civil Rights Act (1957)')">1957 CR Act</div><button class="explain-btn" onclick="getExplanation('Civil Rights Act 1957')">💡</button></div>
+            </div>
+
+            <div class="kb-section" style="margin-top:20px;">
+                <div style="font-size:12px; font-weight:800; color:#1d3557; margin-bottom:10px; border-bottom:1px solid #eee;">✊ DIRECT ACTION</div>
+                    <div class="tag-row"><div class="tag" onclick="add('Montgomery Bus Boycott (1955–56)')">Bus Boycott</div><button class="explain-btn" onclick="getExplanation('Montgomery Bus Boycott')">💡</button></div>
+                    <div class="tag-row"><div class="tag" onclick="add('Little Rock Nine (1957)')">Little Rock 9</div><button class="explain-btn" onclick="getExplanation('Little Rock Nine')">💡</button></div>
+                    <div class="tag-row"><div class="tag" onclick="add('Jim Crow laws')">Jim Crow</div><button class="explain-btn" onclick="getExplanation('Jim Crow laws')">💡</button></div>
+                </div>
+            </div>
+
+            <div id="explainer-window">
+                <div style="font-weight:800; color:#a8dadc; font-size:11px; margin-bottom:8px; display:flex; justify-content:space-between;">
+                    <span>👨‍🏫 KNOWLEDGE EXPLORER</span>
+                    <span style="cursor:pointer" onclick="document.getElementById('explain-box').innerText='Click the 💡 button for detailed context.'">Reset</span>
+                </div>
+                <div id="explain-box">Click the 💡 button for detailed context.</div>
+            </div>
+        </div>
+    </div>
+    </div>
 
     <!-- Toast 容器 -->
     <div id="toast-container"></div>
@@ -812,42 +858,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         </div>
     </div>
 
-    <!-- 侧边栏切换按钮 -->
-    <button class="sidebar-toggle collapsed" id="sidebar-toggle" onclick="toggleSidebar()" title="Toggle Knowledge Hub">📚</button>
-    
-    <!-- 侧边栏遮罩层 -->
-    <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
-
-    <!-- 可折叠侧边栏 -->
-    <div class="sidebar" id="knowledge-sidebar">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
-            <h3 style="margin:0; color:#1d3557;">Knowledge Hub</h3>
-            <button onclick="closeSidebar()" style="background: none; border: none; font-size: 20px; cursor: pointer; color: #6c757d; padding: 0; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;">✕</button>
-        </div>
-        <div class="sidebar-content">
-        <div class="kb-section">
-            <div style="font-size:12px; font-weight:800; color:#1d3557; margin-bottom:10px; border-bottom:1px solid #eee;">⚖️ LEGAL MILESTONES</div>
-                    <div class="tag-row"><div class="tag" onclick="add('Brown v. Board (1954)')">Brown v. Board</div><button class="explain-btn" onclick="getExplanation('Brown v. Board')">💡</button></div>
-                    <div class="tag-row"><div class="tag" onclick="add('Civil Rights Act (1957)')">1957 CR Act</div><button class="explain-btn" onclick="getExplanation('Civil Rights Act 1957')">💡</button></div>
-        </div>
-
-        <div class="kb-section" style="margin-top:20px;">
-            <div style="font-size:12px; font-weight:800; color:#1d3557; margin-bottom:10px; border-bottom:1px solid #eee;">✊ DIRECT ACTION</div>
-                    <div class="tag-row"><div class="tag" onclick="add('Montgomery Bus Boycott (1955–56)')">Bus Boycott</div><button class="explain-btn" onclick="getExplanation('Montgomery Bus Boycott')">💡</button></div>
-                    <div class="tag-row"><div class="tag" onclick="add('Little Rock Nine (1957)')">Little Rock 9</div><button class="explain-btn" onclick="getExplanation('Little Rock Nine')">💡</button></div>
-                    <div class="tag-row"><div class="tag" onclick="add('Jim Crow laws')">Jim Crow</div><button class="explain-btn" onclick="getExplanation('Jim Crow laws')">💡</button></div>
-                </div>
-        </div>
-
-        <div id="explainer-window">
-                <div style="font-weight:800; color:#a8dadc; font-size:11px; margin-bottom:8px; display:flex; justify-content:space-between;">
-                <span>👨‍🏫 KNOWLEDGE EXPLORER</span>
-                    <span style="cursor:pointer" onclick="document.getElementById('explain-box').innerText='Click the 💡 button for detailed context.'">Reset</span>
-            </div>
-            <div id="explain-box">Click the 💡 button for detailed context.</div>
-            </div>
-        </div>
-    </div>
 
     <script>
         const ID = "{mid}";
@@ -1360,11 +1370,24 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 }}
                 m.mode = 'guided';
             }}
+            
+            // 渲染新模式的 DOM
             renderModules();
             
-            // 致命 Bug 修复：重绘后强制恢复
-            loadFromLocal();
-            renderModules(); // 再次渲染确保数据正确显示
+            // 重新绑定事件监听器（确保字数统计等功能正常工作）
+            setTimeout(() => {{
+                updateGlobalWordCount();
+                // 重新绑定所有 textarea 的 input 事件
+                document.querySelectorAll('textarea[data-module]').forEach(textarea => {{
+                    if (!textarea.hasAttribute('data-listener-bound')) {{
+                        textarea.setAttribute('data-listener-bound', 'true');
+                        textarea.addEventListener('input', () => {{
+                            updateGlobalWordCount();
+                            updateWordCount(textarea);
+                        }});
+                    }}
+                }});
+            }}, 100);
         }}
 
         function moveModule(id, direction) {{
