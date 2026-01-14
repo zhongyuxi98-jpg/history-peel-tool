@@ -1,7 +1,6 @@
 import os
 
-def create_page(mid, question):
-    html = f"""<!DOCTYPE html>
+HTML_TEMPLATE = """<!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8">
@@ -9,7 +8,24 @@ def create_page(mid, question):
     <style>
         body {{ font-family: 'Segoe UI', sans-serif; background: #f4f7f6; display: flex; height: 100vh; margin: 0; color: #333; }}
         .main {{ flex: 1; padding: 40px; overflow-y: auto; }}
-        .sidebar {{ width: 380px; background: #fff; border-left: 1px solid #dee2e6; padding: 25px; box-shadow: -5px 0 15px rgba(0, 0, 0, 0.05); display: flex; flex-direction: column; }}
+
+        /* 右侧双窗口：上方知识区可滚动；下方 explainer-window 固定 */
+        .sidebar {{
+            width: 380px;
+            background: #fff;
+            border-left: 1px solid #dee2e6;
+            padding: 25px;
+            box-shadow: -5px 0 15px rgba(0, 0, 0, 0.05);
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            box-sizing: border-box;
+        }}
+        .sidebar-content {{
+            flex: 1;
+            overflow-y: auto;
+            padding-right: 6px; /* 给滚动条留空间 */
+        }}
         .header {{ border-bottom: 3px solid #1d3557; margin-bottom: 25px; padding-bottom: 15px; }}
         .q-text {{ font-size: 20px; font-weight: 700; color: #1d3557; }}
         .nav-bar {{ margin-bottom: 25px; display: flex; gap: 10px; }}
@@ -29,8 +45,16 @@ def create_page(mid, question):
         textarea {{ width: 100%; height: 95px; border: 1.5px solid #ced4da; border-radius: 8px; padding: 12px; font-size: 14px; resize: none; line-height: 1.5; box-sizing: border-box; }}
         
         /* 👨‍🏫 右侧讲解老师窗口 */
-        #explainer-window {{ margin-top: auto; background: #ebf2f7; border-radius: 12px; padding: 15px; border: 1px solid #457b9d; }}
-        #explain-box {{ font-size: 13px; line-height: 1.6; color: #2d3436; min-height: 100px; white-space: pre-wrap; }}
+        #explainer-window {{
+            position: sticky;
+            bottom: 0;
+            background: #1d3557; /* 蓝色窗口 */
+            border-radius: 12px;
+            padding: 14px 14px 12px 14px;
+            border: 1px solid rgba(255,255,255,0.18);
+            box-shadow: 0 10px 30px rgba(29,53,87,0.25);
+        }}
+        #explain-box {{ font-size: 13px; line-height: 1.6; color: #f1faee; min-height: 110px; white-space: pre-wrap; }}
 
         /* 🚀 底部 AI Review 样式 */
         .ai-review-trigger {{ background: #e63946; color: white; width: 100%; padding: 20px; font-size: 18px; margin: 30px 0; box-shadow: 0 4px 15px rgba(230,57,70,0.3); }}
@@ -69,22 +93,24 @@ def create_page(mid, question):
     </div>
 
     <div class="sidebar">
-        <h3 style="margin:0 0 20px 0; color:#1d3557;">Knowledge Hub</h3>
-        
-        <div class="kb-section">
-            <div style="font-size:12px; font-weight:800; color:#1d3557; margin-bottom:10px; border-bottom:1px solid #eee;">⚖️ LEGAL MILESTONES</div>
-            <div class="tag-row"><div class="tag" onclick="add('Plessy v. Ferguson')">Plessy v. Ferguson</div><button class="explain-btn" onclick="explain('Plessy v. Ferguson')">💡</button></div>
-            <div class="tag-row"><div class="tag" onclick="add('Brown v. Board')">Brown v. Board</div><button class="explain-btn" onclick="explain('Brown v. Board')">💡</button></div>
-        </div>
+        <div class="sidebar-content">
+            <h3 style="margin:0 0 14px 0; color:#1d3557;">Knowledge Hub</h3>
+            
+            <div class="kb-section">
+                <div style="font-size:12px; font-weight:800; color:#1d3557; margin-bottom:10px; border-bottom:1px solid #eee;">⚖️ LEGAL MILESTONES</div>
+                <div class="tag-row"><div class="tag" onclick="add('Plessy v. Ferguson')">Plessy v. Ferguson</div><button class="explain-btn" onclick="explain('Plessy v. Ferguson')">💡</button></div>
+                <div class="tag-row"><div class="tag" onclick="add('Brown v. Board')">Brown v. Board</div><button class="explain-btn" onclick="explain('Brown v. Board')">💡</button></div>
+            </div>
 
-        <div class="kb-section" style="margin-top:20px;">
-            <div style="font-size:12px; font-weight:800; color:#1d3557; margin-bottom:10px; border-bottom:1px solid #eee;">✊ DIRECT ACTION</div>
-            <div class="tag-row"><div class="tag" onclick="add('Bus Boycott')">Bus Boycott</div><button class="explain-btn" onclick="explain('Montgomery Bus Boycott')">💡</button></div>
-            <div class="tag-row"><div class="tag" onclick="add('Little Rock 9')">Little Rock 9</div><button class="explain-btn" onclick="explain('Little Rock Nine')">💡</button></div>
+            <div class="kb-section" style="margin-top:20px;">
+                <div style="font-size:12px; font-weight:800; color:#1d3557; margin-bottom:10px; border-bottom:1px solid #eee;">✊ DIRECT ACTION</div>
+                <div class="tag-row"><div class="tag" onclick="add('Bus Boycott')">Bus Boycott</div><button class="explain-btn" onclick="explain('Montgomery Bus Boycott')">💡</button></div>
+                <div class="tag-row"><div class="tag" onclick="add('Little Rock 9')">Little Rock 9</div><button class="explain-btn" onclick="explain('Little Rock Nine')">💡</button></div>
+            </div>
         </div>
 
         <div id="explainer-window">
-            <div style="font-weight:800; color:#457b9d; font-size:11px; margin-bottom:8px; display:flex; justify-content:space-between;">
+            <div style="font-weight:800; color:#a8dadc; font-size:11px; margin-bottom:8px; display:flex; justify-content:space-between;">
                 <span>👨‍🏫 KNOWLEDGE EXPLORER</span>
                 <span style="cursor:pointer" onclick="document.getElementById('explain-box').innerText='Select a topic...'">Reset</span>
             </div>
@@ -162,7 +188,11 @@ def create_page(mid, question):
     </script>
 </body>
 </html>"""
-    with open(f"assets/missions/{{mid}}_workspace.html", "w", encoding="utf-8") as f:
+
+
+def create_page(mid, question):
+    html = HTML_TEMPLATE.format(mid=mid, question=question)
+    with open(f"assets/missions/{mid}_workspace.html", "w", encoding="utf-8") as f:
         f.write(html)
 
 missions = [
@@ -175,4 +205,4 @@ missions = [
 
 for m_id, q in missions:
     create_page(m_id, q)
-    print(f">>> Updated: {{m_id}}")
+    print(f">>> Updated: {m_id}")

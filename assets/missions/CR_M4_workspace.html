@@ -6,119 +6,120 @@
     <style>
         body { font-family: 'Segoe UI', sans-serif; background: #f4f7f6; display: flex; height: 100vh; margin: 0; color: #333; }
         .main { flex: 1; padding: 40px; overflow-y: auto; }
-        .sidebar { width: 340px; background: #fff; border-left: 1px solid #dee2e6; padding: 25px; box-shadow: -5px 0 15px rgba(0,0,0,0.05); overflow-y: auto; }
-        .sidebar.hidden { 
-            display: none; 
+
+        /* 右侧双窗口：上方知识区可滚动；下方 explainer-window 固定 */
+        .sidebar {
+            width: 380px;
+            background: #fff;
+            border-left: 1px solid #dee2e6;
+            padding: 25px;
+            box-shadow: -5px 0 15px rgba(0, 0, 0, 0.05);
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            box-sizing: border-box;
         }
-        .header { border-bottom: 3px solid #1d3557; margin-bottom: 30px; padding-bottom: 15px; }
+        .sidebar-content {
+            flex: 1;
+            overflow-y: auto;
+            padding-right: 6px; /* 给滚动条留空间 */
+        }
+        .header { border-bottom: 3px solid #1d3557; margin-bottom: 25px; padding-bottom: 15px; }
         .q-text { font-size: 20px; font-weight: 700; color: #1d3557; }
         .nav-bar { margin-bottom: 25px; display: flex; gap: 10px; }
-        button { padding: 10px 18px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; color: white; transition: 0.2s; }
-        .btn-save { background: #2a9d8f; }
-        .btn-export { background: #f4a261; }
-        .btn-menu { background: #457b9d; }
-        button:hover { opacity: 0.9; transform: translateY(-1px); }
-        .editor-box { margin-bottom: 20px; }
-        .label { color: #e63946; font-size: 11px; font-weight: 800; text-transform: uppercase; margin-bottom: 5px; }
-        textarea { width: 100%; height: 95px; border: 1.5px solid #ced4da; border-radius: 8px; padding: 12px; font-size: 14px; resize: none; line-height: 1.5; }
         
-        /* Knowledge Hub V2.1 样式 */
-        .kb-section { margin-bottom: 25px; }
-        .sec-title { font-size: 12px; font-weight: 800; color: #1d3557; border-bottom: 1px solid #eee; padding-bottom: 5px; margin-bottom: 10px; display: flex; align-items: center; gap: 5px; }
-        .tag-group { display: flex; flex-wrap: wrap; gap: 6px; }
-        .tag { padding: 6px 12px; border-radius: 4px; font-size: 12px; cursor: pointer; border: 1px solid #ddd; background: #fff; transition: 0.2s; border-left: 4px solid #ddd; }
-        .tag:hover { background: #1d3557; color: white; transform: scale(1.05); }
-        .ctx { border-left-color: #457b9d; }
-        .entity { border-left-color: #e63946; }
-        .impact { border-left-color: #2a9d8f; }
-        .hist { border-left-color: #8338ec; }
+        button { border: none; border-radius: 6px; cursor: pointer; font-weight: 600; transition: 0.2s; }
+        .btn-save { background: #2a9d8f; color: white; padding: 10px 18px; }
+        .btn-export { background: #f4a261; color: white; padding: 10px 18px; }
+        
+        /* 💡 显式按钮样式 */
+        .tag-row { display: flex; align-items: center; gap: 5px; margin-bottom: 8px; }
+        .tag { flex: 1; padding: 8px; border-radius: 4px; font-size: 12px; cursor: pointer; border: 1px solid #ddd; background: #fff; border-left: 4px solid #457b9d; text-align: left; }
+        .tag:hover { background: #f8f9fa; }
+        .explain-btn { background: #457b9d; color: white; padding: 8px; font-size: 12px; border-radius: 4px; width: 35px; }
+        
+        .editor-box { margin-bottom: 15px; }
+        .label { color: #e63946; font-size: 11px; font-weight: 800; text-transform: uppercase; margin-bottom: 5px; }
+        textarea { width: 100%; height: 95px; border: 1.5px solid #ced4da; border-radius: 8px; padding: 12px; font-size: 14px; resize: none; line-height: 1.5; box-sizing: border-box; }
+        
+        /* 👨‍🏫 右侧讲解老师窗口 */
+        #explainer-window {
+            position: sticky;
+            bottom: 0;
+            background: #1d3557; /* 蓝色窗口 */
+            border-radius: 12px;
+            padding: 14px 14px 12px 14px;
+            border: 1px solid rgba(255,255,255,0.18);
+            box-shadow: 0 10px 30px rgba(29,53,87,0.25);
+        }
+        #explain-box { font-size: 13px; line-height: 1.6; color: #f1faee; min-height: 110px; white-space: pre-wrap; }
+
+        /* 🚀 底部 AI Review 样式 */
+        .ai-review-trigger { background: #e63946; color: white; width: 100%; padding: 20px; font-size: 18px; margin: 30px 0; box-shadow: 0 4px 15px rgba(230,57,70,0.3); }
+        #ai-review-result { border: 2px solid #e63946; border-radius: 12px; background: white; margin-bottom: 40px; overflow: hidden; }
     </style>
 </head>
+
 <body>
     <div class="main">
         <div class="nav-bar">
             <button class="btn-save" onclick="save()">💾 SAVE</button>
-            <button class="btn-export" onclick="exportDoc()">📥 EXPORT</button>
-            <button class="btn-menu" onclick="location.href='../../index.html'">🏠 MENU</button>
-            <button class="btn-menu" style="background:#6c757d;" onclick="toggleHub()">📂 HUB</button>
+            <select id="language-setting" style="padding: 10px; border-radius: 6px; border: 1.5px solid #007bff;">
+                <option value="dual" selected>🌓 Dual-Language</option>
+                <option value="en">🇬🇧 English Only</option>
+                <option value="zh">🇨🇳 Chinese Only</option>
+            </select>
+            <button class="btn-export" onclick="exportDoc()">📥 EXPORT + FEEDBACK</button>
         </div>
+
         <div class="header">
             <div style="color:#6c757d; font-size:11px; margin-bottom:5px;">MISSION ID: CR_M4</div>
             <div class="q-text">Analyse the effectiveness of the NAACP in promoting civil rights in the late 1940s and 1950s.</div>
         </div>
-        
-        <div class="editor-box"><div class="label">1. Point (Thesis Statement)</div><textarea id="p"></textarea></div>
-        <div class="editor-box"><div class="label">2. Evidence 1 + Mechanism</div><textarea id="e1"></textarea></div>
-        <div class="editor-box"><div class="label">3. Evidence 2 + Mechanism</div><textarea id="e2"></textarea></div>
+
+        <div class="editor-box"><div class="label">1. Point</div><textarea id="p"></textarea></div>
+        <div class="editor-box"><div class="label">2. Evidence 1</div><textarea id="e1"></textarea></div>
+        <div class="editor-box"><div class="label">3. Evidence 2</div><textarea id="e2"></textarea></div>
         <div class="editor-box"><div class="label">4. Link Back</div><textarea id="l"></textarea></div>
+
+        <button class="ai-review-trigger" id="ai-btn" onclick="reviewAI()">🚀 SUBMIT FOR AI TEACHER'S REVIEW</button>
+
+        <div id="ai-review-result" style="display: none;">
+            <div style="background: #e63946; color: white; padding: 12px 20px; font-weight: bold;">🎯 ACADEMIC REVIEW</div>
+            <div id="ai-content" style="padding: 25px; line-height: 1.8; font-size: 15px;">AI is analyzing...</div>
+        </div>
     </div>
 
     <div class="sidebar">
-           
-        <h3 style="margin:0 0 20px 0; color:#1d3557;">Knowledge Hub (V2.1)</h3>
-        <div class="kb-section">
-            <div class="sec-title">⚖️ LEGAL MILESTONES (De Jure)</div>
-            <div class="tag-group">
-                <div class="tag ctx" onclick="add('Plessy v. Ferguson (1896)')">Plessy v. Ferguson</div>
-                <div class="tag ctx" onclick="add('Brown v. Board of Education (1954)')">Brown v. Board</div>
-                <div class="tag ctx" onclick="add('Brown II (1955) - With All Deliberate Speed')">Brown II</div>
-                <div class="tag ctx" onclick="add('Civil Rights Act of 1957')">1957 CR Act</div>
+        <div class="sidebar-content">
+            <h3 style="margin:0 0 14px 0; color:#1d3557;">Knowledge Hub</h3>
+            
+            <div class="kb-section">
+                <div style="font-size:12px; font-weight:800; color:#1d3557; margin-bottom:10px; border-bottom:1px solid #eee;">⚖️ LEGAL MILESTONES</div>
+                <div class="tag-row"><div class="tag" onclick="add('Plessy v. Ferguson')">Plessy v. Ferguson</div><button class="explain-btn" onclick="explain('Plessy v. Ferguson')">💡</button></div>
+                <div class="tag-row"><div class="tag" onclick="add('Brown v. Board')">Brown v. Board</div><button class="explain-btn" onclick="explain('Brown v. Board')">💡</button></div>
+            </div>
+
+            <div class="kb-section" style="margin-top:20px;">
+                <div style="font-size:12px; font-weight:800; color:#1d3557; margin-bottom:10px; border-bottom:1px solid #eee;">✊ DIRECT ACTION</div>
+                <div class="tag-row"><div class="tag" onclick="add('Bus Boycott')">Bus Boycott</div><button class="explain-btn" onclick="explain('Montgomery Bus Boycott')">💡</button></div>
+                <div class="tag-row"><div class="tag" onclick="add('Little Rock 9')">Little Rock 9</div><button class="explain-btn" onclick="explain('Little Rock Nine')">💡</button></div>
             </div>
         </div>
 
-        <div class="kb-section">
-            <div class="sec-title">✊ DIRECT ACTION & EVENTS</div>
-            <div class="tag-group">
-                <div class="tag entity" onclick="add('Montgomery Bus Boycott (1955-56)')">Bus Boycott</div>
-                <div class="tag entity" onclick="add('Little Rock Nine (1957)')">Little Rock 9</div>
-                <div class="tag entity" onclick="add('Browder v. Gayle')">Browder v. Gayle</div>
-                <div class="tag entity" onclick="add('Emmett Till Murder (1955)')">Emmett Till</div>
+        <div id="explainer-window">
+            <div style="font-weight:800; color:#a8dadc; font-size:11px; margin-bottom:8px; display:flex; justify-content:space-between;">
+                <span>👨‍🏫 KNOWLEDGE EXPLORER</span>
+                <span style="cursor:pointer" onclick="document.getElementById('explain-box').innerText='Select a topic...'">Reset</span>
             </div>
-        </div>
-
-        <div class="kb-section">
-            <div class="sec-title">🚫 OPPOSITION & BARRIERS</div>
-            <div class="tag-group">
-                <div class="tag impact" onclick="add('Jim Crow Laws')">Jim Crow</div>
-                <div class="tag impact" onclick="add('Massive Resistance')">Massive Resistance</div>
-                <div class="tag impact" onclick="add('Southern Manifesto')">Southern Manifesto</div>
-                <div class="tag impact" onclick="add('White Citizens Councils')">Citizens' Councils</div>
-            </div>
-        </div>
-
-        <div class="kb-section">
-            <div class="sec-title">📊 EVALUATION CONCEPTS</div>
-            <div class="tag-group">
-                <div class="tag hist" onclick="add('De Facto vs De Jure Segregation')">De Facto/Jure</div>
-                <div class="tag hist" onclick="add('Federal Intervention (Eisenhower)')">Federal Power</div>
-                <div class="tag hist" onclick="add('Grassroots Activism')">Grassroots</div>
-                <div class="tag hist" onclick="add('Tokenism')">Tokenism</div>
-            </div>
-        </div>
-        <div class="kb-section">
-            <div class="sec-title">⚖️ ORGANIZATIONS & FIGURES</div>
-            <div class="tag-group">
-                <div class="tag entity" onclick="add('NAACP')">NAACP</div>
-                <div class="tag entity" onclick="add('SCLC')">SCLC</div>
-                <div class="tag entity" onclick="add('Rosa Parks')">Rosa Parks</div>
-            </div>
-        </div>
-        <div class="kb-section">
-            <div class="sec-title">📈 IMPACT & EVALUATION</div>
-            <div class="tag-group">
-                <div class="tag impact" onclick="add('Federal Enforcement')">Federal Enforcement</div>
-                <div class="tag impact" onclick="add('Massive Resistance')">Massive Resistance</div>
-                <div class="tag hist" onclick="add('Revisionist View')">Revisionist View</div>
-            </div>
+            <div id="explain-box">Click the 💡 button for detailed context.</div>
         </div>
     </div>
 
     <script>
         const ID = "CR_M4";
         let activeEditor = document.getElementById('p');
-        document.querySelectorAll('textarea').forEach(tx => {
-            tx.onfocus = () => activeEditor = tx;
-        });
+        document.querySelectorAll('textarea').forEach(tx => { tx.onfocus = () => activeEditor = tx; });
 
         function add(text) {
             const start = activeEditor.selectionStart;
@@ -126,37 +127,62 @@
             activeEditor.focus();
         }
 
-        function save() {
-            const data = { 
-                p: document.getElementById('p').value, 
-                e1: document.getElementById('e1').value, 
-                e2: document.getElementById('e2').value, 
-                l: document.getElementById('l').value 
-            };
-            localStorage.setItem(ID, JSON.stringify(data));
-            alert("Draft Saved to LocalStorage!");
+        // --- 1. 侧边栏讲解老师 ---
+        async function explain(topic) {
+            const box = document.getElementById('explain-box');
+            const lang = document.getElementById('language-setting').value;
+            box.innerHTML = `<i style="color:#666">🔍 Searching...</i>`;
+            try {
+                const response = await fetch('/api/explain', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ topic, language: lang })
+                });
+                const result = await response.json();
+                box.innerText = result.explanation || "No explanation found.";
+            } catch (e) { box.innerText = "⚠️ Connection error."; }
         }
-        function toggleHub() {
-            const sidebar = document.querySelector('.sidebar');
-            sidebar.classList.toggle('hidden');
+
+        // --- 2. 底部批改功能 ---
+        async function reviewAI() {
+            const btn = document.getElementById('ai-btn');
+            const resultDiv = document.getElementById('ai-review-result');
+            const contentDiv = document.getElementById('ai-content');
+            const data = { 
+                point: document.getElementById('p').value, 
+                evidence1: document.getElementById('e1').value, 
+                evidence2: document.getElementById('e2').value, 
+                link: document.getElementById('l').value 
+            };
+            
+            btn.innerText = "⌛ Teacher is grading..."; btn.disabled = true;
+            resultDiv.style.display = 'block';
+            resultDiv.scrollIntoView({ behavior: 'smooth' });
+
+            try {
+                const response = await fetch('/api/review', { 
+                    method: 'POST', 
+                    headers: { 'Content-Type': 'application/json' }, 
+                    body: JSON.stringify(data) 
+                });
+                const result = await response.json();
+                contentDiv.innerText = result.review || "Feedback failed.";
+            } catch (e) { contentDiv.innerText = "⚠️ Connection failed."; }
+            finally { btn.innerText = "🚀 SUBMIT FOR AI TEACHER'S REVIEW"; btn.disabled = false; }
+        }
+
+        function save() {
+            const data = { p: document.getElementById('p').value, e1: document.getElementById('e1').value, e2: document.getElementById('e2').value, l: document.getElementById('l').value };
+            localStorage.setItem(ID, JSON.stringify(data));
+            alert("Work Saved!");
         }
 
         function exportDoc() {
-            const content = `MISSION: ${ID}\n\n[POINT]\n${document.getElementById('p').value}\n\n[EVIDENCE 1]\n${document.getElementById('e1').value}\n\n[EVIDENCE 2]\n${document.getElementById('e2').value}\n\n[LINK]\n${document.getElementById('l').value}`;
-            const blob = new Blob([content], {type:'text/plain'});
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = `${ID}_draft.txt`;
-            a.click();
+            const aiContent = document.getElementById('ai-content').innerText;
+            const content = `WORK: ${ID}\nP: ${document.getElementById('p').value}\nE1: ${document.getElementById('e1').value}\nE2: ${document.getElementById('e2').value}\nL: ${document.getElementById('l').value}\n\n[AI FEEDBACK]\n${aiContent}`;
+            const blob = new Blob([content], { type: 'text/plain' });
+            const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `Submission_${ID}.txt`; a.click();
         }
-
-        window.onload = () => {
-            const d = JSON.parse(localStorage.getItem(ID) || '{}');
-            if(d.p) document.getElementById('p').value = d.p;
-            if(d.e1) document.getElementById('e1').value = d.e1;
-            if(d.e2) document.getElementById('e2').value = d.e2;
-            if(d.l) document.getElementById('l').value = d.l;
-        };
     </script>
 </body>
 </html>
