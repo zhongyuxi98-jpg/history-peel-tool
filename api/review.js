@@ -2,8 +2,17 @@ export default async function handler(req, res) {
   // 仅允许 POST 请求
   if (req.method !== 'POST') return res.status(405).json({ review: "Method Not Allowed" });
 
-  // 1. [关键修改] 从 req.body 中新增解构出 language 参数
-  const { point, evidence1, evidence2, link, language } = req.body;
+  // 接收：写作内容 + 动态题目 + 段落类型 + 语言约束
+  const {
+    point,
+    evidence1,
+    evidence2,
+    link,
+    language,
+    essay_question,
+    section_type,
+    constraint
+  } = req.body;
   const apiKey = process.env.DASHSCOPE_API_KEY;
 
   // 2. [新增] 动态生成语言风格指令
@@ -14,8 +23,26 @@ export default async function handler(req, res) {
     languageDirective = "Please respond strictly in 【English】. Act as a 'Native British/American Examiner'. Focus on academic phrasing, tone, and logical flow.";
   } else {
     // 默认双语模式
-    languageDirective = "请使用【双语】批改：核心评价（如 Band 分级）用英文，具体的改进指导和史实分析用中文，确保学生能精准理解如何改进。";
+    languageDirective = "请使用【双语】批改：核心评价用英文；具体的改进指导和史实分析用中文，确保学生能精准理解如何改进。";
   }
+
+  const strictConstraint = constraint
+    ? `\n\n${constraint}`
+    : "\n\nConstraint: Follow the selected language mode strictly.";
+
+  const sectionType = (section_type || "body").toLowerCase();
+  const sectionRubric =
+    sectionType === "intro"
+      ? "Section Type: Intro. Focus on thesis clarity, line of argument, and signposting."
+      : sectionType === "conclusion"
+      ? "Section Type: Conclusion. Focus on summarising key points and linking back to the question (no new evidence)."
+      : "Section Type: Body (PEEL). Diagnose Point–Evidence–Explanation–Link coherence; check evidence specificity and causal logic.";
+
+  const outputFormat = `Return STRICTLY structured text with the following headers:
+[Score: A-E]
+[Diagnostic]
+[Model Version]
+In [Diagnostic], give bullet points and at least ONE improved model sentence.`;
 
   try {
     // 调用阿里云百炼接口
@@ -30,23 +57,32 @@ export default async function handler(req, res) {
         messages: [
           {
             role: "system",
-            content: `你是一位专业的 A-Level 历史老师。${languageDirective} 学生正在练习 1950s 美国民权运动的 PEEL 段落写作。
+            content: `You are an A-Level History examiner and academic writing coach. ${languageDirective}
+${strictConstraint}
+
+Task:
+- Grade and diagnose the student's writing for 1950s US Civil Rights (A-Level standard).
+- Align feedback with the selected section type and rubric.
             
             批改准则：
             1. 态度检测：如果输入是 '123' 或乱码，请毒舌且严厉地训诫学生，要求其端正学术态度。
-            2. 结构评分：检查 Point, Evidence, Link 是否逻辑闭环。
-            3. 史实核查：必须提及核心史实（如 Brown v. Board, Montgomery Bus Boycott, Little Rock 9 等）。
-            4. 改进建议：给出具体的修改建议，甚至可以给出一句示范。`
+            2. A-Level alignment: focus on argument, evidence precision, and evaluation.
+            3. Structure alignment: ${sectionRubric}
+            4. Fact-check: correct or flag weak/incorrect claims; encourage specific events (e.g. Brown v. Board, Montgomery Bus Boycott, Little Rock Nine) when relevant.
+
+${outputFormat}`
           },
           {
             role: "user",
-            content: `学生提交内容：
-            Point: ${point}
-            Evidence 1: ${evidence1}
-            Evidence 2: ${evidence2}
-            Link: ${link}
-            
-            请根据上述内容给出你的 Review。`
+            content: `Essay Question (editable by student):
+${essay_question || "(not provided)"}
+
+Student submission:
+Point: ${point}
+Evidence 1: ${evidence1}
+Evidence 2: ${evidence2}
+Link: ${link}
+`
           }
         ]
       })

@@ -31,6 +31,12 @@
         button { border: none; border-radius: 6px; cursor: pointer; font-weight: 600; transition: 0.2s; }
         .btn-save { background: #2a9d8f; color: white; padding: 10px 18px; }
         .btn-export { background: #f4a261; color: white; padding: 10px 18px; }
+
+        /* Section tabs (minimal style) */
+        .section-tabs { display: flex; gap: 8px; margin: 12px 0 18px 0; }
+        .section-tab { padding: 8px 12px; border-radius: 999px; border: 1px solid #ced4da; background: #fff; color: #1d3557; font-size: 13px; }
+        .section-tab.active { background: #1d3557; color: #fff; border-color: #1d3557; }
+        .section-hint { color:#6c757d; font-size:12px; margin-bottom: 10px; }
         
         /* 💡 显式按钮样式 */
         .tag-row { display: flex; align-items: center; gap: 5px; margin-bottom: 8px; }
@@ -74,15 +80,25 @@
 
         <div class="header">
             <div style="color:#6c757d; font-size:11px; margin-bottom:5px;">MISSION ID: CR_M5</div>
-            <div class="q-text">'Progress towards greater civil rights in the 1950s was mainly brought about by federal institutions.' Evaluate this view.</div>
+            <div style="display:flex; align-items:center; gap:10px;">
+                <h1 class="q-text" id="question-title" contenteditable="true" spellcheck="false" style="outline:none; margin:0; flex:1;">'Progress towards greater civil rights in the 1950s was mainly brought about by federal institutions.' Evaluate this view.</h1>
+                <span title="Click to edit the question" style="font-size:18px; color:#457b9d;">✏️</span>
+            </div>
         </div>
+
+        <div class="section-tabs" role="tablist" aria-label="Section type">
+            <button class="section-tab" id="tab-intro" onclick="setSectionType('intro')">Intro</button>
+            <button class="section-tab active" id="tab-body" onclick="setSectionType('body')">Body (PEEL)</button>
+            <button class="section-tab" id="tab-conclusion" onclick="setSectionType('conclusion')">Conclusion</button>
+        </div>
+        <div class="section-hint" id="section-hint">Body mode: write a PEEL paragraph (Point → Evidence → Explanation → Link).</div>
 
         <div class="editor-box"><div class="label">1. Point</div><textarea id="p"></textarea></div>
         <div class="editor-box"><div class="label">2. Evidence 1</div><textarea id="e1"></textarea></div>
         <div class="editor-box"><div class="label">3. Evidence 2</div><textarea id="e2"></textarea></div>
         <div class="editor-box"><div class="label">4. Link Back</div><textarea id="l"></textarea></div>
 
-        <button class="ai-review-trigger" id="ai-btn" onclick="reviewAI()">🚀 SUBMIT FOR AI TEACHER'S REVIEW</button>
+        <button class="ai-review-trigger" id="ai-btn" onclick="submitReview()">🚀 SUBMIT FOR AI TEACHER'S REVIEW</button>
 
         <div id="ai-review-result" style="display: none;">
             <div style="background: #e63946; color: white; padding: 12px 20px; font-weight: bold;">🎯 ACADEMIC REVIEW</div>
@@ -96,14 +112,15 @@
             
             <div class="kb-section">
                 <div style="font-size:12px; font-weight:800; color:#1d3557; margin-bottom:10px; border-bottom:1px solid #eee;">⚖️ LEGAL MILESTONES</div>
-                <div class="tag-row"><div class="tag" onclick="add('Plessy v. Ferguson')">Plessy v. Ferguson</div><button class="explain-btn" onclick="explain('Plessy v. Ferguson')">💡</button></div>
-                <div class="tag-row"><div class="tag" onclick="add('Brown v. Board')">Brown v. Board</div><button class="explain-btn" onclick="explain('Brown v. Board')">💡</button></div>
+                <div class="tag-row"><div class="tag" onclick="add('Brown v. Board (1954)')">Brown v. Board</div><button class="explain-btn" onclick="getExplanation('Brown v. Board')">💡</button></div>
+                <div class="tag-row"><div class="tag" onclick="add('Civil Rights Act (1957)')">1957 CR Act</div><button class="explain-btn" onclick="getExplanation('Civil Rights Act 1957')">💡</button></div>
             </div>
 
             <div class="kb-section" style="margin-top:20px;">
                 <div style="font-size:12px; font-weight:800; color:#1d3557; margin-bottom:10px; border-bottom:1px solid #eee;">✊ DIRECT ACTION</div>
-                <div class="tag-row"><div class="tag" onclick="add('Bus Boycott')">Bus Boycott</div><button class="explain-btn" onclick="explain('Montgomery Bus Boycott')">💡</button></div>
-                <div class="tag-row"><div class="tag" onclick="add('Little Rock 9')">Little Rock 9</div><button class="explain-btn" onclick="explain('Little Rock Nine')">💡</button></div>
+                <div class="tag-row"><div class="tag" onclick="add('Montgomery Bus Boycott (1955–56)')">Bus Boycott</div><button class="explain-btn" onclick="getExplanation('Montgomery Bus Boycott')">💡</button></div>
+                <div class="tag-row"><div class="tag" onclick="add('Little Rock Nine (1957)')">Little Rock 9</div><button class="explain-btn" onclick="getExplanation('Little Rock Nine')">💡</button></div>
+                <div class="tag-row"><div class="tag" onclick="add('Jim Crow laws')">Jim Crow</div><button class="explain-btn" onclick="getExplanation('Jim Crow laws')">💡</button></div>
             </div>
         </div>
 
@@ -121,6 +138,90 @@
         let activeEditor = document.getElementById('p');
         document.querySelectorAll('textarea').forEach(tx => { tx.onfocus = () => activeEditor = tx; });
 
+        // --- 0. 语言模式控制 ---
+        let currentLanguageMode = document.getElementById('language-setting').value || 'dual';
+        document.getElementById('language-setting').addEventListener('change', (e) => {
+            currentLanguageMode = e.target.value;
+            saveToLocal();
+        });
+
+        // --- 0.1 段落类型控制（默认 Body） ---
+        let currentSectionType = 'body';
+        function setSectionType(t) {
+            currentSectionType = t;
+            document.getElementById('tab-intro').classList.toggle('active', t === 'intro');
+            document.getElementById('tab-body').classList.toggle('active', t === 'body');
+            document.getElementById('tab-conclusion').classList.toggle('active', t === 'conclusion');
+            const hint = document.getElementById('section-hint');
+            if (t === 'intro') hint.innerText = "Intro mode: focus on a clear thesis + line of argument.";
+            else if (t === 'conclusion') hint.innerText = "Conclusion mode: summarise your key points and link back to the question.";
+            else hint.innerText = "Body mode: write a PEEL paragraph (Point → Evidence → Explanation → Link).";
+            saveToLocal();
+        }
+
+        // --- 0.2 自动保存 / 恢复（防刷新丢失）---
+        const STORAGE_KEY = `GGV1_STATE::${ID}`;
+        let saveDebounceTimer = null;
+
+        function getState() {
+            return {
+                question: getCurrentQuestion(),
+                p: document.getElementById('p').value,
+                e1: document.getElementById('e1').value,
+                e2: document.getElementById('e2').value,
+                l: document.getElementById('l').value,
+                language: currentLanguageMode,
+                section: currentSectionType,
+                updatedAt: Date.now()
+            };
+        }
+
+        function saveToLocal() {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(getState()));
+            } catch (e) {}
+        }
+
+        function scheduleSave() {
+            if (saveDebounceTimer) clearTimeout(saveDebounceTimer);
+            saveDebounceTimer = setTimeout(() => saveToLocal(), 2000);
+        }
+
+        function loadFromLocal() {
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY);
+                if (!raw) return;
+                const s = JSON.parse(raw);
+                if (s.question) document.getElementById('question-title').innerText = s.question;
+                if (typeof s.p === 'string') document.getElementById('p').value = s.p;
+                if (typeof s.e1 === 'string') document.getElementById('e1').value = s.e1;
+                if (typeof s.e2 === 'string') document.getElementById('e2').value = s.e2;
+                if (typeof s.l === 'string') document.getElementById('l').value = s.l;
+                if (s.language) {
+                    currentLanguageMode = s.language;
+                    document.getElementById('language-setting').value = s.language;
+                }
+                if (s.section) setSectionType(s.section);
+            } catch (e) {}
+        }
+
+        document.getElementById('question-title').addEventListener('blur', () => saveToLocal());
+        document.querySelectorAll('textarea').forEach(tx => {
+            tx.addEventListener('input', scheduleSave);
+        });
+
+        function getLanguageConstraint() {
+            if (currentLanguageMode === 'en') return "Constraint: You must respond in 100% English. Do not use any Chinese characters.";
+            if (currentLanguageMode === 'zh') return "约束：必须 100% 使用中文回答，即使问题是英文。";
+            return "约束：使用双语回答。采用‘中文核心解释 + 括号内对应英文专业术语’的格式。";
+        }
+
+        function getCurrentQuestion() {
+            const title = document.getElementById('question-title');
+            const text = (title?.innerText || "").trim();
+            return text || "'Progress towards greater civil rights in the 1950s was mainly brought about by federal institutions.' Evaluate this view.";
+        }
+
         function add(text) {
             const start = activeEditor.selectionStart;
             activeEditor.value = activeEditor.value.substring(0, start) + text + " " + activeEditor.value.substring(start);
@@ -128,15 +229,23 @@
         }
 
         // --- 1. 侧边栏讲解老师 ---
-        async function explain(topic) {
+        async function getExplanation(topic) {
             const box = document.getElementById('explain-box');
-            const lang = document.getElementById('language-setting').value;
+            const lang = currentLanguageMode;
+            const constraint = getLanguageConstraint();
+            const essay_question = getCurrentQuestion();
             box.innerHTML = `<i style="color:#666">🔍 Searching...</i>`;
             try {
                 const response = await fetch('/api/explain', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ topic, language: lang })
+                    body: JSON.stringify({ 
+                        topic,
+                        language: lang,
+                        essay_question,
+                        section_type: currentSectionType,
+                        constraint
+                    })
                 });
                 const result = await response.json();
                 box.innerText = result.explanation || "No explanation found.";
@@ -144,15 +253,21 @@
         }
 
         // --- 2. 底部批改功能 ---
-        async function reviewAI() {
+        async function submitReview() {
             const btn = document.getElementById('ai-btn');
             const resultDiv = document.getElementById('ai-review-result');
             const contentDiv = document.getElementById('ai-content');
+            const essay_question = getCurrentQuestion();
+            const constraint = getLanguageConstraint();
             const data = { 
                 point: document.getElementById('p').value, 
                 evidence1: document.getElementById('e1').value, 
                 evidence2: document.getElementById('e2').value, 
-                link: document.getElementById('l').value 
+                link: document.getElementById('l').value,
+                essay_question,
+                section_type: currentSectionType,
+                language: currentLanguageMode,
+                constraint
             };
             
             btn.innerText = "⌛ Teacher is grading..."; btn.disabled = true;
@@ -183,6 +298,11 @@
             const blob = new Blob([content], { type: 'text/plain' });
             const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `Submission_${ID}.txt`; a.click();
         }
+
+        // 初始恢复
+        window.addEventListener('load', () => {
+            loadFromLocal();
+        });
     </script>
 </body>
 </html>
