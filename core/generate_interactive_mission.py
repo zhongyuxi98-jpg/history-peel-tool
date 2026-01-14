@@ -34,12 +34,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         .btn-save {{ background: #2a9d8f; color: white; padding: 10px 18px; }}
         .btn-export {{ background: #f4a261; color: white; padding: 10px 18px; }}
 
-        /* Section tabs (minimal style) */
-        .section-tabs {{ display: flex; gap: 8px; margin: 12px 0 18px 0; }}
-        .section-tab {{ padding: 8px 12px; border-radius: 999px; border: 1px solid #ced4da; background: #fff; color: #1d3557; font-size: 13px; }}
-        .section-tab.active {{ background: #1d3557; color: #fff; border-color: #1d3557; }}
-        .section-hint {{ color:#6c757d; font-size:12px; margin-bottom: 10px; }}
-        
         /* 💡 显式按钮样式 */
         .tag-row {{ display: flex; align-items: center; gap: 5px; margin-bottom: 8px; }}
         .tag {{ flex: 1; padding: 8px; border-radius: 4px; font-size: 12px; cursor: pointer; border: 1px solid #ddd; background: #fff; border-left: 4px solid #457b9d; text-align: left; }}
@@ -58,11 +52,21 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
         #essay-constructor {{ display:flex; flex-direction:column; gap:14px; }}
         .essay-module {{ border:1px solid #dee2e6; border-radius:10px; padding:12px 14px; background:#fff; }}
-        .module-header {{ display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }}
+        .module-header {{ display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; gap:8px; }}
+        .module-controls-left {{ display:flex; align-items:center; gap:6px; flex-wrap:wrap; }}
+        .module-controls-right {{ display:flex; align-items:center; gap:6px; }}
         .module-tag {{ font-size:12px; font-weight:700; text-transform:uppercase; color:#1d3557; }}
+        .move-btn {{ border:1px solid #ced4da; background:#f8f9fa; border-radius:4px; padding:2px 6px; font-size:11px; cursor:pointer; }}
+        .move-btn:hover {{ background:#e9ecef; }}
+        .mode-toggle {{ border:none; background:#f1faee; color:#1d3557; border-radius:999px; padding:4px 10px; font-size:11px; cursor:pointer; }}
+        .mode-toggle:hover {{ background:#e0fbfc; }}
         .module-delete {{ border:none; background:#fff; color:#e63946; cursor:pointer; font-size:14px; }}
+        .module-delete:hover {{ color:#b02a37; }}
 
-        #merge-view {{ margin-top:16px; }}
+        .free-hint {{ font-size:11px; color:#6c757d; margin-top:4px; line-height:1.4; }}
+
+        #export-preview {{ display:none; margin-top:24px; border:1px solid #dee2e6; border-radius:10px; padding:16px; background:#fff; }}
+        #export-essay {{ line-height:1.7; font-size:14px; }}
         
         /* 👨‍🏫 右侧讲解老师窗口 */
         #explainer-window {{
@@ -106,21 +110,20 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             <button class="toolbar-btn" onclick="addModule('intro')">+ Add Intro</button>
             <button class="toolbar-btn" onclick="addModule('body')">+ Add Body (PEEL)</button>
             <button class="toolbar-btn" onclick="addModule('conclusion')">+ Add Conclusion</button>
-            <button class="toolbar-btn secondary" onclick="toggleMergeView()">👁 Merge View</button>
         </div>
 
         <div id="essay-constructor"></div>
-
-        <div id="merge-view" style="display:none;">
-            <div class="label">Essay Preview (read-only)</div>
-            <textarea id="merge-content" readonly style="height:140px;"></textarea>
-        </div>
 
         <button class="ai-review-trigger" id="ai-btn" onclick="submitReview()">🚀 SUBMIT FOR AI TEACHER'S REVIEW</button>
 
         <div id="ai-review-result" style="display: none;">
             <div style="background: #e63946; color: white; padding: 12px 20px; font-weight: bold;">🎯 ACADEMIC REVIEW</div>
             <div id="ai-content" style="padding: 25px; line-height: 1.8; font-size: 15px;">AI is analyzing...</div>
+        </div>
+
+        <div id="export-preview">
+            <div style="font-weight:700; margin-bottom:8px;">📄 Essay Preview</div>
+            <div id="export-essay"></div>
         </div>
     </div>
 
@@ -212,7 +215,9 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             return {{
                 id: makeModuleId(),
                 type,
-                boxes: new Array(cfg.length).fill("")
+                boxes: new Array(cfg.length).fill(""),
+                mode: 'guided',
+                freeText: ""
             }};
         }}
 
@@ -266,6 +271,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             let bodyIndex = 0;
             const html = modules.map((m) => {{
                 const cfg = getBoxConfig(m.type);
+                const isFree = m.mode === 'free';
                 let label = "";
                 if (m.type === 'intro') label = "Intro";
                 else if (m.type === 'conclusion') label = "Conclusion";
@@ -274,29 +280,59 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                     label = "Body Paragraph " + bodyIndex;
                 }}
 
-                const boxesHtml = cfg.map((boxCfg, idx) => {{
-                    const value = (m.boxes && typeof m.boxes[idx] === 'string') ? m.boxes[idx] : "";
-                    return `
+                const modeLabel = isFree ? 'Free' : 'Guided';
+                const modeIcon = isFree ? '📝' : '🧩';
+
+                let bodyHtml = "";
+                if (isFree) {{
+                    const freeText = (m.freeText || (Array.isArray(m.boxes) ? m.boxes.join(" ") : ""));
+                    const hintLines = getBoxConfig(m.type).map((c, i) => (i + 1) + '. ' + c.placeholder).join('<br>');
+                    bodyHtml = `
                         <div class="editor-box">
-                            <div class="label">${{boxCfg.label}}</div>
-                            <textarea 
-                                data-module="${{m.id}}" 
-                                data-box="${{idx}}" 
-                                placeholder="${{boxCfg.placeholder}}"
+                            <div class="label">Freeform ${{label}}</div>
+                            <textarea
+                                data-module="${{m.id}}"
+                                data-free="1"
+                                placeholder="Write your ${{label.toLowerCase()}} in full sentences here..."
                                 onfocus="setActiveTextarea(this)"
-                                oninput="onBoxInput('${{m.id}}', ${{idx}}, this.value)"
-                            >${{value}}</textarea>
+                                oninput="onFreeInput('${{m.id}}', this.value)"
+                            >${{freeText}}</textarea>
+                            <div class="free-hint">${{hintLines}}</div>
                         </div>
                     `;
-                }}).join("");
+                }} else {{
+                    const boxesHtml = cfg.map((boxCfg, idx) => {{
+                        const value = (m.boxes && typeof m.boxes[idx] === 'string') ? m.boxes[idx] : "";
+                        return `
+                            <div class="editor-box">
+                                <div class="label">${{boxCfg.label}}</div>
+                                <textarea 
+                                    data-module="${{m.id}}" 
+                                    data-box="${{idx}}" 
+                                    placeholder="${{boxCfg.placeholder}}"
+                                    onfocus="setActiveTextarea(this)"
+                                    oninput="onBoxInput('${{m.id}}', ${{idx}}, this.value)"
+                                >${{value}}</textarea>
+                            </div>
+                        `;
+                    }}).join("");
+                    bodyHtml = boxesHtml;
+                }}
 
                 return `
                     <div class="essay-module" data-id="${{m.id}}">
                         <div class="module-header">
-                            <span class="module-tag">${{label}}</span>
-                            <button class="module-delete" onclick="removeModule('${{m.id}}')">✕</button>
+                            <div class="module-controls-left">
+                                <button class="move-btn" onclick="moveModule('${{m.id}}', -1)">↑</button>
+                                <button class="move-btn" onclick="moveModule('${{m.id}}', 1)">↓</button>
+                                <span class="module-tag">${{label}}</span>
+                            </div>
+                            <div class="module-controls-right">
+                                <button class="mode-toggle" onclick="toggleModuleMode('${{m.id}}')">${{modeIcon}} ${{modeLabel}}</button>
+                                <button class="module-delete" onclick="confirmRemoveModule('${{m.id}}')">✕</button>
+                            </div>
                         </div>
-                        ${{boxesHtml}}
+                        ${{bodyHtml}}
                     </div>
                 `;
             }}).join("");
@@ -316,6 +352,12 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             saveToLocal();
         }}
 
+        function confirmRemoveModule(id) {{
+            if (confirm('Delete this module? This action cannot be undone.')) {{
+                removeModule(id);
+            }}
+        }}
+
         function onBoxInput(id, index, value) {{
             const m = modules.find(m => m.id === id);
             if (!m) return;
@@ -323,13 +365,62 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             m.boxes[index] = value;
             scheduleSave();
         }}
+        
+        function onFreeInput(id, value) {{
+            const m = modules.find(m => m.id === id);
+            if (!m) return;
+            m.freeText = value;
+            scheduleSave();
+        }}
 
-        // --- 2. 合并视图与全文构建 ---
+        function toggleModuleMode(id) {{
+            const m = modules.find(m => m.id === id);
+            if (!m) return;
+            const cfg = getBoxConfig(m.type);
+            if (!m.mode || m.mode === 'guided') {{
+                const parts = Array.isArray(m.boxes) ? m.boxes.map(b => (b || '').trim()).filter(Boolean) : [];
+                m.freeText = parts.join("\\n\\n");
+                m.mode = 'free';
+            }} else {{
+                const maxBoxes = cfg.length;
+                const src = (m.freeText || '').split(/\\n{{2,}}|\\n/).filter(Boolean);
+                m.boxes = new Array(maxBoxes).fill("");
+                for (let i = 0; i < maxBoxes; i++) {{
+                    if (i < src.length - 1) {{
+                        m.boxes[i] = src[i];
+                    }} else if (i === maxBoxes - 1 && src.length) {{
+                        m.boxes[i] = src.slice(i).join(' ');
+                        break;
+                    }}
+                }}
+                m.mode = 'guided';
+            }}
+            renderModules();
+            saveToLocal();
+        }}
+
+        function moveModule(id, direction) {{
+            const idx = modules.findIndex(m => m.id === id);
+            if (idx === -1) return;
+            const next = idx + direction;
+            if (next < 0 || next >= modules.length) return;
+            const tmp = modules[idx];
+            modules[idx] = modules[next];
+            modules[next] = tmp;
+            renderModules();
+            saveToLocal();
+        }}
+
+        // --- 2. 全文构建 ---
         function buildEssayText() {{
             const parts = [];
             modules.forEach((m) => {{
-                if (!Array.isArray(m.boxes)) return;
-                const text = m.boxes.map(b => (b || "").trim()).filter(Boolean).join(" ");
+                let text = "";
+                if (m.mode === 'free') {{
+                    text = (m.freeText || "").trim();
+                }} else if (Array.isArray(m.boxes)) {{
+                    text = m.boxes.map(b => (b || "").trim()).filter(Boolean).join(" ");
+                }}
                 if (!text) return;
                 let prefix = "";
                 if (m.type === 'intro') prefix = "[Intro] ";
@@ -343,20 +434,37 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         function getStructureSummary() {{
             return modules.map((m) => ({{
                 type: m.type,
-                text: Array.isArray(m.boxes) ? m.boxes.join(" ").trim() : ""
+                text: m.mode === 'free'
+                    ? (m.freeText || "").trim()
+                    : (Array.isArray(m.boxes) ? m.boxes.join(" ").trim() : "")
             }}));
         }}
 
-        function toggleMergeView() {{
-            const panel = document.getElementById('merge-view');
-            const box = document.getElementById('merge-content');
-            if (!panel || !box) return;
-            if (panel.style.display === 'none' || panel.style.display === '') {{
-                box.value = buildEssayText();
-                panel.style.display = 'block';
-            }} else {{
-                panel.style.display = 'none';
-            }}
+        function buildEssayHtml() {{
+            const parts = [];
+            let bodyIndex = 0;
+            modules.forEach((m) => {{
+                let title = "";
+                if (m.type === 'intro') title = "Introduction";
+                else if (m.type === 'conclusion') title = "Conclusion";
+                else {{
+                    bodyIndex += 1;
+                    title = "Body Paragraph " + bodyIndex;
+                }}
+                let text = "";
+                if (m.mode === 'free') {{
+                    text = (m.freeText || "").trim();
+                }} else if (Array.isArray(m.boxes)) {{
+                    text = m.boxes.map(b => (b || "").trim()).filter(Boolean).join(" ");
+                }}
+                if (!text) return;
+                const safe = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\\n/g, '<br>');
+                parts.push(
+                    `<h4 style="margin:8px 0 4px 0;">${{title}}</h4>` +
+                    `<p style="margin:0 0 8px 0;">${{safe}}</p>`
+                );
+            }});
+            return parts.join('');
         }}
 
         // --- 3. 语言与自动保存事件 ---
@@ -454,6 +562,14 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             const content = `WORK: ${{ID}}\\nQUESTION: ${{getCurrentQuestion()}}\\n\\n[ESSAY]\\n${{essayText}}\\n\\n[AI FEEDBACK]\\n${{aiContent}}`;
             const blob = new Blob([content], {{ type: 'text/plain' }});
             const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `Submission_${{ID}}.txt`; a.click();
+
+            const preview = document.getElementById('export-preview');
+            const container = document.getElementById('export-essay');
+            if (preview && container) {{
+                container.innerHTML = buildEssayHtml();
+                preview.style.display = 'block';
+                preview.scrollIntoView({{ behavior: 'smooth' }});
+            }}
         }}
 
         // 初始恢复 + 默认 body 模块
