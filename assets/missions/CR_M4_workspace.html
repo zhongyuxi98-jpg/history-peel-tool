@@ -78,6 +78,40 @@
         }
         #explain-box { font-size: 13px; line-height: 1.6; color: #f1faee; min-height: 110px; white-space: pre-wrap; }
 
+        /* Toast 提示样式 */
+        #toast-container {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10000;
+            pointer-events: none;
+        }
+        .toast {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 16px 24px;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+            font-weight: 600;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            animation: toastSlideIn 0.3s ease-out, toastFadeOut 0.3s ease-in 2.7s forwards;
+            max-width: 600px;
+        }
+        @keyframes toastSlideIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes toastFadeOut {
+            to { opacity: 0; transform: translateY(-20px); }
+        }
+        .toast-icon {
+            font-size: 20px;
+        }
+        
         /* 🚀 底部 AI Review 样式 */
         .review-actions { display: flex; gap: 12px; margin: 30px 0; }
         .ai-review-trigger { background: #e63946; color: white; flex: 1; padding: 20px; font-size: 18px; box-shadow: 0 4px 15px rgba(230,57,70,0.3); }
@@ -170,6 +204,9 @@
             <div id="export-essay"></div>
         </div>
     </div>
+
+    <!-- Toast 容器 -->
+    <div id="toast-container"></div>
 
     <div class="sidebar">
         <div class="sidebar-content">
@@ -677,12 +714,112 @@
             }
         }
 
-        // 初始恢复 + 默认 body 模块
+        // --- 9. Toast 提示函数 ---
+        function showToast(message) {
+            const container = document.getElementById('toast-container');
+            if (!container) return;
+            
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.innerHTML = `<span class="toast-icon">✅</span><span>${message}</span>`;
+            
+            container.innerHTML = '';
+            container.appendChild(toast);
+            
+            // 3 秒后自动移除
+            setTimeout(() => {
+                if (toast.parentNode) {
+                    toast.parentNode.removeChild(toast);
+                }
+            }, 3000);
+        }
+
+        // --- 10. 自动拆解投喂逻辑 ---
+        function processQuickAuditData() {
+            // 检查是否有 Quick Audit 的待处理数据
+            const pendingIntro = localStorage.getItem('pendingIntro');
+            const pendingConclusion = localStorage.getItem('pendingConclusion');
+            const pendingBodiesRaw = localStorage.getItem('pendingBodies');
+            
+            if (!pendingIntro && !pendingConclusion && !pendingBodiesRaw) {
+                return false; // 没有待处理数据
+            }
+            
+            // 清空现有模块（确保清除所有输入框）
+            modules = [];
+            
+            let moduleCount = 0;
+            
+            // 创建 Intro 模块（如果有）
+            if (pendingIntro) {
+                const introMod = createEmptyModule('intro');
+                introMod.mode = 'free';
+                introMod.freeText = pendingIntro;
+                modules.push(introMod);
+                moduleCount++;
+            }
+            
+            // 创建 Body 模块（根据 pendingBodies 的长度自动生成）
+            if (pendingBodiesRaw) {
+                try {
+                    const bodies = JSON.parse(pendingBodiesRaw);
+                    if (Array.isArray(bodies) && bodies.length > 0) {
+                        bodies.forEach(bodyText => {
+                            if (bodyText && bodyText.trim()) {
+                                const bodyMod = createEmptyModule('body');
+                                bodyMod.mode = 'free';
+                                bodyMod.freeText = bodyText.trim();
+                                modules.push(bodyMod);
+                                moduleCount++;
+                            }
+                        });
+                    }
+                } catch (e) {
+                    console.error('Failed to parse pendingBodies:', e);
+                }
+            }
+            
+            // 创建 Conclusion 模块（如果有）
+            if (pendingConclusion) {
+                const conclMod = createEmptyModule('conclusion');
+                conclMod.mode = 'free';
+                conclMod.freeText = pendingConclusion;
+                modules.push(conclMod);
+                moduleCount++;
+            }
+            
+            // 清除 localStorage 中的待处理数据（防止下次打开页面误触发）
+            localStorage.removeItem('pendingIntro');
+            localStorage.removeItem('pendingConclusion');
+            localStorage.removeItem('pendingBodies');
+            
+            // 保存到当前任务的状态
+            saveToLocal();
+            
+            // 渲染模块
+            renderModules();
+            
+            // 显示 Toast 反馈提示
+            showToast("Audit Complete: We've split your text into PEEL blocks. Review the logic below!");
+            
+            return true; // 成功处理
+        }
+
+        // 初始恢复 + 默认 body 模块 + Quick Audit 数据导入
         window.addEventListener('load', () => {
-            loadFromLocal();
+            // 优先处理 Quick Audit 数据
+            const hasQuickAuditData = processQuickAuditData();
+            
+            if (!hasQuickAuditData) {
+                // 如果没有 Quick Audit 数据，正常加载本地保存的状态
+                loadFromLocal();
+            }
+            
+            // 如果没有模块，创建默认 body 模块
             if (!modules.length) {
                 modules.push(createEmptyModule('body'));
             }
+            
             renderModules();
         });
     </script>

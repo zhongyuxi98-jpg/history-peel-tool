@@ -3,25 +3,139 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🚀 PEEL Workstation Missions</title>
+    <title>GeekGirl Academic Lab</title>
     <style>
-        /* 这里就是你丢失的“花纹”和样式 */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
         body { 
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
-            padding: 40px 20px; 
-            background: #f0f2f5; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 0;
             color: #1a1a1a;
-            line-height: 1.6;
         }
 
-        h1 { text-align: center; color: #2c3e50; margin-bottom: 40px; font-size: 2.5rem; }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        /* 顶部标题区域 */
+        .header-section {
+            text-align: center;
+            margin-bottom: 50px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .main-title {
+            font-size: 3rem;
+            font-weight: 800;
+            color: #2c3e50;
+            margin-bottom: 30px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        /* 学习曲线占位图 */
+        .progress-chart {
+            width: 100%;
+            height: 200px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .chart-line {
+            stroke: #667eea;
+            stroke-width: 3;
+            fill: none;
+        }
+
+        .chart-area {
+            fill: url(#gradient);
+            opacity: 0.3;
+        }
+
+        /* Mode A: Quick Audit */
+        .quick-audit-section {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 40px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .section-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .audit-textarea {
+            width: 100%;
+            min-height: 300px;
+            padding: 20px;
+            border: 3px solid #e1e4e8;
+            border-radius: 12px;
+            font-size: 16px;
+            line-height: 1.8;
+            font-family: inherit;
+            resize: vertical;
+            transition: border-color 0.3s;
+        }
+
+        .audit-textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .audit-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 18px 40px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            border-radius: 12px;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .audit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        .audit-btn:active {
+            transform: translateY(0);
+        }
+
+        /* Mode B: Missions */
+        .missions-section {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
 
         .mission-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
             gap: 25px;
-            max-width: 1200px;
-            margin: 0 auto;
+            margin-top: 30px;
         }
 
         .mission-card {
@@ -31,7 +145,7 @@
             box-shadow: 0 4px 6px rgba(0,0,0,0.05), 0 1px 3px rgba(0,0,0,0.1);
             transition: transform 0.2s, box-shadow 0.2s;
             cursor: pointer;
-            border: 1px solid #e1e4e8;
+            border: 2px solid #e1e4e8;
             display: flex;
             flex-direction: column;
             min-height: 200px;
@@ -40,7 +154,7 @@
         .mission-card:hover {
             transform: translateY(-5px);
             box-shadow: 0 12px 20px rgba(0,0,0,0.1);
-            border-color: #3498db;
+            border-color: #667eea;
         }
 
         .mid-tag {
@@ -54,69 +168,173 @@
             margin-bottom: 15px;
         }
 
-        h3 { margin: 10px 0; color: #2c3e50; font-size: 1.4rem; }
+        .mission-card h3 {
+            margin: 10px 0;
+            color: #2c3e50;
+            font-size: 1.4rem;
+        }
 
         .question-box {
             background: #f8f9fa;
-            border-left: 4px solid #3498db;
+            border-left: 4px solid #667eea;
             padding: 12px;
             margin-top: auto;
             border-radius: 4px;
         }
 
-        .question-box p { margin: 0; font-style: italic; color: #5f6368; font-size: 0.95rem; }
+        .question-box p {
+            margin: 0;
+            font-style: italic;
+            color: #5f6368;
+            font-size: 0.95rem;
+        }
 
-        /* 响应式：让它在平板上自动变单列 */
         @media (max-width: 768px) {
+            .main-title { font-size: 2rem; }
             .mission-grid { grid-template-columns: 1fr; }
+            .container { padding: 20px 10px; }
         }
     </style>
 </head>
 <body>
 
-    <h1>🚀 PEEL Workstation Missions</h1>
-
-    <div class="mission-grid">
-        <div class="mission-card" onclick="location.href='assets/missions/CR_M1_workspace.html'">
-            <span class="mid-tag">Mission CR_M1</span>
-            <h3>Opposition in the 1950s</h3>
-            <div class="question-box">
-                <p>"Assess the reasons for the opposition to the Civil Rights movement in the Southern states in the 1950s."</p>
+    <div class="container">
+        <!-- 顶部标题 + 学习曲线 -->
+        <div class="header-section">
+            <h1 class="main-title">GeekGirl Academic Lab</h1>
+            <div class="progress-chart">
+                <svg width="100%" height="100%" viewBox="0 0 800 200" preserveAspectRatio="none">
+                    <defs>
+                        <linearGradient id="gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#764ba2;stop-opacity:0" />
+                        </linearGradient>
+                    </defs>
+                    <!-- 背景网格 -->
+                    <g stroke="#e1e4e8" stroke-width="1" opacity="0.5">
+                        <line x1="0" y1="40" x2="800" y2="40" />
+                        <line x1="0" y1="80" x2="800" y2="80" />
+                        <line x1="0" y1="120" x2="800" y2="120" />
+                        <line x1="0" y1="160" x2="800" y2="160" />
+                    </g>
+                    <!-- 折线图 -->
+                    <path class="chart-area" d="M 0,180 L 100,150 L 200,120 L 300,100 L 400,80 L 500,60 L 600,50 L 700,40 L 800,30 L 800,200 L 0,200 Z" />
+                    <path class="chart-line" d="M 0,180 L 100,150 L 200,120 L 300,100 L 400,80 L 500,60 L 600,50 L 700,40 L 800,30" />
+                    <!-- 数据点 -->
+                    <circle cx="100" cy="150" r="5" fill="#667eea" />
+                    <circle cx="200" cy="120" r="5" fill="#667eea" />
+                    <circle cx="300" cy="100" r="5" fill="#667eea" />
+                    <circle cx="400" cy="80" r="5" fill="#667eea" />
+                    <circle cx="500" cy="60" r="5" fill="#667eea" />
+                    <circle cx="600" cy="50" r="5" fill="#667eea" />
+                    <circle cx="700" cy="40" r="5" fill="#667eea" />
+                    <circle cx="800" cy="30" r="5" fill="#667eea" />
+                </svg>
             </div>
         </div>
 
-        <div class="mission-card" onclick="location.href='assets/missions/CR_M2_workspace.html'">
-            <span class="mid-tag">Mission CR_M2</span>
-            <h3>Success in the 1950s</h3>
-            <div class="question-box">
-                <p>"Evaluate how successful the Civil Rights movement was in the 1950s."</p>
-            </div>
+        <!-- Mode A: Quick Audit -->
+        <div class="quick-audit-section">
+            <h2 class="section-title">⚡ Mode A: Quick Audit</h2>
+            <textarea 
+                id="audit-input" 
+                class="audit-textarea" 
+                placeholder="Paste your essay here for a 3-second PEEL audit..."
+            ></textarea>
+            <button class="audit-btn" onclick="processQuickAudit()">🚀 Audit Now</button>
         </div>
 
-        <div class="mission-card" onclick="location.href='assets/missions/CR_M3_workspace.html'">
-            <span class="mid-tag">Mission CR_M3</span>
-            <h3>Federal Institutions</h3>
-            <div class="question-box">
-                <p>"Assess the impact of federal institutions on civil rights in the late 1940s and 1950s."</p>
-            </div>
-        </div>
+        <!-- Mode B: Missions -->
+        <div class="missions-section">
+            <h2 class="section-title">📚 Mode B: Missions</h2>
+            <div class="mission-grid">
+                <div class="mission-card" onclick="location.href='assets/missions/CR_M1_workspace.html'">
+                    <span class="mid-tag">Mission CR_M1</span>
+                    <h3>Opposition in the 1950s</h3>
+                    <div class="question-box">
+                        <p>"Assess the reasons for the opposition to the Civil Rights movement in the Southern states in the 1950s."</p>
+                    </div>
+                </div>
 
-        <div class="mission-card" onclick="location.href='assets/missions/CR_M4_workspace.html'">
-            <span class="mid-tag">Mission CR_M4</span>
-            <h3>NAACP Effectiveness</h3>
-            <div class="question-box">
-                <p>"Analyse the effectiveness of the NAACP in promoting civil rights in the late 1940s and 1950s."</p>
-            </div>
-        </div>
+                <div class="mission-card" onclick="location.href='assets/missions/CR_M2_workspace.html'">
+                    <span class="mid-tag">Mission CR_M2</span>
+                    <h3>Success in the 1950s</h3>
+                    <div class="question-box">
+                        <p>"Evaluate how successful the Civil Rights movement was in the 1950s."</p>
+                    </div>
+                </div>
 
-        <div class="mission-card" onclick="location.href='assets/missions/CR_M5_workspace.html'">
-            <span class="mid-tag">Mission CR_M5</span>
-            <h3>Federal vs Grassroots</h3>
-            <div class="question-box">
-                <p>"'Progress towards greater civil rights in the 1950s was mainly brought about by federal institutions.' Evaluate this view."</p>
+                <div class="mission-card" onclick="location.href='assets/missions/CR_M3_workspace.html'">
+                    <span class="mid-tag">Mission CR_M3</span>
+                    <h3>Federal Institutions</h3>
+                    <div class="question-box">
+                        <p>"Assess the impact of federal institutions on civil rights in the late 1940s and 1950s."</p>
+                    </div>
+                </div>
+
+                <div class="mission-card" onclick="location.href='assets/missions/CR_M4_workspace.html'">
+                    <span class="mid-tag">Mission CR_M4</span>
+                    <h3>NAACP Effectiveness</h3>
+                    <div class="question-box">
+                        <p>"Analyse the effectiveness of the NAACP in promoting civil rights in the late 1940s and 1950s."</p>
+                    </div>
+                </div>
+
+                <div class="mission-card" onclick="location.href='assets/missions/CR_M5_workspace.html'">
+                    <span class="mid-tag">Mission CR_M5</span>
+                    <h3>Federal vs Grassroots</h3>
+                    <div class="question-box">
+                        <p>"'Progress towards greater civil rights in the 1950s was mainly brought about by federal institutions.' Evaluate this view."</p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
+
+    <script>
+        function processQuickAudit() {
+            const textarea = document.getElementById('audit-input');
+            const text = textarea.value.trim();
+            
+            if (!text) {
+                alert('Please paste your essay first!');
+                return;
+            }
+
+            // 按换行符拆分，合并多余空行
+            const paragraphs = text
+                .split(/\n+/)
+                .map(p => p.trim())
+                .filter(p => p.length > 0);
+
+            if (paragraphs.length === 0) {
+                alert('No valid content found. Please check your essay.');
+                return;
+            }
+
+            // 第一段 → Intro
+            const intro = paragraphs[0];
+            localStorage.setItem('pendingIntro', intro);
+
+            // 最后一段 → Conclusion
+            const conclusion = paragraphs[paragraphs.length - 1];
+            localStorage.setItem('pendingConclusion', conclusion);
+
+            // 中间所有段落 → Bodies (数组)
+            const bodies = paragraphs.slice(1, paragraphs.length - 1);
+            localStorage.setItem('pendingBodies', JSON.stringify(bodies));
+
+            // 跳转到默认练习页面
+            window.location.href = 'assets/missions/CR_M1_workspace.html';
+        }
+
+        // 支持 Enter + Ctrl/Cmd 提交
+        document.getElementById('audit-input').addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                processQuickAudit();
+            }
+        });
+    </script>
 
 </body>
 </html>
