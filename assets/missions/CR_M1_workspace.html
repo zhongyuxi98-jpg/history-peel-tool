@@ -408,6 +408,41 @@
             border: 2px solid #667eea !important;
         }
         
+        /* AI Review 联动高亮动画 */
+        @keyframes activeGlow {
+            0% {
+                background-color: transparent;
+                box-shadow: inset 0 0 0 rgba(224, 187, 228, 0);
+            }
+            16.66% {
+                background-color: rgba(224, 187, 228, 0.3);
+                box-shadow: inset 0 0 20px rgba(224, 187, 228, 0.5);
+            }
+            33.33% {
+                background-color: transparent;
+                box-shadow: inset 0 0 0 rgba(224, 187, 228, 0);
+            }
+            50% {
+                background-color: rgba(224, 187, 228, 0.3);
+                box-shadow: inset 0 0 20px rgba(224, 187, 228, 0.5);
+            }
+            66.66% {
+                background-color: transparent;
+                box-shadow: inset 0 0 0 rgba(224, 187, 228, 0);
+            }
+            83.33% {
+                background-color: rgba(224, 187, 228, 0.3);
+                box-shadow: inset 0 0 20px rgba(224, 187, 228, 0.5);
+            }
+            100% {
+                background-color: transparent;
+                box-shadow: inset 0 0 0 rgba(224, 187, 228, 0);
+            }
+        }
+        .essay-module.active-glow {
+            animation: activeGlow 2s ease-in-out;
+        }
+        
         /* AI 反馈卡片样式 */
         .ai-feedback-card {
             background: #fff;
@@ -621,6 +656,7 @@
 <body>
     <div class="main">
         <div class="nav-bar">
+            <button class="btn-workspace" onclick="backToWorkspace()" style="background: #6c757d; color: white; padding: 10px 18px; border-radius: 6px; border: none; cursor: pointer; font-weight: 600;">← Workspace</button>
             <button class="btn-save" onclick="save()">💾 SAVE</button>
             <button class="btn-mission-lab" onclick="showMissionLab()" style="background: #764ba2; color: white; padding: 10px 18px; border-radius: 6px; border: none; cursor: pointer; font-weight: 600;">📚 Mission Lab</button>
             <select id="language-setting" style="padding: 10px; border-radius: 6px; border: 1.5px solid #007bff;">
@@ -719,8 +755,8 @@
                     <button class="modal-btn modal-btn-secondary" onclick="backFromPreview()">← Back to Edit</button>
                     <button class="modal-btn modal-btn-primary" onclick="confirmSubmitFromPreview()">✓ Confirm & Submit for Review</button>
                 </div>
-            </div>
         </div>
+    </div>
 
         <!-- 批改视图：左右双栏（同屏对照修改） -->
         <div id="feedback-view">
@@ -787,26 +823,26 @@
             <button onclick="closeSidebar()" style="background: none; border: none; font-size: 20px; cursor: pointer; color: #6c757d; padding: 0; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;">✕</button>
         </div>
         <div class="sidebar-content">
-            <div class="kb-section">
-                <div style="font-size:12px; font-weight:800; color:#1d3557; margin-bottom:10px; border-bottom:1px solid #eee;">⚖️ LEGAL MILESTONES</div>
+        <div class="kb-section">
+            <div style="font-size:12px; font-weight:800; color:#1d3557; margin-bottom:10px; border-bottom:1px solid #eee;">⚖️ LEGAL MILESTONES</div>
                     <div class="tag-row"><div class="tag" onclick="add('Brown v. Board (1954)')">Brown v. Board</div><button class="explain-btn" onclick="getExplanation('Brown v. Board')">💡</button></div>
                     <div class="tag-row"><div class="tag" onclick="add('Civil Rights Act (1957)')">1957 CR Act</div><button class="explain-btn" onclick="getExplanation('Civil Rights Act 1957')">💡</button></div>
-            </div>
+        </div>
 
-            <div class="kb-section" style="margin-top:20px;">
-                <div style="font-size:12px; font-weight:800; color:#1d3557; margin-bottom:10px; border-bottom:1px solid #eee;">✊ DIRECT ACTION</div>
+        <div class="kb-section" style="margin-top:20px;">
+            <div style="font-size:12px; font-weight:800; color:#1d3557; margin-bottom:10px; border-bottom:1px solid #eee;">✊ DIRECT ACTION</div>
                     <div class="tag-row"><div class="tag" onclick="add('Montgomery Bus Boycott (1955–56)')">Bus Boycott</div><button class="explain-btn" onclick="getExplanation('Montgomery Bus Boycott')">💡</button></div>
                     <div class="tag-row"><div class="tag" onclick="add('Little Rock Nine (1957)')">Little Rock 9</div><button class="explain-btn" onclick="getExplanation('Little Rock Nine')">💡</button></div>
                     <div class="tag-row"><div class="tag" onclick="add('Jim Crow laws')">Jim Crow</div><button class="explain-btn" onclick="getExplanation('Jim Crow laws')">💡</button></div>
                 </div>
-            </div>
+        </div>
 
-            <div id="explainer-window">
+        <div id="explainer-window">
                 <div style="font-weight:800; color:#a8dadc; font-size:11px; margin-bottom:8px; display:flex; justify-content:space-between;">
-                    <span>👨‍🏫 KNOWLEDGE EXPLORER</span>
+                <span>👨‍🏫 KNOWLEDGE EXPLORER</span>
                     <span style="cursor:pointer" onclick="document.getElementById('explain-box').innerText='Click the 💡 button for detailed context.'">Reset</span>
-                </div>
-                <div id="explain-box">Click the 💡 button for detailed context.</div>
+            </div>
+            <div id="explain-box">Click the 💡 button for detailed context.</div>
             </div>
         </div>
     </div>
@@ -962,15 +998,25 @@
             }
 
             let bodyIndex = 0;
+            let introIndex = 0;
+            let conclusionIndex = 0;
             const html = modules.map((m) => {
                 const cfg = getBoxConfig(m.type);
                 const isFree = m.mode === 'free';
                 let label = "";
-                if (m.type === 'intro') label = "Intro";
-                else if (m.type === 'conclusion') label = "Conclusion";
-                else {
+                let blockId = "";
+                if (m.type === 'intro') {
+                    introIndex += 1;
+                    label = "Intro";
+                    blockId = `intro-${introIndex}`;
+                } else if (m.type === 'conclusion') {
+                    conclusionIndex += 1;
+                    label = "Conclusion";
+                    blockId = `conclusion-${conclusionIndex}`;
+                } else {
                     bodyIndex += 1;
                     label = "Body Paragraph " + bodyIndex;
+                    blockId = `body-${bodyIndex}`;
                 }
 
                 const modeLabel = isFree ? 'Free' : 'Guided';
@@ -1017,7 +1063,7 @@
                 }
 
                 return `
-                    <div class="essay-module" data-id="${m.id}">
+                    <div class="essay-module" data-id="${m.id}" data-block-id="${blockId}">
                         <div class="module-header">
                             <div class="module-controls-left">
                                 <button class="move-btn" onclick="moveModule('${m.id}', -1)">↑</button>
@@ -1073,11 +1119,115 @@
             updateGlobalWordCount();
         }
         
-        // --- 字数统计函数 ---
+        // --- 核心计算逻辑（与 DOM 解耦，便于迁移到小程序）---
+        
+        /**
+         * 计算文本字数（纯函数，无 DOM 依赖）
+         * @param {string} text - 待统计的文本
+         * @returns {number} 字数
+         */
         function countWords(text) {
             if (!text || !text.trim()) return 0;
             return text.trim().split(/\s+/).filter(w => w.length > 0).length;
         }
+        
+        /**
+         * 计算单个模块的字数（纯函数）
+         * @param {Object} module - 模块对象
+         * @returns {number} 该模块的字数
+         */
+        function calculateModuleWordCount(module) {
+            if (!module) return 0;
+            if (module.mode === 'free') {
+                return countWords(module.freeText || '');
+            } else if (Array.isArray(module.boxes)) {
+                return module.boxes.reduce((total, box) => total + countWords(box || ''), 0);
+            }
+            return 0;
+        }
+        
+        /**
+         * 计算所有模块的总字数（纯函数）
+         * @param {Array} modulesArray - 模块数组
+         * @returns {number} 总字数
+         */
+        function calculateTotalWordCount(modulesArray) {
+            if (!Array.isArray(modulesArray)) return 0;
+            return modulesArray.reduce((total, m) => total + calculateModuleWordCount(m), 0);
+        }
+        
+        /**
+         * 分析 PEEL 结构（纯函数）
+         * @param {Array} modulesArray - 模块数组
+         * @returns {Object} 结构分析结果
+         */
+        function analyzePEELStructure(modulesArray) {
+            if (!Array.isArray(modulesArray)) return { intro: 0, body: 0, conclusion: 0, total: 0 };
+            
+            const analysis = {
+                intro: 0,
+                body: 0,
+                conclusion: 0,
+                total: modulesArray.length,
+                modules: modulesArray.map(m => ({
+                    type: m.type,
+                    wordCount: calculateModuleWordCount(m),
+                    mode: m.mode || 'guided'
+                }))
+            };
+            
+            modulesArray.forEach(m => {
+                if (m.type === 'intro') analysis.intro++;
+                else if (m.type === 'body') analysis.body++;
+                else if (m.type === 'conclusion') analysis.conclusion++;
+            });
+            
+            return analysis;
+        }
+        
+        /**
+         * 构建完整 Essay 文本（纯函数）
+         * @param {Array} modulesArray - 模块数组
+         * @returns {string} 完整的 Essay 文本
+         */
+        function buildEssayTextFromModules(modulesArray) {
+            if (!Array.isArray(modulesArray)) return '';
+            
+            const parts = [];
+            modulesArray.forEach((m) => {
+                let text = "";
+                if (m.mode === 'free') {
+                    text = (m.freeText || "").trim();
+                } else if (Array.isArray(m.boxes)) {
+                    text = m.boxes.map(b => (b || "").trim()).filter(Boolean).join(" ");
+                }
+                if (!text) return;
+                let prefix = "";
+                if (m.type === 'intro') prefix = "[Intro] ";
+                else if (m.type === 'conclusion') prefix = "[Conclusion] ";
+                else prefix = "[Body] ";
+                parts.push(prefix + text);
+            });
+            return parts.join("\n\n");
+        }
+        
+        /**
+         * 获取结构摘要（纯函数）
+         * @param {Array} modulesArray - 模块数组
+         * @returns {Array} 结构摘要数组
+         */
+        function getStructureSummaryFromModules(modulesArray) {
+            if (!Array.isArray(modulesArray)) return [];
+            
+            return modulesArray.map((m) => ({
+                type: m.type,
+                text: m.mode === 'free'
+                    ? (m.freeText || "").trim()
+                    : (Array.isArray(m.boxes) ? m.boxes.join(" ").trim() : "")
+            }));
+        }
+        
+        // --- DOM 更新函数（依赖核心计算逻辑）---
         
         function updateWordCount(textarea) {
             const wordCountEl = textarea.parentElement.querySelector('.word-count');
@@ -1091,17 +1241,7 @@
             const globalCountEl = document.getElementById('global-word-count');
             if (!globalCountEl) return;
             
-            let totalWords = 0;
-            modules.forEach(m => {
-                if (m.mode === 'free') {
-                    totalWords += countWords(m.freeText || '');
-                } else if (Array.isArray(m.boxes)) {
-                    m.boxes.forEach(box => {
-                        totalWords += countWords(box || '');
-                    });
-                }
-            });
-            
+            const totalWords = calculateTotalWordCount(modules);
             globalCountEl.textContent = totalWords + ' words';
         }
         
@@ -1237,33 +1377,13 @@
             saveToLocal();
         }
 
-        // --- 2. 全文构建 ---
+        // --- 2. 全文构建（使用核心计算逻辑）---
         function buildEssayText() {
-            const parts = [];
-            modules.forEach((m) => {
-                let text = "";
-                if (m.mode === 'free') {
-                    text = (m.freeText || "").trim();
-                } else if (Array.isArray(m.boxes)) {
-                    text = m.boxes.map(b => (b || "").trim()).filter(Boolean).join(" ");
-                }
-                if (!text) return;
-                let prefix = "";
-                if (m.type === 'intro') prefix = "[Intro] ";
-                else if (m.type === 'conclusion') prefix = "[Conclusion] ";
-                else prefix = "[Body] ";
-                parts.push(prefix + text);
-            });
-            return parts.join("\n\n");
+            return buildEssayTextFromModules(modules);
         }
 
         function getStructureSummary() {
-            return modules.map((m) => ({
-                type: m.type,
-                text: m.mode === 'free'
-                    ? (m.freeText || "").trim()
-                    : (Array.isArray(m.boxes) ? m.boxes.join(" ").trim() : "")
-            }));
+            return getStructureSummaryFromModules(modules);
         }
 
         function buildEssayHtml() {
@@ -1450,20 +1570,31 @@
         // 渲染可编辑模块（在 Review 页面左侧）
         function renderEditableModules(container) {
             if (!container) return;
+            let bodyIndex = 0;
+            let introIndex = 0;
+            let conclusionIndex = 0;
             const html = modules.map((m) => {
                 const cfg = getBoxConfig(m.type);
                 let label = "";
-                if (m.type === 'intro') label = "Intro";
-                else if (m.type === 'conclusion') label = "Conclusion";
-                else {
-                    const bodyIdx = modules.filter(mm => mm.type === 'body' && modules.indexOf(mm) <= modules.indexOf(m)).length;
-                    label = "Body Paragraph " + bodyIdx;
+                let blockId = "";
+                if (m.type === 'intro') {
+                    introIndex += 1;
+                    label = "Intro";
+                    blockId = `intro-${introIndex}`;
+                } else if (m.type === 'conclusion') {
+                    conclusionIndex += 1;
+                    label = "Conclusion";
+                    blockId = `conclusion-${conclusionIndex}`;
+                } else {
+                    bodyIndex += 1;
+                    label = "Body Paragraph " + bodyIndex;
+                    blockId = `body-${bodyIndex}`;
                 }
                 
                 if (m.mode === 'free') {
                     const freeText = (m.freeText || "").trim();
                     return `
-                        <div class="essay-module" data-id="${m.id}" data-type="${m.type}">
+                        <div class="essay-module" data-id="${m.id}" data-type="${m.type}" data-block-id="${blockId}">
                             <div class="module-header">
                                 <span class="module-tag">${label}</span>
                             </div>
@@ -1493,7 +1624,7 @@
                         `;
                     }).join("");
                     return `
-                        <div class="essay-module" data-id="${m.id}" data-type="${m.type}">
+                        <div class="essay-module" data-id="${m.id}" data-type="${m.type}" data-block-id="${blockId}">
                             <div class="module-header">
                                 <span class="module-tag">${label}</span>
                             </div>
@@ -1543,24 +1674,41 @@
         function renderAIFeedback(container, reviewText) {
             if (!container) return;
             
-            // 解析 AI 反馈，查找段落引用（如 "Body 2", "Body Paragraph 2", "Body 2" 等）
-            const bodyPattern = /Body\s+(?:Paragraph\s+)?(\d+)/gi;
-            const matches = [...reviewText.matchAll(bodyPattern)];
-            const bodyRefs = [...new Set(matches.map(m => parseInt(m[1])))];
+            // 解析 AI 反馈，查找 block_id 标记（格式：[block_id: intro-1], [block_id: body-2], [block_id: conclusion-1]）
+            const blockIdPattern = /\[block_id:\s*([a-z]+-\d+)\]/gi;
             
-            // 将反馈分段，为每个提到 Body 的段落添加 Locate 按钮
+            // 同时支持旧格式的 Body 段落引用（向后兼容）
+            const bodyPattern = /Body\s+(?:Paragraph\s+)?(\d+)/gi;
+            
+            // 将反馈分段，为每个提到 block_id 的段落添加 Locate 按钮
             let html = '<div class="ai-feedback-card">';
             const paragraphs = reviewText.split('\n\n').filter(p => p.trim());
             
             paragraphs.forEach(para => {
+                // 查找 block_id 标记
+                const blockIdMatches = [...para.matchAll(blockIdPattern)];
+                const blockIds = [...new Set(blockIdMatches.map(m => m[1]))];
+                
+                // 查找 Body 段落引用（向后兼容）
                 const paraMatches = [...para.matchAll(bodyPattern)];
                 const paraBodyRefs = [...new Set(paraMatches.map(m => parseInt(m[1])))];
                 
-                html += `<p style="margin:0 0 12px 0; line-height:1.8;">${para}</p>`;
+                // 移除 block_id 标记后显示文本
+                const displayText = para.replace(/\[block_id:[^\]]+\]/gi, '').trim();
+                html += `<p style="margin:0 0 12px 0; line-height:1.8;">${displayText}</p>`;
                 
-                if (paraBodyRefs.length > 0) {
+                // 为每个 block_id 添加 Locate 按钮
+                if (blockIds.length > 0) {
+                    blockIds.forEach(blockId => {
+                        const displayName = blockId.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase());
+                        html += `<button class="locate-btn" onclick="locateIssue('${blockId}')">📍 Locate ${displayName}</button> `;
+                    });
+                }
+                
+                // 向后兼容：为 Body 段落添加 Locate 按钮
+                if (paraBodyRefs.length > 0 && blockIds.length === 0) {
                     paraBodyRefs.forEach(bodyNum => {
-                        html += `<button class="locate-btn" onclick="locateBodyParagraph(${bodyNum})">📍 Locate Body ${bodyNum}</button> `;
+                        html += `<button class="locate-btn" onclick="locateIssue('body-${bodyNum}')">📍 Locate Body ${bodyNum}</button> `;
                     });
                 }
             });
@@ -1569,28 +1717,43 @@
             container.innerHTML = html;
         }
 
-        // Locate 功能：高亮对应模块
-        function locateBodyParagraph(bodyNum) {
-            // 找到对应的 Body 模块
-            const bodyModules = modules.filter(m => m.type === 'body');
-            if (bodyNum < 1 || bodyNum > bodyModules.length) return;
+        // Locate 功能：高亮对应模块（通用函数，支持所有 block 类型）
+        function locateIssue(blockId) {
+            if (!blockId) return;
             
-            const targetModule = bodyModules[bodyNum - 1];
-            const moduleEl = document.querySelector(`[data-id="${targetModule.id}"]`);
+            // 查找对应的 DOM 元素
+            const moduleEl = document.querySelector(`[data-block-id="${blockId}"]`);
             
             if (moduleEl) {
                 // 移除之前的高亮
-                document.querySelectorAll('.essay-module').forEach(el => el.classList.remove('highlight'));
+                document.querySelectorAll('.essay-module').forEach(el => {
+                    el.classList.remove('highlight');
+                    el.classList.remove('active-glow');
+                });
                 
-                // 添加高亮
-                moduleEl.classList.add('highlight');
+                // 滚动到目标元素
                 moduleEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 
-                // 3 秒后移除高亮
+                // 添加高亮动画
+                moduleEl.classList.add('active-glow');
+                
+                // 2 秒后移除高亮（动画时长）
                 setTimeout(() => {
-                    moduleEl.classList.remove('highlight');
-                }, 3000);
+                    moduleEl.classList.remove('active-glow');
+                }, 2000);
+            } else {
+                // 如果找不到，尝试向后兼容的 locateBodyParagraph
+                const match = blockId.match(/body-(\d+)/);
+                if (match) {
+                    const bodyNum = parseInt(match[1], 10);
+                    locateBodyParagraph(bodyNum);
+                }
             }
+        }
+        
+        // 向后兼容：Locate Body 段落（保留旧函数）
+        function locateBodyParagraph(bodyNum) {
+            locateIssue(`body-${bodyNum}`);
         }
 
         // Re-submit 逻辑
@@ -1820,6 +1983,14 @@
                 panel.classList.remove('visible');
             }
         });
+        
+        // --- 14. 返回 Workspace ---
+        function backToWorkspace() {
+            // 确保当前内容已保存
+            saveToLocal();
+            // 跳转回首页
+            window.location.href = '../index.html';
+        }
 
         // 传统 SAVE / EXPORT 适配整篇 essay
         function save() {

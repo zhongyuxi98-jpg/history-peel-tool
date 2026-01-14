@@ -48,7 +48,14 @@ export default async function handler(req, res) {
 [Score: A-E]
 [Diagnostic]
 [Model Version]
-In [Diagnostic], give bullet points and at least ONE improved model sentence.`;
+In [Diagnostic], give bullet points and at least ONE improved model sentence.
+
+IMPORTANT: For each suggestion that targets a specific block (Intro, Body paragraph, or Conclusion), include a block_id marker in the format [block_id: type-number] right after mentioning that block. Examples:
+- If commenting on the Introduction: [block_id: intro-1]
+- If commenting on Body Paragraph 2: [block_id: body-2]
+- If commenting on the Conclusion: [block_id: conclusion-1]
+
+The block_id should match the structure order: intro blocks are numbered from 1, body paragraphs from 1, and conclusion from 1.`;
 
   try {
     // 调用阿里云百炼接口
@@ -102,12 +109,54 @@ Link: ${link || "(legacy)"}
 请给出改进后的 Review，重点关注：
 1. 相比上次评价，哪些地方有进步？
 2. 还有哪些地方需要继续改进？
-3. 给出具体的修改建议。`
+3. 给出具体的修改建议。
+
+Block ID Mapping (for your reference when adding [block_id: ...] markers):
+${(() => {
+                let introCount = 0, bodyCount = 0, conclusionCount = 0;
+                const mapping = [];
+                if (Array.isArray(structure)) {
+                  structure.forEach((m) => {
+                    if (m.type === 'intro') {
+                      introCount++;
+                      mapping.push(`- ${m.type} #${introCount} → block_id: intro-${introCount}`);
+                    } else if (m.type === 'body') {
+                      bodyCount++;
+                      mapping.push(`- ${m.type} #${bodyCount} → block_id: body-${bodyCount}`);
+                    } else if (m.type === 'conclusion') {
+                      conclusionCount++;
+                      mapping.push(`- ${m.type} #${conclusionCount} → block_id: conclusion-${conclusionCount}`);
+                    }
+                  });
+                }
+                return mapping.length > 0 ? mapping.join('\n') : 'No structure provided.';
+              })()}`
               : `Essay Question (editable by student):
 ${essay_question || "(not provided)"}
 
 Structure (JSON-like, modules in order): 
 ${JSON.stringify(structure || [], null, 2)}
+
+Block ID Mapping (for your reference when adding [block_id: ...] markers):
+${(() => {
+                let introCount = 0, bodyCount = 0, conclusionCount = 0;
+                const mapping = [];
+                if (Array.isArray(structure)) {
+                  structure.forEach((m) => {
+                    if (m.type === 'intro') {
+                      introCount++;
+                      mapping.push(`- ${m.type} #${introCount} → block_id: intro-${introCount}`);
+                    } else if (m.type === 'body') {
+                      bodyCount++;
+                      mapping.push(`- ${m.type} #${bodyCount} → block_id: body-${bodyCount}`);
+                    } else if (m.type === 'conclusion') {
+                      conclusionCount++;
+                      mapping.push(`- ${m.type} #${conclusionCount} → block_id: conclusion-${conclusionCount}`);
+                    }
+                  });
+                }
+                return mapping.length > 0 ? mapping.join('\n') : 'No structure provided.';
+              })()}
 
 Full essay text:
 ${essay_full || `
