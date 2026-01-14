@@ -207,6 +207,7 @@
             transition: all 0.2s;
             display: flex;
             flex-direction: column;
+            position: relative;
         }
 
         .mission-card:hover {
@@ -237,6 +238,29 @@
             line-height: 1.5;
             font-style: italic;
             margin-top: auto;
+            margin-bottom: 8px;
+        }
+
+        .mission-hub-link {
+            font-size: 0.8rem;
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+            margin-top: auto;
+            padding-top: 8px;
+            border-top: 1px solid #e1e4e8;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            transition: color 0.2s;
+        }
+
+        .mission-hub-link:hover {
+            color: #5568d3;
+        }
+
+        .mission-card:hover .mission-hub-link {
+            border-top-color: #667eea;
         }
 
         @media (max-width: 768px) {
@@ -285,30 +309,35 @@
                     <div class="mission-tag">CR_M1</div>
                     <h3>Opposition in the 1950s</h3>
                     <div class="mission-question">"Assess the reasons for the opposition to the Civil Rights movement in the Southern states in the 1950s."</div>
+                    <a href="assets/missions/CR_M1_workspace.html?view=hub" class="mission-hub-link" onclick="event.stopPropagation();">📚 View Hub</a>
                 </div>
 
                 <div class="mission-card" onclick="enterPracticeMode('assets/missions/CR_M2_workspace.html')">
                     <div class="mission-tag">CR_M2</div>
                     <h3>Success in the 1950s</h3>
                     <div class="mission-question">"Evaluate how successful the Civil Rights movement was in the 1950s."</div>
+                    <a href="assets/missions/CR_M2_workspace.html?view=hub" class="mission-hub-link" onclick="event.stopPropagation();">📚 View Hub</a>
                 </div>
 
                 <div class="mission-card" onclick="enterPracticeMode('assets/missions/CR_M3_workspace.html')">
                     <div class="mission-tag">CR_M3</div>
                     <h3>Federal Institutions</h3>
                     <div class="mission-question">"Assess the impact of federal institutions on civil rights in the late 1940s and 1950s."</div>
+                    <a href="assets/missions/CR_M3_workspace.html?view=hub" class="mission-hub-link" onclick="event.stopPropagation();">📚 View Hub</a>
                 </div>
 
                 <div class="mission-card" onclick="enterPracticeMode('assets/missions/CR_M4_workspace.html')">
                     <div class="mission-tag">CR_M4</div>
                     <h3>NAACP Effectiveness</h3>
                     <div class="mission-question">"Analyse the effectiveness of the NAACP in promoting civil rights in the late 1940s and 1950s."</div>
+                    <a href="assets/missions/CR_M4_workspace.html?view=hub" class="mission-hub-link" onclick="event.stopPropagation();">📚 View Hub</a>
                 </div>
 
                 <div class="mission-card" onclick="enterPracticeMode('assets/missions/CR_M5_workspace.html')">
                     <div class="mission-tag">CR_M5</div>
                     <h3>Federal vs Grassroots</h3>
                     <div class="mission-question">"'Progress towards greater civil rights in the 1950s was mainly brought about by federal institutions.' Evaluate this view."</div>
+                    <a href="assets/missions/CR_M5_workspace.html?view=hub" class="mission-hub-link" onclick="event.stopPropagation();">📚 View Hub</a>
                 </div>
             </div>
         </div>

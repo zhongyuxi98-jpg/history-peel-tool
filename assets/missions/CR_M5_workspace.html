@@ -7,22 +7,83 @@
         body { font-family: 'Segoe UI', sans-serif; background: #f4f7f6; display: flex; height: 100vh; margin: 0; color: #333; }
         .main { flex: 1; padding: 40px; overflow-y: auto; }
 
+        /* 可折叠侧边栏 */
+        .sidebar-toggle {
+            position: fixed;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 50px;
+            height: 50px;
+            background: #1d3557;
+            color: white;
+            border: none;
+            border-radius: 12px 0 0 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            z-index: 1000;
+            box-shadow: -2px 0 8px rgba(0,0,0,0.15);
+            transition: all 0.3s ease;
+        }
+        .sidebar-toggle:hover {
+            background: #457b9d;
+            width: 55px;
+        }
+        .sidebar-toggle.collapsed {
+            right: 0;
+        }
+        .sidebar-toggle.expanded {
+            right: 380px;
+        }
+        
         /* 右侧双窗口：上方知识区可滚动；下方 explainer-window 固定 */
         .sidebar {
+            position: fixed;
+            right: 0;
+            top: 0;
             width: 380px;
+            height: 100vh;
             background: #fff;
             border-left: 1px solid #dee2e6;
             padding: 25px;
-            box-shadow: -5px 0 15px rgba(0, 0, 0, 0.05);
+            box-shadow: -5px 0 15px rgba(0, 0, 0, 0.1);
             display: flex;
             flex-direction: column;
             gap: 14px;
             box-sizing: border-box;
+            z-index: 999;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            overflow-y: auto;
+        }
+        .sidebar.expanded {
+            transform: translateX(0);
         }
         .sidebar-content {
             flex: 1;
             overflow-y: auto;
             padding-right: 6px; /* 给滚动条留空间 */
+        }
+        
+        /* 侧边栏遮罩层 */
+        .sidebar-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            z-index: 998;
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .sidebar-overlay.visible {
+            display: block;
+            opacity: 1;
         }
         .header { border-bottom: 3px solid #1d3557; margin-bottom: 25px; padding-bottom: 15px; }
         .q-text { font-size: 20px; font-weight: 700; color: #1d3557; }
@@ -38,9 +99,174 @@
         .tag:hover { background: #f8f9fa; }
         .explain-btn { background: #457b9d; color: white; padding: 8px; font-size: 12px; border-radius: 4px; width: 35px; }
         
-        .editor-box { margin-bottom: 15px; }
+        .editor-box { margin-bottom: 15px; position: relative; }
         .label { color: #e63946; font-size: 11px; font-weight: 800; text-transform: uppercase; margin-bottom: 5px; }
-        textarea { width: 100%; height: 95px; border: 1.5px solid #ced4da; border-radius: 8px; padding: 12px; font-size: 14px; resize: none; line-height: 1.5; box-sizing: border-box; }
+        textarea { 
+            width: 100%; 
+            height: 95px; 
+            border: none; 
+            border-radius: 8px; 
+            padding: 12px; 
+            font-size: 14px; 
+            resize: none; 
+            line-height: 1.5; 
+            box-sizing: border-box;
+            background: #fafafa;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            transition: box-shadow 0.2s;
+        }
+        textarea:focus {
+            outline: none;
+            background: #fff;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+        }
+        
+        /* 字数统计 */
+        .word-count {
+            position: absolute;
+            bottom: 8px;
+            right: 12px;
+            font-size: 11px;
+            color: #6c757d;
+            background: rgba(255,255,255,0.9);
+            padding: 2px 6px;
+            border-radius: 4px;
+            pointer-events: none;
+        }
+        
+        /* 全局字数统计气泡 */
+        .global-word-count {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #1d3557;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 24px;
+            font-size: 14px;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 100;
+            pointer-events: none;
+        }
+        
+        /* Focus 按钮 */
+        .focus-btn {
+            background: none;
+            border: none;
+            color: #667eea;
+            font-size: 16px;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+        .focus-btn:hover {
+            background: #f0f0f0;
+        }
+        
+        /* Focus Modal */
+        .focus-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 10000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .focus-modal.visible {
+            display: flex;
+            opacity: 1;
+        }
+        .focus-modal-content {
+            background: #fff;
+            border-radius: 12px;
+            padding: 30px;
+            width: 90%;
+            max-width: 900px;
+            max-height: 85vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+        .focus-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e1e4e8;
+        }
+        .focus-modal-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1d3557;
+        }
+        .focus-modal-close {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        .focus-modal-close:hover {
+            background: #5a6268;
+        }
+        .focus-textarea {
+            width: 100%;
+            flex: 1;
+            min-height: 400px;
+            border: none;
+            border-radius: 8px;
+            padding: 20px;
+            font-size: 16px;
+            line-height: 1.8;
+            resize: none;
+            background: #fafafa;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            font-family: inherit;
+            box-sizing: border-box;
+        }
+        .focus-textarea:focus {
+            outline: none;
+            background: #fff;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+        }
+        .focus-modal-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 2px solid #e1e4e8;
+        }
+        .focus-word-count {
+            font-size: 13px;
+            color: #6c757d;
+            font-weight: 600;
+        }
+        .focus-save-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        .focus-save-btn:hover {
+            background: #5568d3;
+        }
 
         /* Essay constructor layout */
         #module-toolbar { display:flex; flex-wrap:wrap; gap:8px; margin: 8px 0 16px 0; }
@@ -49,7 +275,15 @@
         .toolbar-btn:hover { opacity:0.9; transform:translateY(-1px); }
 
         #essay-constructor { display:flex; flex-direction:column; gap:14px; }
-        .essay-module { border:1px solid #dee2e6; border-radius:10px; padding:12px 14px; background:#fff; max-width: 1000px; width: 100%; }
+        .essay-module { 
+            border: none; 
+            border-radius:10px; 
+            padding:12px 14px; 
+            background:#fff; 
+            max-width: 1000px; 
+            width: 100%;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+        }
         .main { max-width: 1000px; width: 90%; }
         .module-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; gap:8px; }
         .module-controls-left { display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
@@ -264,6 +498,123 @@
             color: #5f6368;
             font-size: 0.95rem;
         }
+        
+        /* 计时器样式 */
+        .timer-container {
+            position: relative;
+        }
+        .timer-btn {
+            background: #1d3557;
+            color: white;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: background 0.2s;
+        }
+        .timer-btn:hover {
+            background: #457b9d;
+        }
+        .timer-panel {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 8px;
+            background: white;
+            border-radius: 8px;
+            padding: 16px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            min-width: 280px;
+            z-index: 1000;
+            display: none;
+        }
+        .timer-panel.visible {
+            display: block;
+        }
+        .timer-display {
+            font-size: 32px;
+            font-weight: 700;
+            text-align: center;
+            margin: 16px 0;
+            font-family: 'Courier New', monospace;
+            color: #1d3557;
+            transition: color 0.3s;
+        }
+        .timer-display.warning {
+            color: #e63946;
+            animation: timerBlink 1s ease-in-out infinite;
+        }
+        @keyframes timerBlink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .timer-controls {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        .timer-control-btn {
+            flex: 1;
+            padding: 8px 12px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+            transition: opacity 0.2s;
+        }
+        .timer-control-btn:hover {
+            opacity: 0.9;
+        }
+        .timer-start-btn {
+            background: #2a9d8f;
+            color: white;
+        }
+        .timer-pause-btn {
+            background: #f4a261;
+            color: white;
+        }
+        .timer-reset-btn {
+            background: #6c757d;
+            color: white;
+        }
+        .timer-mode-select {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        .timer-mode-btn {
+            flex: 1;
+            padding: 6px 10px;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            background: #f8f9fa;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        .timer-mode-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+        .timer-countdown-input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            font-size: 14px;
+            margin-top: 8px;
+            box-sizing: border-box;
+        }
+        .timer-countdown-label {
+            font-size: 12px;
+            color: #6c757d;
+            margin-top: 8px;
+        }
     </style>
 </head>
 
@@ -277,6 +628,25 @@
                 <option value="en">🇬🇧 English Only</option>
                 <option value="zh">🇨🇳 Chinese Only</option>
             </select>
+            <div class="timer-container">
+                <button class="timer-btn" onclick="toggleTimerPanel()">⏱️ Timer</button>
+                <div class="timer-panel" id="timer-panel">
+                    <div class="timer-display" id="timer-display">00:00:00</div>
+                    <div class="timer-controls">
+                        <button class="timer-control-btn timer-start-btn" id="timer-start-btn" onclick="startTimer()">Start</button>
+                        <button class="timer-control-btn timer-pause-btn" id="timer-pause-btn" onclick="pauseTimer()" style="display: none;">Pause</button>
+                        <button class="timer-control-btn timer-reset-btn" onclick="resetTimer()">Reset</button>
+                    </div>
+                    <div class="timer-mode-select">
+                        <button class="timer-mode-btn active" id="timer-mode-up" onclick="setTimerMode('up')">Count Up</button>
+                        <button class="timer-mode-btn" id="timer-mode-down" onclick="setTimerMode('down')">Count Down</button>
+                    </div>
+                    <div id="timer-countdown-input-container" style="display: none;">
+                        <label class="timer-countdown-label">Set countdown (minutes):</label>
+                        <input type="number" class="timer-countdown-input" id="timer-countdown-input" value="45" min="1" max="180" placeholder="45">
+                    </div>
+                </div>
+            </div>
             <button class="btn-export" onclick="exportDoc()">📥 EXPORT + FEEDBACK</button>
         </div>
 
@@ -380,31 +750,64 @@
 
     <!-- Toast 容器 -->
     <div id="toast-container"></div>
+    
+    <!-- 全局字数统计气泡 -->
+    <div class="global-word-count" id="global-word-count">0 words</div>
+    
+    <!-- Focus Modal -->
+    <div class="focus-modal" id="focus-modal" onclick="if(event.target===this) closeFocusMode()">
+        <div class="focus-modal-content" onclick="event.stopPropagation()">
+            <div class="focus-modal-header">
+                <div class="focus-modal-title" id="focus-modal-title">Focus Mode</div>
+                <button class="focus-modal-close" onclick="closeFocusMode()">✕ Close</button>
+            </div>
+            <textarea 
+                class="focus-textarea" 
+                id="focus-textarea"
+                placeholder="Write your content here..."
+                oninput="onFocusInput(); updateFocusWordCount();"
+            ></textarea>
+            <div class="focus-modal-footer">
+                <div class="focus-word-count" id="focus-word-count">0 words</div>
+                <button class="focus-save-btn" onclick="saveFocusMode()">Save & Close</button>
+            </div>
+        </div>
+    </div>
 
-    <div class="sidebar">
+    <!-- 侧边栏切换按钮 -->
+    <button class="sidebar-toggle collapsed" id="sidebar-toggle" onclick="toggleSidebar()" title="Toggle Knowledge Hub">📚</button>
+    
+    <!-- 侧边栏遮罩层 -->
+    <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
+
+    <!-- 可折叠侧边栏 -->
+    <div class="sidebar" id="knowledge-sidebar">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+            <h3 style="margin:0; color:#1d3557;">Knowledge Hub</h3>
+            <button onclick="closeSidebar()" style="background: none; border: none; font-size: 20px; cursor: pointer; color: #6c757d; padding: 0; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;">✕</button>
+        </div>
         <div class="sidebar-content">
-            <h3 style="margin:0 0 14px 0; color:#1d3557;">Knowledge Hub</h3>
-        
-        <div class="kb-section">
-            <div style="font-size:12px; font-weight:800; color:#1d3557; margin-bottom:10px; border-bottom:1px solid #eee;">⚖️ LEGAL MILESTONES</div>
-                <div class="tag-row"><div class="tag" onclick="add('Brown v. Board (1954)')">Brown v. Board</div><button class="explain-btn" onclick="getExplanation('Brown v. Board')">💡</button></div>
-                <div class="tag-row"><div class="tag" onclick="add('Civil Rights Act (1957)')">1957 CR Act</div><button class="explain-btn" onclick="getExplanation('Civil Rights Act 1957')">💡</button></div>
-        </div>
-
-        <div class="kb-section" style="margin-top:20px;">
-            <div style="font-size:12px; font-weight:800; color:#1d3557; margin-bottom:10px; border-bottom:1px solid #eee;">✊ DIRECT ACTION</div>
-                <div class="tag-row"><div class="tag" onclick="add('Montgomery Bus Boycott (1955–56)')">Bus Boycott</div><button class="explain-btn" onclick="getExplanation('Montgomery Bus Boycott')">💡</button></div>
-                <div class="tag-row"><div class="tag" onclick="add('Little Rock Nine (1957)')">Little Rock 9</div><button class="explain-btn" onclick="getExplanation('Little Rock Nine')">💡</button></div>
-                <div class="tag-row"><div class="tag" onclick="add('Jim Crow laws')">Jim Crow</div><button class="explain-btn" onclick="getExplanation('Jim Crow laws')">💡</button></div>
+            <div class="kb-section">
+                <div style="font-size:12px; font-weight:800; color:#1d3557; margin-bottom:10px; border-bottom:1px solid #eee;">⚖️ LEGAL MILESTONES</div>
+                    <div class="tag-row"><div class="tag" onclick="add('Brown v. Board (1954)')">Brown v. Board</div><button class="explain-btn" onclick="getExplanation('Brown v. Board')">💡</button></div>
+                    <div class="tag-row"><div class="tag" onclick="add('Civil Rights Act (1957)')">1957 CR Act</div><button class="explain-btn" onclick="getExplanation('Civil Rights Act 1957')">💡</button></div>
             </div>
-        </div>
 
-        <div id="explainer-window">
-            <div style="font-weight:800; color:#a8dadc; font-size:11px; margin-bottom:8px; display:flex; justify-content:space-between;">
-                <span>👨‍🏫 KNOWLEDGE EXPLORER</span>
-                <span style="cursor:pointer" onclick="document.getElementById('explain-box').innerText='Select a topic...'">Reset</span>
+            <div class="kb-section" style="margin-top:20px;">
+                <div style="font-size:12px; font-weight:800; color:#1d3557; margin-bottom:10px; border-bottom:1px solid #eee;">✊ DIRECT ACTION</div>
+                    <div class="tag-row"><div class="tag" onclick="add('Montgomery Bus Boycott (1955–56)')">Bus Boycott</div><button class="explain-btn" onclick="getExplanation('Montgomery Bus Boycott')">💡</button></div>
+                    <div class="tag-row"><div class="tag" onclick="add('Little Rock Nine (1957)')">Little Rock 9</div><button class="explain-btn" onclick="getExplanation('Little Rock Nine')">💡</button></div>
+                    <div class="tag-row"><div class="tag" onclick="add('Jim Crow laws')">Jim Crow</div><button class="explain-btn" onclick="getExplanation('Jim Crow laws')">💡</button></div>
+                </div>
             </div>
-            <div id="explain-box">Click the 💡 button for detailed context.</div>
+
+            <div id="explainer-window">
+                <div style="font-weight:800; color:#a8dadc; font-size:11px; margin-bottom:8px; display:flex; justify-content:space-between;">
+                    <span>👨‍🏫 KNOWLEDGE EXPLORER</span>
+                    <span style="cursor:pointer" onclick="document.getElementById('explain-box').innerText='Click the 💡 button for detailed context.'">Reset</span>
+                </div>
+                <div id="explain-box">Click the 💡 button for detailed context.</div>
+            </div>
         </div>
     </div>
 
@@ -443,10 +846,12 @@
             if (mode === 'audit') {
                 const header = document.getElementById('header-section');
                 const sidebar = document.querySelector('.sidebar');
+                const sidebarToggle = document.getElementById('sidebar-toggle');
                 const toolbar = document.getElementById('module-toolbar');
                 
                 if (header) header.style.display = 'none';
                 if (sidebar) sidebar.style.display = 'none';
+                if (sidebarToggle) sidebarToggle.style.display = 'none';
                 if (toolbar) toolbar.style.display = 'none';
             }
             
@@ -575,6 +980,7 @@
                 if (isFree) {
                     const freeText = (m.freeText || (Array.isArray(m.boxes) ? m.boxes.join(" ") : ""));
                     const hintLines = getBoxConfig(m.type).map((c, i) => (i + 1) + '. ' + c.placeholder).join('<br>');
+                    const wordCount = countWords(freeText);
                     bodyHtml = `
                         <div class="editor-box">
                             <div class="label">Freeform ${label}</div>
@@ -583,14 +989,16 @@
                                 data-free="1"
                                 placeholder="Write your ${label.toLowerCase()} in full sentences here..."
                                 onfocus="setActiveTextarea(this)"
-                                oninput="onFreeInput('${m.id}', this.value)"
+                                oninput="onFreeInput('${m.id}', this.value); updateWordCount(this);"
                             >${freeText}</textarea>
+                            <div class="word-count">${wordCount} words</div>
                             <div class="free-hint">${hintLines}</div>
                         </div>
                     `;
                 } else {
                     const boxesHtml = cfg.map((boxCfg, idx) => {
                         const value = (m.boxes && typeof m.boxes[idx] === 'string') ? m.boxes[idx] : "";
+                        const wordCount = countWords(value);
                         return `
                             <div class="editor-box">
                                 <div class="label">${boxCfg.label}</div>
@@ -599,8 +1007,9 @@
                                     data-box="${idx}" 
                                     placeholder="${boxCfg.placeholder}"
                                     onfocus="setActiveTextarea(this)"
-                                    oninput="onBoxInput('${m.id}', ${idx}, this.value)"
+                                    oninput="onBoxInput('${m.id}', ${idx}, this.value); updateWordCount(this);"
                                 >${value}</textarea>
+                                <div class="word-count">${wordCount} words</div>
                             </div>
                         `;
                     }).join("");
@@ -616,6 +1025,7 @@
                                 <span class="module-tag">${label}</span>
                             </div>
                             <div class="module-controls-right">
+                                <button class="focus-btn" onclick="openFocusMode('${m.id}')" title="Focus Mode">🔍</button>
                                 <button class="mode-toggle" onclick="toggleModuleMode('${m.id}')">${modeIcon} ${modeLabel}</button>
                                 <button class="module-delete" onclick="confirmRemoveModule('${m.id}')">✕</button>
                             </div>
@@ -652,6 +1062,7 @@
             if (!Array.isArray(m.boxes)) m.boxes = [];
             m.boxes[index] = value;
             scheduleSave();
+            updateGlobalWordCount();
         }
         
         function onFreeInput(id, value) {
@@ -659,6 +1070,127 @@
             if (!m) return;
             m.freeText = value;
             scheduleSave();
+            updateGlobalWordCount();
+        }
+        
+        // --- 字数统计函数 ---
+        function countWords(text) {
+            if (!text || !text.trim()) return 0;
+            return text.trim().split(/\s+/).filter(w => w.length > 0).length;
+        }
+        
+        function updateWordCount(textarea) {
+            const wordCountEl = textarea.parentElement.querySelector('.word-count');
+            if (wordCountEl) {
+                const count = countWords(textarea.value);
+                wordCountEl.textContent = count + ' words';
+            }
+        }
+        
+        function updateGlobalWordCount() {
+            const globalCountEl = document.getElementById('global-word-count');
+            if (!globalCountEl) return;
+            
+            let totalWords = 0;
+            modules.forEach(m => {
+                if (m.mode === 'free') {
+                    totalWords += countWords(m.freeText || '');
+                } else if (Array.isArray(m.boxes)) {
+                    m.boxes.forEach(box => {
+                        totalWords += countWords(box || '');
+                    });
+                }
+            });
+            
+            globalCountEl.textContent = totalWords + ' words';
+        }
+        
+        // --- Focus Mode 功能 ---
+        let currentFocusModuleId = null;
+        
+        function openFocusMode(moduleId) {
+            const m = modules.find(m => m.id === moduleId);
+            if (!m) return;
+            
+            currentFocusModuleId = moduleId;
+            const modal = document.getElementById('focus-modal');
+            const textarea = document.getElementById('focus-textarea');
+            const title = document.getElementById('focus-modal-title');
+            
+            if (!modal || !textarea || !title) return;
+            
+            // 确定标签
+            let label = "";
+            if (m.type === 'intro') label = "Intro";
+            else if (m.type === 'conclusion') label = "Conclusion";
+            else {
+                const bodyIdx = modules.filter(mm => mm.type === 'body' && modules.indexOf(mm) <= modules.indexOf(m)).length;
+                label = "Body Paragraph " + bodyIdx;
+            }
+            
+            title.textContent = `Focus Mode: ${label}`;
+            
+            // 获取内容
+            let content = "";
+            if (m.mode === 'free') {
+                content = m.freeText || "";
+            } else if (Array.isArray(m.boxes)) {
+                content = m.boxes.map(b => (b || "").trim()).filter(Boolean).join("\n\n");
+            }
+            
+            textarea.value = content;
+            updateFocusWordCount();
+            
+            modal.classList.add('visible');
+            textarea.focus();
+        }
+        
+        function closeFocusMode() {
+            const modal = document.getElementById('focus-modal');
+            if (modal) {
+                modal.classList.remove('visible');
+            }
+            currentFocusModuleId = null;
+        }
+        
+        function onFocusInput() {
+            // Focus Mode 下的输入实时更新（但不立即保存到模块，等 Save 时再保存）
+        }
+        
+        function updateFocusWordCount() {
+            const textarea = document.getElementById('focus-textarea');
+            const countEl = document.getElementById('focus-word-count');
+            if (textarea && countEl) {
+                const count = countWords(textarea.value);
+                countEl.textContent = count + ' words';
+            }
+        }
+        
+        function saveFocusMode() {
+            if (!currentFocusModuleId) return;
+            
+            const m = modules.find(m => m.id === currentFocusModuleId);
+            const textarea = document.getElementById('focus-textarea');
+            if (!m || !textarea) return;
+            
+            const content = textarea.value;
+            
+            if (m.mode === 'free') {
+                m.freeText = content;
+            } else {
+                // 如果是 Guided 模式，按段落拆分回 boxes
+                const paragraphs = content.split(/\n{2,}|\n/).filter(p => p.trim());
+                const cfg = getBoxConfig(m.type);
+                m.boxes = new Array(cfg.length).fill("");
+                for (let i = 0; i < cfg.length && i < paragraphs.length; i++) {
+                    m.boxes[i] = paragraphs[i];
+                }
+            }
+            
+            saveToLocal();
+            renderModules();
+            updateGlobalWordCount();
+            closeFocusMode();
         }
 
         function toggleModuleMode(id) {
@@ -1086,6 +1618,208 @@
                 };
             }
         });
+        
+        // --- 12. 侧边栏折叠/展开控制 ---
+        function toggleSidebar() {
+            const sidebar = document.getElementById('knowledge-sidebar');
+            const toggle = document.getElementById('sidebar-toggle');
+            const overlay = document.getElementById('sidebar-overlay');
+            
+            if (!sidebar || !toggle) return;
+            
+            const isExpanded = sidebar.classList.contains('expanded');
+            
+            if (isExpanded) {
+                closeSidebar();
+            } else {
+                sidebar.classList.add('expanded');
+                toggle.classList.remove('collapsed');
+                toggle.classList.add('expanded');
+                overlay.classList.add('visible');
+            }
+        }
+        
+        function closeSidebar() {
+            const sidebar = document.getElementById('knowledge-sidebar');
+            const toggle = document.getElementById('sidebar-toggle');
+            const overlay = document.getElementById('sidebar-overlay');
+            
+            if (!sidebar || !toggle) return;
+            
+            sidebar.classList.remove('expanded');
+            toggle.classList.remove('expanded');
+            toggle.classList.add('collapsed');
+            overlay.classList.remove('visible');
+        }
+        
+        // 检查 URL 参数，如果是 view-hub 模式，自动展开侧边栏
+        window.addEventListener('load', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('view') === 'hub') {
+                setTimeout(() => {
+                    toggleSidebar();
+                }, 300);
+            }
+        });
+        
+        // --- 13. 计时器功能 ---
+        let timerInterval = null;
+        let timerSeconds = 0;
+        let timerMode = 'up'; // 'up' or 'down'
+        let timerCountdownMinutes = 45;
+        let timerIsRunning = false;
+        let timerStartTime = null;
+        
+        function toggleTimerPanel() {
+            const panel = document.getElementById('timer-panel');
+            if (panel) {
+                panel.classList.toggle('visible');
+            }
+        }
+        
+        function setTimerMode(mode) {
+            timerMode = mode;
+            const upBtn = document.getElementById('timer-mode-up');
+            const downBtn = document.getElementById('timer-mode-down');
+            const inputContainer = document.getElementById('timer-countdown-input-container');
+            
+            if (upBtn && downBtn) {
+                if (mode === 'up') {
+                    upBtn.classList.add('active');
+                    downBtn.classList.remove('active');
+                    if (inputContainer) inputContainer.style.display = 'none';
+                } else {
+                    upBtn.classList.remove('active');
+                    downBtn.classList.add('active');
+                    if (inputContainer) inputContainer.style.display = 'block';
+                }
+            }
+            
+            // 如果切换模式时计时器正在运行，需要重置
+            if (timerIsRunning) {
+                resetTimer();
+            } else {
+                updateTimerDisplay();
+            }
+        }
+        
+        function startTimer() {
+            if (timerIsRunning) return;
+            
+            timerIsRunning = true;
+            timerStartTime = Date.now();
+            
+            const startBtn = document.getElementById('timer-start-btn');
+            const pauseBtn = document.getElementById('timer-pause-btn');
+            
+            if (startBtn) startBtn.style.display = 'none';
+            if (pauseBtn) pauseBtn.style.display = 'block';
+            
+            // 如果是倒计时模式，读取设置的分钟数
+            if (timerMode === 'down') {
+                const input = document.getElementById('timer-countdown-input');
+                if (input) {
+                    const minutes = parseInt(input.value, 10);
+                    if (minutes > 0 && minutes <= 180) {
+                        timerCountdownMinutes = minutes;
+                        timerSeconds = minutes * 60;
+                    }
+                }
+            }
+            
+            timerInterval = setInterval(() => {
+                if (timerMode === 'up') {
+                    timerSeconds++;
+                } else {
+                    timerSeconds--;
+                    if (timerSeconds <= 0) {
+                        timerSeconds = 0;
+                        pauseTimer();
+                        // 时间到，可以添加提示
+                        showToast('⏰ Time is up! Please finish your conclusion.');
+                    }
+                }
+                
+                updateTimerDisplay();
+            }, 1000);
+            
+            updateTimerDisplay();
+        }
+        
+        function pauseTimer() {
+            if (!timerIsRunning) return;
+            
+            timerIsRunning = false;
+            
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+            
+            const startBtn = document.getElementById('timer-start-btn');
+            const pauseBtn = document.getElementById('timer-pause-btn');
+            
+            if (startBtn) startBtn.style.display = 'block';
+            if (pauseBtn) pauseBtn.style.display = 'none';
+        }
+        
+        function resetTimer() {
+            pauseTimer();
+            
+            if (timerMode === 'up') {
+                timerSeconds = 0;
+            } else {
+                const input = document.getElementById('timer-countdown-input');
+                if (input) {
+                    const minutes = parseInt(input.value, 10);
+                    if (minutes > 0 && minutes <= 180) {
+                        timerCountdownMinutes = minutes;
+                        timerSeconds = minutes * 60;
+                    } else {
+                        timerSeconds = timerCountdownMinutes * 60;
+                    }
+                } else {
+                    timerSeconds = timerCountdownMinutes * 60;
+                }
+            }
+            
+            updateTimerDisplay();
+        }
+        
+        function updateTimerDisplay() {
+            const display = document.getElementById('timer-display');
+            if (!display) return;
+            
+            let hours = Math.floor(timerSeconds / 3600);
+            let minutes = Math.floor((timerSeconds % 3600) / 60);
+            let seconds = timerSeconds % 60;
+            
+            const timeString = 
+                String(hours).padStart(2, '0') + ':' +
+                String(minutes).padStart(2, '0') + ':' +
+                String(seconds).padStart(2, '0');
+            
+            display.textContent = timeString;
+            
+            // 倒计时模式：剩余 5 分钟时变红并闪烁
+            if (timerMode === 'down' && timerSeconds > 0 && timerSeconds <= 300) {
+                display.classList.add('warning');
+                if (timerSeconds === 300) {
+                    showToast('⚠️ 5 minutes remaining! Time to write your conclusion.');
+                }
+            } else {
+                display.classList.remove('warning');
+            }
+        }
+        
+        // 点击外部关闭计时器面板
+        document.addEventListener('click', (e) => {
+            const panel = document.getElementById('timer-panel');
+            const btn = document.querySelector('.timer-btn');
+            if (panel && btn && !panel.contains(e.target) && !btn.contains(e.target)) {
+                panel.classList.remove('visible');
+            }
+        });
 
         // 传统 SAVE / EXPORT 适配整篇 essay
         function save() {
@@ -1229,6 +1963,14 @@
             }
             
             renderModules();
+            updateGlobalWordCount();
+            
+            // 监听所有 textarea 的输入，实时更新全局字数
+            document.addEventListener('input', (e) => {
+                if (e.target.tagName === 'TEXTAREA' && e.target.hasAttribute('data-module')) {
+                    updateGlobalWordCount();
+                }
+            });
         });
     </script>
 </body>
