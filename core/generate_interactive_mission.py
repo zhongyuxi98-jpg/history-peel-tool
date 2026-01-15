@@ -686,6 +686,172 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             width: 100% !important;
             margin-right: 0 !important;
         }}
+        
+        /* Visual Audit V2.0 双栏对比视图样式 */
+        #review-overlay {{
+            display: none;
+            margin-top: 30px;
+            width: 100%;
+        }}
+        .review-overlay-container {{
+            display: flex;
+            gap: 20px;
+            min-height: 600px;
+            max-height: 85vh;
+        }}
+        .review-left-panel {{
+            flex: 0 0 60%;
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 24px;
+            overflow-y: auto;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }}
+        .review-right-panel {{
+            flex: 0 0 40%;
+            background: #fff;
+            border: 2px solid #e63946;
+            border-radius: 12px;
+            padding: 24px;
+            overflow-y: auto;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }}
+        .review-panel-title {{
+            color: #1d3557;
+            margin-bottom: 20px;
+            font-size: 18px;
+            font-weight: 600;
+            border-bottom: 2px solid #dee2e6;
+            padding-bottom: 10px;
+        }}
+        .review-text-content {{
+            line-height: 2;
+            font-size: 15px;
+            color: #333;
+        }}
+        .review-text-content mark {{
+            background: #fff3cd;
+            padding: 2px 4px;
+            border-radius: 3px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid #ffc107;
+        }}
+        .review-text-content mark:hover {{
+            background: #ffc107;
+            box-shadow: 0 2px 4px rgba(255,193,7,0.3);
+        }}
+        .review-text-content mark.active {{
+            background: #ffc107;
+            box-shadow: 0 0 8px rgba(255,193,7,0.6);
+            transform: scale(1.02);
+        }}
+        .review-scores-header {{
+            margin-bottom: 24px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #dee2e6;
+        }}
+        .overall-score {{
+            text-align: center;
+            margin-bottom: 20px;
+        }}
+        .score-label {{
+            font-size: 14px;
+            color: #6c757d;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }}
+        .score-value {{
+            font-size: 48px;
+            font-weight: 700;
+            color: #e63946;
+        }}
+        .dimension-scores {{
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }}
+        .dimension-score-item {{
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+        }}
+        .dimension-score-label {{
+            font-size: 11px;
+            color: #6c757d;
+            margin-bottom: 4px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }}
+        .dimension-score-value {{
+            font-size: 24px;
+            font-weight: 700;
+            color: #1d3557;
+        }}
+        .review-diagnostics {{
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }}
+        .diagnostic-card {{
+            background: #fff;
+            border: 1px solid #dee2e6;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            transition: all 0.2s;
+        }}
+        .diagnostic-card:hover {{
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+        }}
+        .diagnostic-card.active {{
+            border-color: #ffc107;
+            box-shadow: 0 0 12px rgba(255,193,7,0.3);
+        }}
+        .diagnostic-text {{
+            font-size: 14px;
+            line-height: 1.6;
+            color: #333;
+            margin-bottom: 16px;
+        }}
+        .comparison-box {{
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 12px;
+        }}
+        .comparison-before {{
+            background: #fee;
+            border-left: 4px solid #dc3545;
+            padding: 12px;
+            border-radius: 6px;
+        }}
+        .comparison-after {{
+            background: #efe;
+            border-left: 4px solid #28a745;
+            padding: 12px;
+            border-radius: 6px;
+        }}
+        .comparison-label {{
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            color: #6c757d;
+        }}
+        .comparison-before .comparison-label {{
+            color: #dc3545;
+        }}
+        .comparison-after .comparison-label {{
+            color: #28a745;
+        }}
+        .comparison-text {{
+            font-size: 13px;
+            line-height: 1.5;
+            color: #333;
+        }}
     </style>
 </head>
 
@@ -1024,6 +1190,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             return {{
                 question: getCurrentQuestion(),
                 language: currentLanguageMode,
+                examType: currentExamType,
                 modules,
                 updatedAt: Date.now()
             }};
@@ -1049,6 +1216,11 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 if (s.language) {{
                     currentLanguageMode = s.language;
                     document.getElementById('language-setting').value = s.language;
+                }}
+                if (s.examType) {{
+                    currentExamType = s.examType;
+                    const examSelector = document.getElementById('exam-type-selector');
+                    if (examSelector) examSelector.value = s.examType;
                 }}
                 if (Array.isArray(s.modules) && s.modules.length) {{
                     modules = s.modules;
@@ -1266,9 +1438,14 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             modulesArray.forEach((m) => {{
                 let text = "";
                 if (m.mode === 'free') {{
+                    // Free 模式：直接使用 freeText
                     text = (m.freeText || "").trim();
                 }} else if (Array.isArray(m.boxes)) {{
-                    text = m.boxes.map(b => (b || "").trim()).filter(Boolean).join(" ");
+                    // Guided 模式：遍历所有 boxes（P, E, E, L），确保完整合并
+                    text = m.boxes
+                        .map(b => (b || "").trim())
+                        .filter(Boolean)
+                        .join(" ");
                 }}
                 if (!text) return;
                 let prefix = "";
@@ -1501,6 +1678,14 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             saveToLocal();
         }});
 
+        const examTypeSelector = document.getElementById('exam-type-selector');
+        if (examTypeSelector) {{
+            examTypeSelector.addEventListener('change', (e) => {{
+                currentExamType = e.target.value;
+                saveToLocal();
+            }});
+        }}
+
         document.getElementById('question-title').addEventListener('blur', () => saveToLocal());
 
         // --- 4. 知识 Hub 插入：针对当前激活 textarea ---
@@ -1638,10 +1823,64 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                     body: JSON.stringify(data) 
                 }});
                 const result = await response.json();
-                previousReview = result.review || "";
-                renderAIFeedback(contentDiv, previousReview);
+                
+                // 尝试解析 JSON 格式的响应
+                let jsonData = null;
+                if (result.structured) {{
+                    // 如果 API 返回了结构化数据，直接使用
+                    jsonData = result.structured;
+                    console.log('✅ 收到结构化 JSON 响应:', jsonData);
+                }} else if (result.review) {{
+                    // 尝试从 review 文本中解析 JSON
+                    try {{
+                        let reviewText = result.review.trim();
+                        // 移除可能的 markdown 代码块标记
+                        if (reviewText.startsWith('```')) {{
+                            const lines = reviewText.split('\\n');
+                            lines.shift(); // 移除第一行
+                            lines.pop(); // 移除最后一行
+                            reviewText = lines.join('\\n');
+                        }}
+                        jsonData = JSON.parse(reviewText);
+                        console.log('✅ 从文本中解析出 JSON:', jsonData);
+                    }} catch (parseError) {{
+                        console.warn('⚠️ JSON 解析失败，使用文本格式:', parseError);
+                        // 如果解析失败，使用原始文本
+                        previousReview = result.review || "";
+                        renderAIFeedback(contentDiv, previousReview);
+                        // 保存原始文本到 localStorage
+                        saveReviewToLocal({{ review: previousReview, examType: examType }});
+                        if (resubmitBtn) resubmitBtn.style.display = 'block';
+                        return;
+                    }}
+                }}
+                
+                // 如果有 JSON 数据，使用新的渲染函数
+                if (jsonData) {{
+                    // 验证 JSON 结构
+                    if (jsonData.overall && jsonData.dimension_scores && jsonData.justification) {{
+                        renderReview(jsonData, contentDiv);
+                        // 保存结构化数据到 localStorage
+                        saveReviewToLocal({{ structured: jsonData, examType: examType, timestamp: Date.now() }});
+                        previousReview = result.review || JSON.stringify(jsonData, null, 2);
+                    }} else {{
+                        console.warn('⚠️ JSON 结构不完整，降级为文本显示');
+                        previousReview = result.review || JSON.stringify(jsonData, null, 2);
+                        renderAIFeedback(contentDiv, previousReview);
+                        saveReviewToLocal({{ review: previousReview, examType: examType }});
+                    }}
+                }} else {{
+                    // 降级处理：使用原始文本
+                    previousReview = result.review || "";
+                    renderAIFeedback(contentDiv, previousReview);
+                    saveReviewToLocal({{ review: previousReview, examType: examType }});
+                }}
+                
                 if (resubmitBtn) resubmitBtn.style.display = 'block';
-            }} catch (e) {{ contentDiv.innerText = "⚠️ Connection failed."; }}
+            }} catch (e) {{
+                console.error('❌ API 请求失败:', e);
+                contentDiv.innerHTML = '<div style="color:#e63946; padding:20px;">⚠️ Connection failed. Please check your network and try again.</div>';
+            }}
             finally {{ 
                 btn.innerText = "🚀 SUBMIT FOR AI TEACHER'S REVIEW"; 
                 btn.disabled = false;
@@ -1752,7 +1991,281 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             scheduleSave();
         }}
 
-        // 渲染 AI 反馈（带 Locate 功能）
+        // Visual Audit V2.0: 渲染双栏对比视图
+        function renderReviewOverlay(structuredData, originalText) {{
+            if (!structuredData || !originalText) return;
+            
+            // 隐藏写作区和传统反馈视图
+            const essayConstructor = document.getElementById('essay-constructor');
+            const moduleToolbar = document.getElementById('module-toolbar');
+            const reviewActions = document.querySelector('.review-actions');
+            const feedbackView = document.getElementById('feedback-view');
+            
+            if (essayConstructor) essayConstructor.style.display = 'none';
+            if (moduleToolbar) moduleToolbar.style.display = 'none';
+            if (reviewActions) reviewActions.style.display = 'none';
+            if (feedbackView) feedbackView.style.display = 'none';
+            
+            // 显示双栏对比视图
+            const reviewOverlay = document.getElementById('review-overlay');
+            if (reviewOverlay) {{
+                reviewOverlay.style.display = 'block';
+            }}
+            
+            // 渲染左栏：原文高亮
+            const feedbackLoops = structuredData.feedback_loops || [];
+            renderOriginalTextWithHighlights(originalText, feedbackLoops);
+            
+            // 渲染右栏：分数和诊断卡片
+            renderDiagnosticsPanel(structuredData);
+            
+            // 显示重新提交按钮
+            const resubmitBtn = document.getElementById('review-resubmit-btn');
+            if (resubmitBtn) resubmitBtn.style.display = 'block';
+        }}
+        
+        // 渲染左栏：原文高亮
+        function renderOriginalTextWithHighlights(originalText, feedbackLoops) {{
+            const container = document.getElementById('review-original-text');
+            if (!container || !originalText) {{
+                if (container) container.innerHTML = '<p style="color:#6c757d;">暂无原文内容</p>';
+                return;
+            }}
+            
+            if (!Array.isArray(feedbackLoops) || feedbackLoops.length === 0) {{
+                // 如果没有反馈循环，直接显示原文
+                container.innerHTML = originalText.replace(/\\n/g, '<br>');
+                return;
+            }}
+            
+            // 为每个 feedback_loop 创建高亮标记
+            // 按位置排序，从后往前替换，避免位置偏移
+            const segments = feedbackLoops
+                .map((loop, index) => ({{
+                    index: index,
+                    segment: loop.original_segment || '',
+                    position: originalText.indexOf(loop.original_segment || '')
+                }}))
+                .filter(item => item.segment && item.position !== -1)
+                .sort((a, b) => b.position - a.position); // 从后往前排序
+            
+            let highlightedText = originalText;
+            
+            // 从后往前替换，避免位置偏移
+            segments.forEach(({ index, segment }) => {{
+                const highlightHtml = `<mark data-feedback-index="${{index}}" onclick="scrollToDiagnostic(${{index}})" style="cursor:pointer;">${{segment}}</mark>`;
+                highlightedText = highlightedText.substring(0, highlightedText.lastIndexOf(segment)) + 
+                                highlightHtml + 
+                                highlightedText.substring(highlightedText.lastIndexOf(segment) + segment.length);
+            }});
+            
+            // 处理换行
+            highlightedText = highlightedText.replace(/\\n/g, '<br>');
+            
+            container.innerHTML = highlightedText;
+        }}
+        
+        // 渲染右栏：分数和诊断卡片
+        function renderDiagnosticsPanel(structuredData) {{
+            // 渲染总分
+            const overallScoreEl = document.getElementById('review-overall-score');
+            if (overallScoreEl) {{
+                overallScoreEl.textContent = structuredData.overall || '-';
+            }}
+            
+            // 渲染维度得分
+            const dimensionScoresEl = document.getElementById('review-dimension-scores');
+            if (dimensionScoresEl && structuredData.dimension_scores) {{
+                const dimensions = Object.keys(structuredData.dimension_scores);
+                if (dimensions.length > 0) {{
+                    const scoresHtml = dimensions.map(dim => {{
+                        const score = structuredData.dimension_scores[dim];
+                        // 格式化维度名称（IELTS: TR, CC, LR, GRA | A-Level: AO1-AO4）
+                        const dimLabel = dim.length <= 4 ? dim : dim.substring(0, 4);
+                        return `
+                            <div class="dimension-score-item">
+                                <div class="dimension-score-label">${{dimLabel}}</div>
+                                <div class="dimension-score-value">${{score}}</div>
+                            </div>
+                        `;
+                    }}).join('');
+                    dimensionScoresEl.innerHTML = scoresHtml;
+                }} else {{
+                    dimensionScoresEl.innerHTML = '<p style="color:#6c757d; font-size:12px;">暂无维度得分</p>';
+                }}
+            }}
+            
+            // 渲染诊断卡片流
+            const diagnosticsEl = document.getElementById('review-diagnostics');
+            if (diagnosticsEl) {{
+                const feedbackLoops = structuredData.feedback_loops || [];
+                if (Array.isArray(feedbackLoops) && feedbackLoops.length > 0) {{
+                    const cardsHtml = feedbackLoops.map((loop, index) => {{
+                        const diagnosis = loop.diagnosis || loop.feedback || loop.justification || '暂无诊断信息';
+                        const before = loop.before || loop.original_segment || '';
+                        const after = loop.after || loop.improved || loop.suggested || '';
+                        
+                        // 转义 HTML 防止 XSS
+                        const escapeHtml = (text) => {{
+                            const div = document.createElement('div');
+                            div.textContent = text;
+                            return div.innerHTML;
+                        }};
+                        
+                        return `
+                            <div class="diagnostic-card" id="diagnostic-card-${{index}}" data-feedback-index="${{index}}">
+                                <div class="diagnostic-text">${{escapeHtml(diagnosis)}}</div>
+                                ${{before || after ? `
+                                <div class="comparison-box">
+                                    ${{before ? `
+                                    <div class="comparison-before">
+                                        <div class="comparison-label">Before</div>
+                                        <div class="comparison-text">${{escapeHtml(before)}}</div>
+                                    </div>
+                                    ` : '<div></div>'}}
+                                    ${{after ? `
+                                    <div class="comparison-after">
+                                        <div class="comparison-label">After</div>
+                                        <div class="comparison-text">${{escapeHtml(after)}}</div>
+                                    </div>
+                                    ` : '<div></div>'}}
+                                </div>
+                                ` : ''}}
+                            </div>
+                        `;
+                    }}).join('');
+                    diagnosticsEl.innerHTML = cardsHtml;
+                }} else {{
+                    diagnosticsEl.innerHTML = '<p style="color:#6c757d; text-align:center; padding:20px;">暂无诊断信息</p>';
+                }}
+            }}
+        }}
+        
+        // 点击高亮句子时，滚动到对应的诊断卡片
+        function scrollToDiagnostic(feedbackIndex) {{
+            // 移除所有高亮的 active 状态
+            document.querySelectorAll('mark[data-feedback-index]').forEach(mark => {{
+                mark.classList.remove('active');
+            }});
+            document.querySelectorAll('.diagnostic-card').forEach(card => {{
+                card.classList.remove('active');
+            }});
+            
+            // 高亮对应的句子
+            const markEl = document.querySelector(`mark[data-feedback-index="${{feedbackIndex}}"]`);
+            if (markEl) {{
+                markEl.classList.add('active');
+                // 平滑滚动到高亮句子
+                markEl.scrollIntoView({{ behavior: 'smooth', block: 'center' }});
+            }}
+            
+            // 高亮并滚动到对应的诊断卡片
+            const cardEl = document.getElementById(`diagnostic-card-${{feedbackIndex}}`);
+            if (cardEl) {{
+                cardEl.classList.add('active');
+                // 平滑滚动到诊断卡片
+                cardEl.scrollIntoView({{ behavior: 'smooth', block: 'center' }});
+            }}
+        }}
+        
+        // 关闭双栏对比视图
+        function closeReviewOverlay() {{
+            const reviewOverlay = document.getElementById('review-overlay');
+            if (reviewOverlay) {{
+                reviewOverlay.style.display = 'none';
+            }}
+            // 恢复写作区
+            document.getElementById('essay-constructor').style.display = 'block';
+            document.getElementById('module-toolbar').style.display = 'flex';
+            const actions = document.querySelector('.review-actions');
+            if (actions) actions.style.display = 'flex';
+        }}
+        
+        // 保存评审结果到 localStorage
+        function saveReviewToLocal(reviewData) {{
+            try {{
+                localStorage.setItem(REVIEW_STORAGE_KEY, JSON.stringify(reviewData));
+            }} catch (e) {{
+                console.warn('保存评审结果失败:', e);
+            }}
+        }}
+        
+        // 从 localStorage 加载评审结果
+        function loadReviewFromLocal() {{
+            try {{
+                const raw = localStorage.getItem(REVIEW_STORAGE_KEY);
+                if (!raw) return null;
+                return JSON.parse(raw);
+            }} catch (e) {{
+                console.warn('加载评审结果失败:', e);
+                return null;
+            }}
+        }}
+
+        // 渲染结构化 JSON 评审结果（新函数）
+        function renderReview(jsonData, container) {{
+            if (!container || !jsonData) return;
+            
+            let html = '<div class="ai-feedback-card" style="background:#fff; border-left:4px solid #e63946; padding:20px; border-radius:8px; margin-bottom:15px;">';
+            
+            // 总体评分
+            html += `<div style="margin-bottom:20px;">`;
+            html += `<h3 style="color:#1d3557; margin:0 0 10px 0; font-size:18px;">总体评分</h3>`;
+            html += `<div style="font-size:32px; font-weight:700; color:#e63946;">${{jsonData.overall}}</div>`;
+            html += `</div>`;
+            
+            // 维度分数
+            html += `<div style="margin-bottom:20px;">`;
+            html += `<h3 style="color:#1d3557; margin:0 0 15px 0; font-size:18px;">维度评分</h3>`;
+            html += `<div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:12px;">`;
+            
+            const dimensionScores = jsonData.dimension_scores || {{}};
+            for (const [dimension, score] of Object.entries(dimensionScores)) {{
+                html += `<div style="background:#f8f9fa; padding:12px; border-radius:6px; border-left:3px solid #667eea;">`;
+                html += `<div style="font-size:12px; color:#6c757d; margin-bottom:4px;">${{dimension}}</div>`;
+                html += `<div style="font-size:20px; font-weight:700; color:#1d3557;">${{score}}</div>`;
+                html += `</div>`;
+            }}
+            
+            html += `</div></div>`;
+            
+            // 详细理由（带 Locate 功能）
+            html += `<div style="margin-top:20px;">`;
+            html += `<h3 style="color:#1d3557; margin:0 0 15px 0; font-size:18px;">详细评价</h3>`;
+            
+            const justification = jsonData.justification || "";
+            const blockIdPattern = /\\[block_id:\\s*([a-z]+-\\d+)\\]/gi;
+            const bodyPattern = /Body\\s+(?:Paragraph\\s+)?(\\d+)/gi;
+            
+            const paragraphs = justification.split('\\n\\n').filter(p => p.trim());
+            paragraphs.forEach(para => {{
+                const blockIdMatches = [...para.matchAll(blockIdPattern)];
+                const blockIds = [...new Set(blockIdMatches.map(m => m[1]))];
+                const paraMatches = [...para.matchAll(bodyPattern)];
+                const paraBodyRefs = [...new Set(paraMatches.map(m => parseInt(m[1])))];
+                
+                const displayText = para.replace(/\\[block_id:[^\\]]+\\]/gi, '').trim();
+                html += `<p style="margin:0 0 12px 0; line-height:1.8; color:#333;">${{displayText}}</p>`;
+                
+                if (blockIds.length > 0) {{
+                    blockIds.forEach(blockId => {{
+                        const displayName = blockId.replace('-', ' ').replace(/\\b\\w/g, l => l.toUpperCase());
+                        html += `<button class="locate-btn" onclick="locateIssue('${{blockId}}')">📍 Locate ${{displayName}}</button> `;
+                    }});
+                }}
+                
+                if (paraBodyRefs.length > 0 && blockIds.length === 0) {{
+                    paraBodyRefs.forEach(bodyNum => {{
+                        html += `<button class="locate-btn" onclick="locateIssue('body-${{bodyNum}}')">📍 Locate Body ${{bodyNum}}</button> `;
+                    }});
+                }}
+            }});
+            
+            html += `</div></div>`;
+            container.innerHTML = html;
+        }}
+
+        // 渲染 AI 反馈（带 Locate 功能，向后兼容文本格式）
         function renderAIFeedback(container, reviewText) {{
             if (!container) return;
             

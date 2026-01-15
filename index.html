@@ -263,12 +263,151 @@
             border-top-color: #667eea;
         }
 
+        /* 学科切换器样式 */
+        .category-switcher {
+            background: #fff;
+            border-radius: 12px;
+            padding: 8px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .category-tab {
+            flex: 1;
+            min-width: 120px;
+            padding: 12px 20px;
+            border: none;
+            background: transparent;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #6c757d;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+        .category-tab:hover {
+            background: #f8f9fa;
+            color: #2c3e50;
+        }
+        .category-tab.active {
+            background: #667eea;
+            color: white;
+            box-shadow: 0 2px 4px rgba(102, 126, 234, 0.3);
+        }
+        
+        /* 操作按钮区域 */
+        .missions-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        .ghost-btn {
+            background: transparent;
+            border: 2px dashed #667eea;
+            color: #667eea;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .ghost-btn:hover {
+            background: #667eea;
+            color: white;
+            border-style: solid;
+        }
+        
+        /* 学科标签徽章 */
+        .exam-badge {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .exam-badge.alevel {
+            background: #764ba2;
+            color: white;
+        }
+        .exam-badge.ielts {
+            background: #0070f3;
+            color: white;
+        }
+        .exam-badge.toefl {
+            background: #e63946;
+            color: white;
+        }
+        .exam-badge.personal {
+            background: #6c757d;
+            color: white;
+        }
+        
+        /* 任务类型标签 */
+        .mission-type-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 600;
+            margin-left: 8px;
+            background: #e1f5fe;
+            color: #0288d1;
+        }
+        .mission-type-badge.task1 {
+            background: #fff3e0;
+            color: #f57c00;
+        }
+        .mission-type-badge.task2 {
+            background: #e8f5e9;
+            color: #388e3c;
+        }
+        .mission-type-badge.argumentative {
+            background: #fce4ec;
+            color: #c2185b;
+        }
+        
+        /* 任务状态指示器 */
+        .mission-status {
+            position: absolute;
+            bottom: 12px;
+            right: 12px;
+            font-size: 11px;
+            color: #6c757d;
+            font-weight: 600;
+        }
+        .mission-status.completed {
+            color: #28a745;
+        }
+        .mission-status.in-progress {
+            color: #ffc107;
+        }
+
         @media (max-width: 768px) {
             .container { padding: 20px 16px; }
             .quick-audit-section { padding: 24px; }
             .mission-grid { grid-template-columns: 1fr; }
             .top-nav { padding: 12px 16px; }
             .dashboard-title { font-size: 1.25rem; }
+            .category-switcher { flex-direction: column; }
+            .category-tab { min-width: 100%; }
+            .missions-actions { flex-direction: column; align-items: stretch; }
+            .action-buttons { width: 100%; }
+            .ghost-btn { flex: 1; }
         }
     </style>
 </head>
@@ -300,50 +439,144 @@
 
         <!-- 区块二：Guided Missions（练习模式） -->
         <div class="missions-section">
-            <div class="missions-header">
-                <h2 class="missions-title">Guided Missions</h2>
-                <p class="missions-subtitle">Structured practice exercises with step-by-step guidance</p>
+            <!-- 学科切换器 -->
+            <div class="category-switcher" id="category-switcher">
+                <button class="category-tab active" data-category="all" onclick="switchCategory('all')">All</button>
+                <button class="category-tab" data-category="alevel" onclick="switchCategory('alevel')">A-Level History</button>
+                <button class="category-tab" data-category="ielts" onclick="switchCategory('ielts')">IELTS Writing</button>
+                <button class="category-tab" data-category="toefl" onclick="switchCategory('toefl')">TOEFL Writing</button>
+                <button class="category-tab" data-category="personal" onclick="switchCategory('personal')">Personal Practice</button>
             </div>
-            <div class="mission-grid">
-                <div class="mission-card" onclick="enterPracticeMode('assets/missions/CR_M1_workspace.html')">
-                    <div class="mission-tag">CR_M1</div>
-                    <h3>Opposition in the 1950s</h3>
-                    <div class="mission-question">"Assess the reasons for the opposition to the Civil Rights movement in the Southern states in the 1950s."</div>
-                    <a href="assets/missions/CR_M1_workspace.html?view=hub" class="mission-hub-link" onclick="event.stopPropagation();">📚 View Hub</a>
+            
+            <div class="missions-header">
+                <div class="missions-actions">
+                    <div>
+                        <h2 class="missions-title">Guided Missions</h2>
+                        <p class="missions-subtitle">Structured practice exercises with step-by-step guidance</p>
+                    </div>
+                    <div class="action-buttons">
+                        <button class="ghost-btn" onclick="showCustomMissionModal()">+ Custom Mission</button>
+                        <button class="ghost-btn" onclick="showLibraryModal()">🔍 Browse Library</button>
+                    </div>
                 </div>
-
-                <div class="mission-card" onclick="enterPracticeMode('assets/missions/CR_M2_workspace.html')">
-                    <div class="mission-tag">CR_M2</div>
-                    <h3>Success in the 1950s</h3>
-                    <div class="mission-question">"Evaluate how successful the Civil Rights movement was in the 1950s."</div>
-                    <a href="assets/missions/CR_M2_workspace.html?view=hub" class="mission-hub-link" onclick="event.stopPropagation();">📚 View Hub</a>
-                </div>
-
-                <div class="mission-card" onclick="enterPracticeMode('assets/missions/CR_M3_workspace.html')">
-                    <div class="mission-tag">CR_M3</div>
-                    <h3>Federal Institutions</h3>
-                    <div class="mission-question">"Assess the impact of federal institutions on civil rights in the late 1940s and 1950s."</div>
-                    <a href="assets/missions/CR_M3_workspace.html?view=hub" class="mission-hub-link" onclick="event.stopPropagation();">📚 View Hub</a>
-                </div>
-
-                <div class="mission-card" onclick="enterPracticeMode('assets/missions/CR_M4_workspace.html')">
-                    <div class="mission-tag">CR_M4</div>
-                    <h3>NAACP Effectiveness</h3>
-                    <div class="mission-question">"Analyse the effectiveness of the NAACP in promoting civil rights in the late 1940s and 1950s."</div>
-                    <a href="assets/missions/CR_M4_workspace.html?view=hub" class="mission-hub-link" onclick="event.stopPropagation();">📚 View Hub</a>
-                </div>
-
-                <div class="mission-card" onclick="enterPracticeMode('assets/missions/CR_M5_workspace.html')">
-                    <div class="mission-tag">CR_M5</div>
-                    <h3>Federal vs Grassroots</h3>
-                    <div class="mission-question">"'Progress towards greater civil rights in the 1950s was mainly brought about by federal institutions.' Evaluate this view."</div>
-                    <a href="assets/missions/CR_M5_workspace.html?view=hub" class="mission-hub-link" onclick="event.stopPropagation();">📚 View Hub</a>
-                </div>
+            </div>
+            <div class="mission-grid" id="mission-grid">
+                <!-- 任务卡片将通过 JavaScript 动态渲染 -->
             </div>
         </div>
     </div>
 
     <script>
+        // 任务数据配置（支持多学科）
+        const missionsData = {
+            alevel: [
+                {
+                    id: 'CR_M1',
+                    title: 'Opposition in the 1950s',
+                    question: '"Assess the reasons for the opposition to the Civil Rights movement in the Southern states in the 1950s."',
+                    url: 'assets/missions/CR_M1_workspace.html',
+                    hubUrl: 'assets/missions/CR_M1_workspace.html?view=hub',
+                    examType: 'alevel',
+                    typeLabel: 'Historical Analysis',
+                    status: 'available' // available, in-progress, completed
+                },
+                {
+                    id: 'CR_M2',
+                    title: 'Success in the 1950s',
+                    question: '"Evaluate how successful the Civil Rights movement was in the 1950s."',
+                    url: 'assets/missions/CR_M2_workspace.html',
+                    hubUrl: 'assets/missions/CR_M2_workspace.html?view=hub',
+                    examType: 'alevel',
+                    typeLabel: 'Historical Analysis',
+                    status: 'available'
+                },
+                {
+                    id: 'CR_M3',
+                    title: 'Federal Institutions',
+                    question: '"Assess the impact of federal institutions on civil rights in the late 1940s and 1950s."',
+                    url: 'assets/missions/CR_M3_workspace.html',
+                    hubUrl: 'assets/missions/CR_M3_workspace.html?view=hub',
+                    examType: 'alevel',
+                    typeLabel: 'Historical Analysis',
+                    status: 'available'
+                },
+                {
+                    id: 'CR_M4',
+                    title: 'NAACP Effectiveness',
+                    question: '"Analyse the effectiveness of the NAACP in promoting civil rights in the late 1940s and 1950s."',
+                    url: 'assets/missions/CR_M4_workspace.html',
+                    hubUrl: 'assets/missions/CR_M4_workspace.html?view=hub',
+                    examType: 'alevel',
+                    typeLabel: 'Historical Analysis',
+                    status: 'available'
+                },
+                {
+                    id: 'CR_M5',
+                    title: 'Federal vs Grassroots',
+                    question: '"\'Progress towards greater civil rights in the 1950s was mainly brought about by federal institutions.\' Evaluate this view."',
+                    url: 'assets/missions/CR_M5_workspace.html',
+                    hubUrl: 'assets/missions/CR_M5_workspace.html?view=hub',
+                    examType: 'alevel',
+                    typeLabel: 'Historical Analysis',
+                    status: 'available'
+                }
+            ],
+            ielts: [
+                {
+                    id: 'IELTS_T2_001',
+                    title: 'Education & Technology',
+                    question: '"Some people think that technology has made our lives more complicated. Others believe it has made our lives easier. Discuss both views and give your own opinion."',
+                    url: 'assets/missions/CR_M1_workspace.html', // 临时使用，后续可创建专门的 IELTS 任务
+                    hubUrl: '#',
+                    examType: 'ielts',
+                    typeLabel: 'Task 2',
+                    taskType: 'argumentative',
+                    topic: 'Education',
+                    status: 'available'
+                },
+                {
+                    id: 'IELTS_T2_002',
+                    title: 'Environment & Society',
+                    question: '"Environmental problems are too big for individual countries to solve. Do you agree or disagree?"',
+                    url: 'assets/missions/CR_M1_workspace.html',
+                    hubUrl: '#',
+                    examType: 'ielts',
+                    typeLabel: 'Task 2',
+                    taskType: 'argumentative',
+                    topic: 'Environment',
+                    status: 'available'
+                },
+                {
+                    id: 'IELTS_T1_001',
+                    title: 'Chart Analysis: Population Growth',
+                    question: 'The chart below shows the population growth in three countries from 2000 to 2020. Summarize the information by selecting and reporting the main features.',
+                    url: 'assets/missions/CR_M1_workspace.html',
+                    hubUrl: '#',
+                    examType: 'ielts',
+                    typeLabel: 'Task 1',
+                    taskType: 'task1',
+                    topic: 'Data Analysis',
+                    status: 'available'
+                }
+            ],
+            toefl: [
+                {
+                    id: 'TOEFL_001',
+                    title: 'Academic Discussion',
+                    question: '"Do you agree or disagree with the following statement? Technology has made communication easier but less personal."',
+                    url: 'assets/missions/CR_M1_workspace.html',
+                    hubUrl: '#',
+                    examType: 'toefl',
+                    typeLabel: 'Integrated Writing',
+                    status: 'available'
+                }
+            ],
+            personal: [] // 用户自定义任务将存储在这里
+        };
+        
+        // 当前选择的学科
+        let currentCategory = 'all';
+        
         // Profile 状态管理（示例：可以从 localStorage 或 API 获取）
         let userProfile = {
             isLoggedIn: false,
@@ -472,10 +705,137 @@
             localStorage.setItem('workspaceMode', 'practice');
             window.location.href = url;
         }
+        
+        // 切换学科分类
+        function switchCategory(category) {
+            currentCategory = category;
+            
+            // 更新 Tab 状态
+            document.querySelectorAll('.category-tab').forEach(tab => {
+                tab.classList.remove('active');
+                if (tab.dataset.category === category) {
+                    tab.classList.add('active');
+                }
+            });
+            
+            // 渲染任务卡片
+            renderMissions();
+        }
+        
+        // 渲染任务卡片
+        function renderMissions() {
+            const grid = document.getElementById('mission-grid');
+            if (!grid) return;
+            
+            // 获取要显示的任务列表
+            let missionsToShow = [];
+            
+            if (currentCategory === 'all') {
+                // 显示所有任务
+                Object.values(missionsData).forEach(categoryMissions => {
+                    missionsToShow = missionsToShow.concat(categoryMissions);
+                });
+            } else {
+                // 显示指定学科的任务
+                missionsToShow = missionsData[currentCategory] || [];
+            }
+            
+            if (missionsToShow.length === 0) {
+                grid.innerHTML = `
+                    <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: #6c757d;">
+                        <p style="font-size: 16px; margin-bottom: 8px;">No missions available</p>
+                        <p style="font-size: 14px;">Try creating a custom mission or browse the library.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // 生成卡片 HTML
+            grid.innerHTML = missionsToShow.map(mission => {
+                const examBadgeClass = mission.examType || 'personal';
+                const statusClass = mission.status || 'available';
+                const statusText = statusClass === 'completed' ? '✓ Completed' : 
+                                 statusClass === 'in-progress' ? '⏳ In Progress' : '';
+                
+                // 任务类型标签
+                let typeBadgeHtml = '';
+                if (mission.typeLabel) {
+                    const badgeClass = mission.taskType === 'task1' ? 'task1' : 
+                                     mission.taskType === 'task2' ? 'task2' : 
+                                     mission.taskType === 'argumentative' ? 'argumentative' : '';
+                    typeBadgeHtml = `<span class="mission-type-badge ${badgeClass}">${mission.typeLabel}</span>`;
+                }
+                
+                return `
+                    <div class="mission-card" data-exam-type="${mission.examType}" onclick="enterPracticeMode('${mission.url}')">
+                        <div class="exam-badge ${examBadgeClass}">${mission.examType === 'alevel' ? 'A-Level' : mission.examType === 'ielts' ? 'IELTS' : mission.examType === 'toefl' ? 'TOEFL' : 'Personal'}</div>
+                        <div class="mission-tag">${mission.id}${typeBadgeHtml}</div>
+                        <h3>${mission.title}</h3>
+                        <div class="mission-question">"${mission.question}"</div>
+                        <a href="${mission.hubUrl}" class="mission-hub-link" onclick="event.stopPropagation();">📚 View Hub</a>
+                        ${statusText ? `<div class="mission-status ${statusClass}">${statusText}</div>` : ''}
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        // 显示自定义任务模态框
+        function showCustomMissionModal() {
+            const question = prompt('Enter your custom essay question:');
+            if (question && question.trim()) {
+                // 创建自定义任务
+                const customMission = {
+                    id: 'CUSTOM_' + Date.now(),
+                    title: 'Custom Mission',
+                    question: question.trim(),
+                    url: 'assets/missions/CR_M1_workspace.html', // 使用通用工作区
+                    hubUrl: '#',
+                    examType: 'personal',
+                    typeLabel: 'Custom',
+                    status: 'available'
+                };
+                
+                // 添加到个人任务列表
+                if (!missionsData.personal) {
+                    missionsData.personal = [];
+                }
+                missionsData.personal.push(customMission);
+                
+                // 保存到 localStorage
+                localStorage.setItem('customMissions', JSON.stringify(missionsData.personal));
+                
+                // 如果当前显示的是 personal 或 all，刷新显示
+                if (currentCategory === 'personal' || currentCategory === 'all') {
+                    renderMissions();
+                }
+                
+                alert('Custom mission created! Switch to "Personal Practice" to see it.');
+            }
+        }
+        
+        // 显示库浏览模态框
+        function showLibraryModal() {
+            alert('Library feature coming soon! This will allow you to browse and import missions by category and unit.');
+            // TODO: 实现库浏览界面
+        }
+        
+        // 从 localStorage 加载自定义任务
+        function loadCustomMissions() {
+            const stored = localStorage.getItem('customMissions');
+            if (stored) {
+                try {
+                    missionsData.personal = JSON.parse(stored);
+                } catch (e) {
+                    console.error('Failed to load custom missions:', e);
+                }
+            }
+        }
 
-        // 页面加载时检查登录状态
+        // 页面加载时检查登录状态和初始化
         window.addEventListener('load', () => {
             checkLoginStatus();
+            loadCustomMissions();
+            renderMissions();
         });
     </script>
 
