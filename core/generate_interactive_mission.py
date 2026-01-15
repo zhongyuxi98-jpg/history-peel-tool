@@ -700,7 +700,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             max-height: 85vh;
         }}
         .review-left-panel {{
-            flex: 0 0 55%;
+            flex: 0 0 60%;
             background: #f8f9fa;
             border-radius: 12px;
             padding: 24px;
@@ -709,7 +709,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             border: 1px solid #e2e8f0;
         }}
         .review-right-panel {{
-            flex: 0 0 45%;
+            flex: 0 0 40%;
             background: #fff;
             border: 2px solid #1e293b;
             border-radius: 12px;
@@ -747,11 +747,22 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             background: #fbbf24;
             box-shadow: 0 0 12px rgba(245, 158, 11, 0.6);
             transform: scale(1.02);
-            animation: highlightPulse 1.5s ease-in-out;
+            animation: highlightPulse 1.5s ease-in-out, breatheGlow 2s ease-in-out infinite;
         }}
         @keyframes highlightPulse {{
             0%, 100% {{ box-shadow: 0 0 12px rgba(245, 158, 11, 0.6); }}
             50% {{ box-shadow: 0 0 20px rgba(245, 158, 11, 0.9); }}
+        }}
+        /* 呼吸灯高亮效果 */
+        @keyframes breatheGlow {{
+            0%, 100% {{
+                box-shadow: 0 0 12px rgba(245, 158, 11, 0.6);
+                opacity: 1;
+            }}
+            50% {{
+                box-shadow: 0 0 24px rgba(245, 158, 11, 0.9), 0 0 40px rgba(245, 158, 11, 0.5);
+                opacity: 0.95;
+            }}
         }}
         .review-text-content .error-mark {{
             background: #fee2e2;
@@ -802,31 +813,42 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         .dimension-score-label {{
             font-size: 12px;
             color: #64748b;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }}
+        /* 隐藏数字显示，只保留进度条作为主要视觉 */
         .dimension-score-value {{
-            font-size: 28px;
-            font-weight: 800;
-            color: #1e293b;
-            margin-bottom: 8px;
+            display: none; /* 禁止直接显示数字 */
         }}
-        /* 进度条样式 */
+        /* 进度条样式 - 作为主要视觉元素 */
         .dimension-progress-bar {{
             width: 100%;
-            height: 8px;
+            height: 12px;
             background: #e2e8f0;
-            border-radius: 4px;
+            border-radius: 6px;
             overflow: hidden;
-            margin-top: 8px;
+            position: relative;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
         }}
         .dimension-progress-fill {{
             height: 100%;
             background: linear-gradient(90deg, #1e293b 0%, #475569 100%);
-            border-radius: 4px;
-            transition: width 0.6s ease-out;
+            border-radius: 6px;
+            transition: width 0.8s ease-out;
+            position: relative;
+        }}
+        /* 进度条上的百分比标签（可选，作为辅助信息） */
+        .dimension-progress-label {{
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 10px;
+            font-weight: 700;
+            color: #1e293b;
+            z-index: 1;
         }}
         .review-diagnostics {{
             display: flex;
@@ -1909,11 +1931,11 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                     }} catch (parseError) {{
                         console.warn('⚠️ JSON 解析失败，使用文本格式:', parseError);
                         // 如果解析失败，使用原始文本
-                        previousReview = result.review || "";
-                        renderAIFeedback(contentDiv, previousReview);
+                previousReview = result.review || "";
+                renderAIFeedback(contentDiv, previousReview);
                         // 保存原始文本到 localStorage
                         saveReviewToLocal({{ review: previousReview, examType: examType }});
-                        if (resubmitBtn) resubmitBtn.style.display = 'block';
+                if (resubmitBtn) resubmitBtn.style.display = 'block';
                         return;
                     }}
                 }}
@@ -2078,6 +2100,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             
             // 渲染左栏：原文高亮
             const feedbackLoops = structuredData.feedback_loops || [];
+            // 保存 feedbackLoops 到全局，供 scrollToOriginalText 使用
+            window.currentFeedbackLoops = feedbackLoops;
             renderOriginalTextWithHighlights(originalText, feedbackLoops);
             
             // 渲染右栏：分数和诊断卡片
@@ -2229,9 +2253,10 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                         return `
                             <div class="dimension-score-item">
                                 <div class="dimension-score-label">${{dimLabel}}</div>
-                                <div class="dimension-score-value">${{score}}</div>
                                 <div class="dimension-progress-bar">
-                                    <div class="dimension-progress-fill" style="width: ${{percentage}}%"></div>
+                                    <div class="dimension-progress-fill" style="width: ${{percentage}}%">
+                                        <span class="dimension-progress-label">${{Math.round(percentage)}}%</span>
+                                    </div>
                                 </div>
                             </div>
                         `;
@@ -2260,19 +2285,19 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                         }};
                         
                         return `
-                            <div class="diagnostic-card" id="diagnostic-card-${{index}}" data-feedback-index="${{index}}">
+                            <div class="diagnostic-card" id="diagnostic-card-${{index}}" data-feedback-index="${{index}}" onclick="scrollToOriginalText(${{index}})" style="cursor:pointer;">
                                 <div class="diagnostic-text">${{escapeHtml(diagnosis)}}</div>
                                 ${{before || after ? `
                                 <div class="comparison-box">
                                     ${{before ? `
                                     <div class="comparison-before">
-                                        <div class="comparison-label">Before</div>
+                                        <div class="comparison-label">🔴 Before</div>
                                         <div class="comparison-text">${{escapeHtml(before)}}</div>
                                     </div>
                                     ` : '<div></div>'}}
                                     ${{after ? `
                                     <div class="comparison-after">
-                                        <div class="comparison-label">After</div>
+                                        <div class="comparison-label">🟢 After</div>
                                         <div class="comparison-text">${{escapeHtml(after)}}</div>
                                     </div>
                                     ` : '<div></div>'}}
@@ -2311,7 +2336,47 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             if (cardEl) {{
                 cardEl.classList.add('active');
                 // 平滑滚动到诊断卡片
-                cardEl.scrollIntoView({{ behavior: 'smooth', block: 'center' }});
+                cardEl.scrollIntoView({{ behavior: 'smooth', block: 'nearest' }});
+            }}
+        }}
+        
+        // 点击诊断卡片时，滚动到左侧原文对应段落（反向联动）
+        function scrollToOriginalText(feedbackIndex) {{
+            // 移除所有高亮的 active 状态
+            document.querySelectorAll('mark[data-feedback-index]').forEach(mark => {{
+                mark.classList.remove('active');
+            }});
+            document.querySelectorAll('.diagnostic-card').forEach(card => {{
+                card.classList.remove('active');
+            }});
+            
+            // 激活对应的诊断卡片
+            const cardEl = document.getElementById(`diagnostic-card-${{feedbackIndex}}`);
+            if (cardEl) {{
+                cardEl.classList.add('active');
+            }}
+            
+            // 高亮并滚动到左侧原文对应的句子（呼吸灯效果）
+            const markEl = document.querySelector(`mark[data-feedback-index="${{feedbackIndex}}"]`);
+            if (markEl) {{
+                markEl.classList.add('active');
+                // 平滑滚动到高亮句子，并居中显示
+                markEl.scrollIntoView({{ behavior: 'smooth', block: 'center' }});
+                
+                // 3秒后移除高亮（呼吸灯效果会自动停止）
+                setTimeout(() => {{
+                    markEl.classList.remove('active');
+                }}, 3000);
+            }} else {{
+                // 如果找不到对应的 mark，尝试查找对应的模块
+                const feedbackLoops = window.currentFeedbackLoops || [];
+                if (feedbackLoops[feedbackIndex]) {{
+                    const loop = feedbackLoops[feedbackIndex];
+                    const blockId = loop.block_id || '';
+                    if (blockId) {{
+                        locateIssue(blockId);
+                    }}
+                }}
             }}
         }}
         
