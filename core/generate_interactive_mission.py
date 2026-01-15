@@ -687,7 +687,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             margin-right: 0 !important;
         }}
         
-        /* Visual Audit V2.0 双栏对比视图样式 */
+        /* Visual Audit V2.0 双栏对比视图样式 - 手术级视觉诊断 */
         #review-overlay {{
             display: none;
             margin-top: 30px;
@@ -695,162 +695,225 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         }}
         .review-overlay-container {{
             display: flex;
-            gap: 20px;
+            gap: 24px;
             min-height: 600px;
             max-height: 85vh;
         }}
         .review-left-panel {{
-            flex: 0 0 60%;
+            flex: 0 0 55%;
             background: #f8f9fa;
             border-radius: 12px;
             padding: 24px;
             overflow-y: auto;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            box-shadow: 0 4px 12px rgba(30, 41, 59, 0.1);
+            border: 1px solid #e2e8f0;
         }}
         .review-right-panel {{
-            flex: 0 0 40%;
+            flex: 0 0 45%;
             background: #fff;
-            border: 2px solid #e63946;
+            border: 2px solid #1e293b;
             border-radius: 12px;
             padding: 24px;
             overflow-y: auto;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            box-shadow: 0 4px 12px rgba(30, 41, 59, 0.15);
         }}
         .review-panel-title {{
-            color: #1d3557;
+            color: #1e293b;
             margin-bottom: 20px;
-            font-size: 18px;
-            font-weight: 600;
-            border-bottom: 2px solid #dee2e6;
-            padding-bottom: 10px;
+            font-size: 20px;
+            font-weight: 800;
+            border-bottom: 3px solid #1e293b;
+            padding-bottom: 12px;
         }}
         .review-text-content {{
-            line-height: 2;
+            line-height: 1.8;
             font-size: 15px;
-            color: #333;
+            color: #334155;
         }}
         .review-text-content mark {{
-            background: #fff3cd;
-            padding: 2px 4px;
-            border-radius: 3px;
+            background: #fef3c7;
+            padding: 2px 6px;
+            border-radius: 4px;
             cursor: pointer;
-            transition: all 0.2s;
-            border: 1px solid #ffc107;
+            transition: all 0.3s;
+            border-bottom: 2px solid #f59e0b;
+            text-decoration: none;
         }}
         .review-text-content mark:hover {{
-            background: #ffc107;
-            box-shadow: 0 2px 4px rgba(255,193,7,0.3);
+            background: #fde68a;
+            box-shadow: 0 2px 6px rgba(245, 158, 11, 0.4);
         }}
         .review-text-content mark.active {{
-            background: #ffc107;
-            box-shadow: 0 0 8px rgba(255,193,7,0.6);
+            background: #fbbf24;
+            box-shadow: 0 0 12px rgba(245, 158, 11, 0.6);
             transform: scale(1.02);
+            animation: highlightPulse 1.5s ease-in-out;
+        }}
+        @keyframes highlightPulse {{
+            0%, 100% {{ box-shadow: 0 0 12px rgba(245, 158, 11, 0.6); }}
+            50% {{ box-shadow: 0 0 20px rgba(245, 158, 11, 0.9); }}
+        }}
+        .review-text-content .error-mark {{
+            background: #fee2e2;
+            border-bottom: 2px dashed #dc2626;
+            text-decoration: wavy underline;
+            text-decoration-color: #dc2626;
         }}
         .review-scores-header {{
             margin-bottom: 24px;
             padding-bottom: 20px;
-            border-bottom: 2px solid #dee2e6;
+            border-bottom: 3px solid #1e293b;
         }}
         .overall-score {{
             text-align: center;
-            margin-bottom: 20px;
+            margin-bottom: 24px;
         }}
         .score-label {{
-            font-size: 14px;
-            color: #6c757d;
+            font-size: 13px;
+            color: #64748b;
             margin-bottom: 8px;
-            font-weight: 600;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }}
         .score-value {{
-            font-size: 48px;
-            font-weight: 700;
-            color: #e63946;
+            font-size: 56px;
+            font-weight: 800;
+            color: #1e293b;
+            line-height: 1;
         }}
         .dimension-scores {{
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
+            gap: 16px;
         }}
         .dimension-score-item {{
-            background: #f8f9fa;
-            padding: 12px;
-            border-radius: 8px;
-            text-align: center;
+            background: #f1f5f9;
+            padding: 16px;
+            border-radius: 10px;
+            border: 1px solid #e2e8f0;
+            transition: all 0.2s;
+        }}
+        .dimension-score-item:hover {{
+            background: #e2e8f0;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(30, 41, 59, 0.1);
         }}
         .dimension-score-label {{
-            font-size: 11px;
-            color: #6c757d;
-            margin-bottom: 4px;
-            font-weight: 600;
+            font-size: 12px;
+            color: #64748b;
+            margin-bottom: 10px;
+            font-weight: 700;
             text-transform: uppercase;
+            letter-spacing: 0.5px;
         }}
         .dimension-score-value {{
-            font-size: 24px;
-            font-weight: 700;
-            color: #1d3557;
+            font-size: 28px;
+            font-weight: 800;
+            color: #1e293b;
+            margin-bottom: 8px;
+        }}
+        /* 进度条样式 */
+        .dimension-progress-bar {{
+            width: 100%;
+            height: 8px;
+            background: #e2e8f0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 8px;
+        }}
+        .dimension-progress-fill {{
+            height: 100%;
+            background: linear-gradient(90deg, #1e293b 0%, #475569 100%);
+            border-radius: 4px;
+            transition: width 0.6s ease-out;
         }}
         .review-diagnostics {{
             display: flex;
             flex-direction: column;
-            gap: 16px;
+            gap: 20px;
         }}
         .diagnostic-card {{
-            background: #fff;
-            border: 1px solid #dee2e6;
-            border-radius: 10px;
+            background: #f8fafc;
+            border: 1px solid #cbd5e1;
+            border-radius: 12px;
             padding: 20px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            transition: all 0.2s;
+            box-shadow: 0 2px 6px rgba(30, 41, 59, 0.08);
+            transition: all 0.3s;
         }}
         .diagnostic-card:hover {{
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            box-shadow: 0 6px 16px rgba(30, 41, 59, 0.12);
             transform: translateY(-2px);
+            border-color: #94a3b8;
         }}
         .diagnostic-card.active {{
-            border-color: #ffc107;
-            box-shadow: 0 0 12px rgba(255,193,7,0.3);
+            border-color: #1e293b;
+            box-shadow: 0 0 16px rgba(30, 41, 59, 0.2);
+            background: #fff;
         }}
         .diagnostic-text {{
             font-size: 14px;
             line-height: 1.6;
-            color: #333;
+            color: #1e293b;
             margin-bottom: 16px;
+            font-weight: 500;
         }}
         .comparison-box {{
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin-top: 12px;
+            gap: 16px;
+            margin-top: 16px;
         }}
         .comparison-before {{
-            background: #fee;
-            border-left: 4px solid #dc3545;
-            padding: 12px;
-            border-radius: 6px;
+            background: #fef2f2;
+            border-left: 4px solid #dc2626;
+            padding: 14px;
+            border-radius: 8px;
         }}
         .comparison-after {{
-            background: #efe;
-            border-left: 4px solid #28a745;
-            padding: 12px;
-            border-radius: 6px;
+            background: #f0fdf4;
+            border-left: 4px solid #16a34a;
+            padding: 14px;
+            border-radius: 8px;
         }}
         .comparison-label {{
             font-size: 11px;
-            font-weight: 700;
+            font-weight: 800;
             text-transform: uppercase;
-            margin-bottom: 8px;
-            color: #6c757d;
+            margin-bottom: 10px;
+            letter-spacing: 0.5px;
         }}
         .comparison-before .comparison-label {{
-            color: #dc3545;
+            color: #dc2626;
         }}
         .comparison-after .comparison-label {{
-            color: #28a745;
+            color: #16a34a;
         }}
         .comparison-text {{
             font-size: 13px;
-            line-height: 1.5;
-            color: #333;
+            line-height: 1.6;
+            color: #1e293b;
+            font-weight: 500;
+        }}
+        /* 段落高亮闪烁动画 */
+        .essay-module.highlight-flash {{
+            animation: flashHighlight 2s ease-in-out;
+            border: 3px solid #1e293b !important;
+            box-shadow: 0 0 20px rgba(30, 41, 59, 0.4) !important;
+        }}
+        @keyframes flashHighlight {{
+            0%, 100% {{
+                background-color: transparent;
+                box-shadow: 0 0 20px rgba(30, 41, 59, 0.4);
+            }}
+            25%, 75% {{
+                background-color: rgba(30, 41, 59, 0.1);
+                box-shadow: 0 0 30px rgba(30, 41, 59, 0.6);
+            }}
+            50% {{
+                background-color: rgba(30, 41, 59, 0.15);
+                box-shadow: 0 0 40px rgba(30, 41, 59, 0.8);
+            }}
         }}
     </style>
 </head>
@@ -1855,10 +1918,11 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                     }}
                 }}
                 
-                // 如果有 JSON 数据，使用新的渲染函数
+                // 如果有 JSON 数据，使用新的可视化界面
                 if (jsonData) {{
                     // 验证 JSON 结构
                     if (jsonData.overall && jsonData.dimension_scores && jsonData.justification) {{
+                        // 使用 Visual Audit V2.0 界面
                         renderReview(jsonData, contentDiv);
                         // 保存结构化数据到 localStorage
                         saveReviewToLocal({{ structured: jsonData, examType: examType, timestamp: Date.now() }});
@@ -2024,17 +2088,24 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             if (resubmitBtn) resubmitBtn.style.display = 'block';
         }}
         
-        // 渲染左栏：原文高亮
+        // 渲染左栏：原文高亮（增强版，支持错误标记）
         function renderOriginalTextWithHighlights(originalText, feedbackLoops) {{
             const container = document.getElementById('review-original-text');
             if (!container || !originalText) {{
-                if (container) container.innerHTML = '<p style="color:#6c757d;">暂无原文内容</p>';
+                if (container) container.innerHTML = '<p style="color:#64748b;">暂无原文内容</p>';
                 return;
             }}
             
+            // 转义 HTML 防止 XSS
+            const escapeHtml = (text) => {{
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }};
+            
             if (!Array.isArray(feedbackLoops) || feedbackLoops.length === 0) {{
-                // 如果没有反馈循环，直接显示原文
-                container.innerHTML = originalText.replace(/\\n/g, '<br>');
+                // 如果没有反馈循环，直接显示原文（转义 HTML）
+                container.innerHTML = escapeHtml(originalText).replace(/\\n/g, '<br>');
                 return;
             }}
             
@@ -2043,20 +2114,30 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             const segments = feedbackLoops
                 .map((loop, index) => ({{
                     index: index,
-                    segment: loop.original_segment || '',
-                    position: originalText.indexOf(loop.original_segment || '')
+                    segment: loop.original_segment || loop.before || '',
+                    position: originalText.indexOf(loop.original_segment || loop.before || ''),
+                    isError: loop.diagnosis && (loop.diagnosis.toLowerCase().includes('error') || 
+                                               loop.diagnosis.toLowerCase().includes('wrong') ||
+                                               loop.diagnosis.toLowerCase().includes('incorrect'))
                 }}))
                 .filter(item => item.segment && item.position !== -1)
                 .sort((a, b) => b.position - a.position); // 从后往前排序
             
-            let highlightedText = originalText;
+            let highlightedText = escapeHtml(originalText);
             
             // 从后往前替换，避免位置偏移
-            segments.forEach(({ index, segment }) => {{
-                const highlightHtml = `<mark data-feedback-index="${{index}}" onclick="scrollToDiagnostic(${{index}})" style="cursor:pointer;">${{segment}}</mark>`;
-                highlightedText = highlightedText.substring(0, highlightedText.lastIndexOf(segment)) + 
-                                highlightHtml + 
-                                highlightedText.substring(highlightedText.lastIndexOf(segment) + segment.length);
+            segments.forEach(({ index, segment, isError }) => {{
+                const escapedSegment = escapeHtml(segment);
+                const errorClass = isError ? 'error-mark' : '';
+                const highlightHtml = `<mark class="${{errorClass}}" data-feedback-index="${{index}}" onclick="scrollToDiagnostic(${{index}})" style="cursor:pointer;">${{escapedSegment}}</mark>`;
+                
+                // 查找最后一个匹配位置
+                const lastIndex = highlightedText.lastIndexOf(escapedSegment);
+                if (lastIndex !== -1) {{
+                    highlightedText = highlightedText.substring(0, lastIndex) + 
+                                    highlightHtml + 
+                                    highlightedText.substring(lastIndex + escapedSegment.length);
+                }}
             }});
             
             // 处理换行
@@ -2065,33 +2146,99 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             container.innerHTML = highlightedText;
         }}
         
+        // 获取维度标签映射（根据考试类型）
+        function getDimensionLabel(dimensionName, examType) {{
+            const examTypeUpper = (examType || currentExamType || 'AL_ECON').toUpperCase();
+            
+            // IELTS 维度映射
+            if (examTypeUpper === 'IELTS') {{
+                const ieltsMap = {{
+                    'Task Response': 'TR',
+                    'Coherence & Cohesion': 'CC',
+                    'Lexical Resource': 'LR',
+                    'Grammatical Range & Accuracy': 'GRA'
+                }};
+                return ieltsMap[dimensionName] || dimensionName.substring(0, 4).toUpperCase();
+            }}
+            
+            // A-Level 维度映射
+            if (examTypeUpper === 'AL_ECON' || examTypeUpper === 'ALEVEL' || examTypeUpper === 'A-LEVEL') {{
+                const alevelMap = {{
+                    'AO1 Knowledge': 'AO1',
+                    'AO2 Application': 'AO2',
+                    'AO3 Analysis': 'AO3',
+                    'AO4 Evaluation': 'AO4'
+                }};
+                return alevelMap[dimensionName] || dimensionName.substring(0, 4).toUpperCase();
+            }}
+            
+            // 默认：取前4个字符
+            return dimensionName.substring(0, 4).toUpperCase();
+        }}
+        
+        // 计算分数百分比（用于进度条）
+        function calculateScorePercentage(score, examType) {{
+            const examTypeUpper = (examType || currentExamType || 'AL_ECON').toUpperCase();
+            
+            // IELTS: 0-9 分制
+            if (examTypeUpper === 'IELTS') {{
+                const numScore = parseFloat(score);
+                if (isNaN(numScore)) return 0;
+                return Math.min(100, Math.max(0, (numScore / 9) * 100));
+            }}
+            
+            // A-Level: A*-E 等级制，转换为百分比
+            if (examTypeUpper === 'AL_ECON' || examTypeUpper === 'ALEVEL' || examTypeUpper === 'A-LEVEL') {{
+                const gradeMap = {{
+                    'A*': 95,
+                    'A': 85,
+                    'B': 75,
+                    'C': 65,
+                    'D': 55,
+                    'E': 45
+                }};
+                const grade = String(score).toUpperCase();
+                return gradeMap[grade] || 50;
+            }}
+            
+            return 50; // 默认值
+        }}
+        
         // 渲染右栏：分数和诊断卡片
         function renderDiagnosticsPanel(structuredData) {{
+            // 获取当前考试类型
+            const examSelector = document.getElementById('exam-type-selector');
+            const examType = examSelector ? examSelector.value : currentExamType;
+            
             // 渲染总分
             const overallScoreEl = document.getElementById('review-overall-score');
             if (overallScoreEl) {{
                 overallScoreEl.textContent = structuredData.overall || '-';
             }}
             
-            // 渲染维度得分
+            // 渲染维度得分（带进度条）
             const dimensionScoresEl = document.getElementById('review-dimension-scores');
             if (dimensionScoresEl && structuredData.dimension_scores) {{
                 const dimensions = Object.keys(structuredData.dimension_scores);
                 if (dimensions.length > 0) {{
                     const scoresHtml = dimensions.map(dim => {{
                         const score = structuredData.dimension_scores[dim];
-                        // 格式化维度名称（IELTS: TR, CC, LR, GRA | A-Level: AO1-AO4）
-                        const dimLabel = dim.length <= 4 ? dim : dim.substring(0, 4);
+                        const dimLabel = getDimensionLabel(dim, examType);
+                        const percentage = calculateScorePercentage(score, examType);
+                        
                         return `
                             <div class="dimension-score-item">
                                 <div class="dimension-score-label">${{dimLabel}}</div>
                                 <div class="dimension-score-value">${{score}}</div>
+                                <div class="dimension-progress-bar">
+                                    <div class="dimension-progress-fill" style="width: ${{percentage}}%"></div>
+                                </div>
                             </div>
                         `;
                     }}).join('');
                     dimensionScoresEl.innerHTML = scoresHtml;
                 }} else {{
-                    dimensionScoresEl.innerHTML = '<p style="color:#6c757d; font-size:12px;">暂无维度得分</p>';
+                    dimensionScoresEl.innerHTML = '<p style="color:#64748b; font-size:12px; text-align:center;">暂无维度得分</p>';
                 }}
             }}
             
@@ -2202,67 +2349,58 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             }}
         }}
 
-        // 渲染结构化 JSON 评审结果（新函数）
+        // 关闭评审覆盖层
+        function closeReviewOverlay() {{
+            const reviewOverlay = document.getElementById('review-overlay');
+            if (reviewOverlay) {{
+                reviewOverlay.style.display = 'none';
+            }}
+            // 显示编辑区
+            const essayConstructor = document.getElementById('essay-constructor');
+            const moduleToolbar = document.getElementById('module-toolbar');
+            const reviewActions = document.querySelector('.review-actions');
+            if (essayConstructor) essayConstructor.style.display = 'block';
+            if (moduleToolbar) moduleToolbar.style.display = 'flex';
+            if (reviewActions) reviewActions.style.display = 'flex';
+        }}
+        
+        // 渲染结构化 JSON 评审结果（使用 Visual Audit V2.0 界面）
         function renderReview(jsonData, container) {{
             if (!container || !jsonData) return;
             
-            let html = '<div class="ai-feedback-card" style="background:#fff; border-left:4px solid #e63946; padding:20px; border-radius:8px; margin-bottom:15px;">';
+            // 获取完整文章文本
+            const essayFull = buildEssayText();
             
-            // 总体评分
-            html += `<div style="margin-bottom:20px;">`;
-            html += `<h3 style="color:#1d3557; margin:0 0 10px 0; font-size:18px;">总体评分</h3>`;
-            html += `<div style="font-size:32px; font-weight:700; color:#e63946;">${{jsonData.overall}}</div>`;
-            html += `</div>`;
-            
-            // 维度分数
-            html += `<div style="margin-bottom:20px;">`;
-            html += `<h3 style="color:#1d3557; margin:0 0 15px 0; font-size:18px;">维度评分</h3>`;
-            html += `<div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:12px;">`;
-            
-            const dimensionScores = jsonData.dimension_scores || {{}};
-            for (const [dimension, score] of Object.entries(dimensionScores)) {{
-                html += `<div style="background:#f8f9fa; padding:12px; border-radius:6px; border-left:3px solid #667eea;">`;
-                html += `<div style="font-size:12px; color:#6c757d; margin-bottom:4px;">${{dimension}}</div>`;
-                html += `<div style="font-size:20px; font-weight:700; color:#1d3557;">${{score}}</div>`;
-                html += `</div>`;
+            // 解析 justification 为 feedback_loops（如果不存在）
+            let feedbackLoops = jsonData.feedback_loops || [];
+            if (feedbackLoops.length === 0 && jsonData.justification) {{
+                // 尝试从 justification 中提取诊断信息
+                const justification = jsonData.justification || "";
+                const blockIdPattern = /\\[block_id:\\s*([a-z]+-\\d+)\\]/gi;
+                const paragraphs = justification.split('\\n\\n').filter(p => p.trim());
+                
+                paragraphs.forEach((para, index) => {{
+                    const blockIdMatches = [...para.matchAll(blockIdPattern)];
+                    const blockIds = [...new Set(blockIdMatches.map(m => m[1]))];
+                    const displayText = para.replace(/\\[block_id:[^\\]]+\\]/gi, '').trim();
+                    
+                    if (displayText && blockIds.length > 0) {{
+                        feedbackLoops.push({{
+                            diagnosis: displayText,
+                            original_segment: '', // 需要从原文中提取
+                            improved: ''
+                        }});
+                    }}
+                }});
             }}
             
-            html += `</div></div>`;
-            
-            // 详细理由（带 Locate 功能）
-            html += `<div style="margin-top:20px;">`;
-            html += `<h3 style="color:#1d3557; margin:0 0 15px 0; font-size:18px;">详细评价</h3>`;
-            
-            const justification = jsonData.justification || "";
-            const blockIdPattern = /\\[block_id:\\s*([a-z]+-\\d+)\\]/gi;
-            const bodyPattern = /Body\\s+(?:Paragraph\\s+)?(\\d+)/gi;
-            
-            const paragraphs = justification.split('\\n\\n').filter(p => p.trim());
-            paragraphs.forEach(para => {{
-                const blockIdMatches = [...para.matchAll(blockIdPattern)];
-                const blockIds = [...new Set(blockIdMatches.map(m => m[1]))];
-                const paraMatches = [...para.matchAll(bodyPattern)];
-                const paraBodyRefs = [...new Set(paraMatches.map(m => parseInt(m[1])))];
-                
-                const displayText = para.replace(/\\[block_id:[^\\]]+\\]/gi, '').trim();
-                html += `<p style="margin:0 0 12px 0; line-height:1.8; color:#333;">${{displayText}}</p>`;
-                
-                if (blockIds.length > 0) {{
-                    blockIds.forEach(blockId => {{
-                        const displayName = blockId.replace('-', ' ').replace(/\\b\\w/g, l => l.toUpperCase());
-                        html += `<button class="locate-btn" onclick="locateIssue('${{blockId}}')">📍 Locate ${{displayName}}</button> `;
-                    }});
-                }}
-                
-                if (paraBodyRefs.length > 0 && blockIds.length === 0) {{
-                    paraBodyRefs.forEach(bodyNum => {{
-                        html += `<button class="locate-btn" onclick="locateIssue('body-${{bodyNum}}')">📍 Locate Body ${{bodyNum}}</button> `;
-                    }});
-                }}
-            }});
-            
-            html += `</div></div>`;
-            container.innerHTML = html;
+            // 使用 renderReviewOverlay 显示新的可视化界面
+            renderReviewOverlay({{
+                overall: jsonData.overall || '-',
+                dimension_scores: jsonData.dimension_scores || {{}},
+                feedback_loops: feedbackLoops,
+                justification: jsonData.justification || ''
+            }}, essayFull);
         }}
 
         // 渲染 AI 反馈（带 Locate 功能，向后兼容文本格式）
@@ -2312,11 +2450,11 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             container.innerHTML = html;
         }}
 
-        // Locate 功能：高亮对应模块（通用函数，支持所有 block 类型）
+        // Locate 功能：高亮对应模块（增强版，支持闪烁和诊断卡片联动）
         function locateIssue(blockId) {{
             if (!blockId) return;
             
-            // 查找对应的 DOM 元素
+            // 1. 在左侧原文区查找对应的模块
             const moduleEl = document.querySelector(`[data-block-id="${{blockId}}"]`);
             
             if (moduleEl) {{
@@ -2324,20 +2462,62 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 document.querySelectorAll('.essay-module').forEach(el => {{
                     el.classList.remove('highlight');
                     el.classList.remove('active-glow');
+                    el.classList.remove('highlight-flash');
                 }});
                 
                 // 滚动到目标元素
                 moduleEl.scrollIntoView({{ behavior: 'smooth', block: 'center' }});
                 
-                // 添加高亮动画
-                moduleEl.classList.add('active-glow');
+                // 添加闪烁高亮动画
+                moduleEl.classList.add('highlight-flash');
                 
-                // 2 秒后移除高亮（动画时长）
+                // 3 秒后移除高亮
                 setTimeout(() => {{
-                    moduleEl.classList.remove('active-glow');
-                }}, 2000);
-            }} else {{
-                // 如果找不到，尝试向后兼容的 locateBodyParagraph
+                    moduleEl.classList.remove('highlight-flash');
+                }}, 3000);
+            }}
+            
+            // 2. 在 review-overlay 中查找对应的诊断卡片
+            const reviewOverlay = document.getElementById('review-overlay');
+            if (reviewOverlay && reviewOverlay.style.display !== 'none') {{
+                // 查找包含该 blockId 的诊断卡片
+                const diagnosticCards = document.querySelectorAll('.diagnostic-card');
+                diagnosticCards.forEach(card => {{
+                    card.classList.remove('active');
+                }});
+                
+                // 尝试通过 block_id 匹配诊断卡片
+                const blockIdPattern = new RegExp(blockId.replace('-', '\\\\s*-\\\\s*'), 'i');
+                diagnosticCards.forEach(card => {{
+                    const cardText = card.textContent || '';
+                    if (blockIdPattern.test(cardText)) {{
+                        card.classList.add('active');
+                        card.scrollIntoView({{ behavior: 'smooth', block: 'nearest' }});
+                    }}
+                }});
+            }}
+            
+            // 3. 在原文中标记对应的文本
+            const originalTextEl = document.getElementById('review-original-text');
+            if (originalTextEl) {{
+                // 移除之前的 active 标记
+                originalTextEl.querySelectorAll('mark').forEach(mark => {{
+                    mark.classList.remove('active');
+                }});
+                
+                // 查找包含 blockId 的 mark 元素
+                const marks = originalTextEl.querySelectorAll('mark');
+                marks.forEach(mark => {{
+                    const dataIndex = mark.getAttribute('data-feedback-index');
+                    if (dataIndex !== null) {{
+                        // 这里可以根据需要进一步匹配
+                        mark.classList.add('active');
+                    }}
+                }});
+            }}
+            
+            // 向后兼容：如果找不到，尝试 locateBodyParagraph
+            if (!moduleEl) {{
                 const match = blockId.match(/body-(\\d+)/);
                 if (match) {{
                     const bodyNum = parseInt(match[1], 10);
