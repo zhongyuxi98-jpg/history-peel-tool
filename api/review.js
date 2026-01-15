@@ -1,8 +1,11 @@
+// 导入考纲配置
+import { RUBRICS, getRubricDescription, getDimensionNames } from '../src/configs.js';
+
 export default async function handler(req, res) {
   // 仅允许 POST 请求
   if (req.method !== 'POST') return res.status(405).json({ review: "Method Not Allowed" });
 
-  // 接收：写作内容 + 动态题目 + 段落类型 + 语言约束 + Re-submit 标志
+  // 接收：写作内容 + 动态题目 + 段落类型 + 语言约束 + Re-submit 标志 + 考试类型
   const {
     point,
     evidence1,
@@ -15,9 +18,35 @@ export default async function handler(req, res) {
     essay_full,
     structure,
     is_resubmit,
-    previous_review
+    previous_review,
+    currentExamType = 'AL_ECON' // 默认 A-Level，兼容旧版本
   } = req.body;
   const apiKey = process.env.DASHSCOPE_API_KEY;
+
+  // 标准化考试类型：将前端可能传入的 'ielts'/'alevel' 转换为 'IELTS'/'AL_ECON'
+  let examType = currentExamType.toUpperCase();
+  if (examType === 'IELTS' || examType === 'IELTS_ACADEMIC') {
+    examType = 'IELTS';
+  } else if (examType === 'ALEVEL' || examType === 'A-LEVEL' || examType === 'AL_ECON') {
+    examType = 'AL_ECON';
+  } else {
+    // 默认使用 AL_ECON
+    examType = 'AL_ECON';
+  }
+
+  // 获取对应考纲的评分维度描述
+  let rubricDescription = '';
+  let dimensionNames = [];
+  try {
+    rubricDescription = getRubricDescription(examType);
+    dimensionNames = getDimensionNames(examType);
+  } catch (error) {
+    console.error('Error loading rubric:', error);
+    // 降级处理：使用默认的 AL_ECON
+    examType = 'AL_ECON';
+    rubricDescription = getRubricDescription(examType);
+    dimensionNames = getDimensionNames(examType);
+  }
 
   // 2. [新增] 动态生成语言风格指令
   let languageDirective = "";
