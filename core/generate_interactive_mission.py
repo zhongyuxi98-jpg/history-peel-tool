@@ -659,6 +659,33 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             color: #6c757d;
             margin-top: 8px;
         }}
+        
+        /* 隐藏 Knowledge Hub 侧边栏 */
+        .sidebar,
+        #knowledge-sidebar {{
+            display: none !important;
+        }}
+        
+        /* 隐藏侧边栏切换按钮 */
+        .sidebar-toggle {{
+            display: none !important;
+        }}
+        
+        /* 隐藏侧边栏遮罩层 */
+        .sidebar-overlay {{
+            display: none !important;
+        }}
+        
+        /* 隐藏 Mission Lab 按钮 */
+        .btn-mission-lab {{
+            display: none !important;
+        }}
+        
+        /* 确保 Writing Area 填满整个宽度 */
+        .main {{
+            width: 100% !important;
+            margin-right: 0 !important;
+        }}
     </style>
 </head>
 
