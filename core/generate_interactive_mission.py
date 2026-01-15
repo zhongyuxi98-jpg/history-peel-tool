@@ -701,6 +701,10 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 <option value="en">🇬🇧 English Only</option>
                 <option value="zh">🇨🇳 Chinese Only</option>
             </select>
+            <select id="exam-type-selector" style="padding: 10px; border-radius: 6px; border: 1.5px solid #28a745;">
+                <option value="AL_ECON" selected>📚 A-Level Economics</option>
+                <option value="IELTS">📝 IELTS Academic</option>
+            </select>
             <div class="timer-container">
                 <button class="timer-btn" onclick="toggleTimerPanel()">⏱️ Timer</button>
                 <div class="timer-panel" id="timer-panel">
@@ -812,6 +816,32 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             </div>
             <div style="margin-top: 20px; text-align: center;">
                 <button class="ai-review-trigger" id="resubmit-btn" onclick="resubmitForReview()" style="display: none;">🔄 Re-submit for Improved Score</button>
+            </div>
+        </div>
+
+        <!-- Visual Audit V2.0 双栏对比视图 -->
+        <div id="review-overlay" style="display: none;">
+            <div class="review-overlay-container">
+                <!-- 左栏：原文区 -->
+                <div class="review-left-panel">
+                    <h3 class="review-panel-title">📝 原文</h3>
+                    <div id="review-original-text" class="review-text-content"></div>
+                </div>
+                <!-- 右栏：诊断区 -->
+                <div class="review-right-panel">
+                    <div class="review-scores-header">
+                        <div class="overall-score">
+                            <div class="score-label">总分</div>
+                            <div class="score-value" id="review-overall-score">-</div>
+                        </div>
+                        <div class="dimension-scores" id="review-dimension-scores"></div>
+                    </div>
+                    <div class="review-diagnostics" id="review-diagnostics"></div>
+                </div>
+            </div>
+            <div style="margin-top: 20px; text-align: center;">
+                <button class="ai-review-trigger" id="review-close-btn" onclick="closeReviewOverlay()">返回编辑</button>
+                <button class="ai-review-trigger" id="review-resubmit-btn" onclick="resubmitForReview()" style="display: none; margin-left: 10px;">🔄 重新提交</button>
             </div>
         </div>
 
