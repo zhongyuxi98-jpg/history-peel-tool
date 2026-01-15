@@ -73,18 +73,27 @@ export default async function handler(req, res) {
       ? "Section Type: Body (PEEL). Diagnose Point–Evidence–Explanation–Link coherence; check evidence specificity and causal logic."
       : "Section Type: Full essay (Intro + Body paragraphs + Conclusion). Evaluate overall argument, paragraph balance, and how well the essay answers the question.";
 
-  const outputFormat = `Return STRICTLY structured text with the following headers:
-[Score: A-E]
-[Diagnostic]
-[Model Version]
-In [Diagnostic], give bullet points and at least ONE improved model sentence.
+  // 根据考试类型确定输出格式
+  const scoringRange = RUBRICS[examType].scoringRange;
+  const scaleType = RUBRICS[examType].scaleType;
+  
+  const outputFormat = `You MUST return a valid JSON object with the following structure:
+{
+  "overall": "总体评分或等级（${scoringRange}）",
+  "dimension_scores": {
+    "${dimensionNames[0]}": ${scaleType === 'numeric' ? '0-9之间的数字' : 'A*-E之间的等级'},
+    "${dimensionNames[1]}": ${scaleType === 'numeric' ? '0-9之间的数字' : 'A*-E之间的等级'},
+    "${dimensionNames[2]}": ${scaleType === 'numeric' ? '0-9之间的数字' : 'A*-E之间的等级'},
+    "${dimensionNames[3]}": ${scaleType === 'numeric' ? '0-9之间的数字' : 'A*-E之间的等级'}
+  },
+  "justification": "详细的评分理由和改进建议（可以包含 [block_id: type-number] 标记来定位具体段落）"
+}
 
-IMPORTANT: For each suggestion that targets a specific block (Intro, Body paragraph, or Conclusion), include a block_id marker in the format [block_id: type-number] right after mentioning that block. Examples:
-- If commenting on the Introduction: [block_id: intro-1]
-- If commenting on Body Paragraph 2: [block_id: body-2]
-- If commenting on the Conclusion: [block_id: conclusion-1]
-
-The block_id should match the structure order: intro blocks are numbered from 1, body paragraphs from 1, and conclusion from 1.`;
+CRITICAL REQUIREMENTS:
+1. 你必须严格按照 ${examType} 考纲的四个维度打分：${dimensionNames.join(', ')}
+2. 不要混淆不同考纲的标准
+3. 返回的必须是有效的 JSON，不要包含任何额外的文本或格式
+4. 在 justification 中，如果针对特定段落，使用 [block_id: type-number] 格式（例如：[block_id: intro-1], [block_id: body-2], [block_id: conclusion-1]）`;
 
   try {
     // 调用阿里云百炼接口
@@ -99,18 +108,18 @@ The block_id should match the structure order: intro blocks are numbered from 1,
         messages: [
           {
             role: "system",
-            content: `You are an A-Level History examiner and academic writing coach. ${languageDirective}
+            content: `You are a professional ${examType === 'IELTS' ? 'IELTS Academic Writing' : 'A-Level'} examiner and academic writing coach. ${languageDirective}
 ${strictConstraint}
 
 Task:
-- Grade and diagnose the student's writing for 1950s US Civil Rights (A-Level standard).
+- Grade and diagnose the student's writing according to ${examType} standards.
 - Align feedback with the selected section type and rubric.
             
-            批改准则：
-            1. 态度检测：如果输入是 '123' 或乱码，请毒舌且严厉地训诫学生，要求其端正学术态度。
-            2. A-Level alignment: focus on argument, evidence precision, and evaluation.
-            3. Structure alignment: ${sectionRubric}
-            4. Fact-check: correct or flag weak/incorrect claims; encourage specific events (e.g. Brown v. Board, Montgomery Bus Boycott, Little Rock Nine) when relevant.
+批改准则：
+1. 态度检测：如果输入是 '123' 或乱码，请毒舌且严厉地训诫学生，要求其端正学术态度。
+2. 考纲对齐：${rubricDescription}
+3. Structure alignment: ${sectionRubric}
+4. Fact-check: correct or flag weak/incorrect claims; encourage specific events (e.g. Brown v. Board, Montgomery Bus Boycott, Little Rock Nine) when relevant.
 
 ${outputFormat}`
           },
@@ -205,7 +214,64 @@ Link: ${link || "(legacy)"}
     // 安全检查，防止接口返回异常
     if (data.choices && data.choices[0]) {
       const aiMessage = data.choices[0].message.content;
-      res.status(200).json({ review: aiMessage });
+      
+      // 尝试解析 JSON 格式的响应
+      let parsedResult = null;
+      try {
+        // 尝试提取 JSON（可能被包裹在 markdown 代码块中）
+        let jsonStr = aiMessage.trim();
+        // 移除可能的 markdown 代码块标记
+        if (jsonStr.startsWith('```')) {
+          const lines = jsonStr.split('\n');
+          lines.shift(); // 移除第一行 ```json 或 ```
+          lines.pop(); // 移除最后一行 ```
+          jsonStr = lines.join('\n');
+        }
+        parsedResult = JSON.parse(jsonStr);
+        
+        // 验证 JSON 结构
+        if (!parsedResult.overall || !parsedResult.dimension_scores || !parsedResult.justification) {
+          throw new Error("JSON 结构不完整");
+        }
+        
+        // 验证维度名称是否匹配
+        const expectedDimensions = dimensionNames;
+        const actualDimensions = Object.keys(parsedResult.dimension_scores);
+        const dimensionsMatch = expectedDimensions.every(dim => actualDimensions.includes(dim));
+        
+        if (!dimensionsMatch) {
+          console.warn(`维度名称不匹配。期望: ${expectedDimensions.join(', ')}, 实际: ${actualDimensions.join(', ')}`);
+        }
+        
+        // 在控制台打印结果（用于验证）
+        console.log('=== 评分结果 JSON ===');
+        console.log('考试类型:', examType);
+        console.log('维度名称:', dimensionNames);
+        console.log('返回的 JSON:', JSON.stringify(parsedResult, null, 2));
+        console.log('==================');
+        
+        // 返回标准化的 JSON 响应
+        res.status(200).json({ 
+          review: aiMessage, // 保留原始文本用于向后兼容
+          structured: parsedResult, // 新增结构化数据
+          examType: examType,
+          dimensions: dimensionNames
+        });
+      } catch (parseError) {
+        // 如果解析失败，记录错误但仍然返回原始文本（向后兼容）
+        console.error('JSON 解析失败:', parseError);
+        console.log('原始 AI 响应:', aiMessage);
+        console.log('考试类型:', examType);
+        console.log('期望的维度:', dimensionNames);
+        
+        // 返回原始文本，但添加警告
+        res.status(200).json({ 
+          review: aiMessage,
+          warning: "AI 返回的格式不是标准 JSON，已返回原始文本",
+          examType: examType,
+          dimensions: dimensionNames
+        });
+      }
     } else {
       throw new Error("AI 响应异常");
     }
