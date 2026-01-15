@@ -92,88 +92,146 @@
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 1000px;
             margin: 0 auto;
             padding: 40px 20px;
         }
 
-        /* 区块一：Quick Audit（单次批改模式） */
-        .quick-audit-section {
+        /* 单入口主区域 */
+        .main-entry-section {
             background: #fff;
-            border-radius: 12px;
-            padding: 40px;
-            margin-bottom: 40px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-            max-width: 900px;
-            margin-left: auto;
-            margin-right: auto;
+            border-radius: 16px;
+            padding: 50px 40px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
         }
 
-        .section-header {
+        .entry-header {
             text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .entry-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 12px;
+        }
+
+        .entry-subtitle {
+            font-size: 1rem;
+            color: #6c757d;
+        }
+
+        /* 大输入框 */
+        .main-input-area {
             margin-bottom: 30px;
         }
 
-        .section-title {
-            font-size: 1.5rem;
-            font-weight: 600;
+        .main-textarea {
+            width: 100%;
+            min-height: 200px;
+            padding: 24px;
+            border: 3px solid #e1e4e8;
+            border-radius: 12px;
+            font-size: 16px;
+            line-height: 1.8;
+            font-family: inherit;
+            resize: vertical;
+            transition: all 0.3s;
+            background: #fafbfc;
+        }
+
+        .main-textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            background: #fff;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        }
+
+        .main-textarea::placeholder {
+            color: #9ca3af;
+            font-style: italic;
+        }
+
+        .start-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 16px 48px;
+            font-size: 18px;
+            font-weight: 700;
+            border-radius: 12px;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.3s;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .start-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+        }
+
+        .start-btn:active {
+            transform: translateY(0);
+        }
+
+        .start-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* 学科 Tab 区域 */
+        .category-tabs-section {
+            margin-bottom: 40px;
+        }
+
+        /* 母题快速入口 */
+        .theme-quick-access {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-top: 30px;
+        }
+
+        .theme-card {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border: 2px solid #e1e4e8;
+            border-radius: 12px;
+            padding: 24px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+
+        .theme-card:hover {
+            border-color: #667eea;
+            transform: translateY(-4px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.2);
+        }
+
+        .theme-icon {
+            font-size: 2.5rem;
+            margin-bottom: 12px;
+        }
+
+        .theme-title {
+            font-size: 1.1rem;
+            font-weight: 700;
             color: #2c3e50;
             margin-bottom: 8px;
         }
 
-        .section-subtitle {
-            font-size: 0.95rem;
+        .theme-desc {
+            font-size: 0.85rem;
             color: #6c757d;
         }
 
-        .audit-textarea {
-            width: 100%;
-            min-height: 350px;
-            padding: 20px;
-            border: 2px solid #e1e4e8;
-            border-radius: 8px;
-            font-size: 15px;
-            line-height: 1.8;
-            font-family: inherit;
-            resize: vertical;
-            transition: border-color 0.3s;
-            background: #fafbfc;
-        }
-
-        .audit-textarea:focus {
-            outline: none;
-            border-color: #667eea;
-            background: #fff;
-        }
-
-        .audit-btn {
-            background: #667eea;
-            color: white;
-            border: none;
-            padding: 14px 32px;
-            font-size: 16px;
-            font-weight: 600;
-            border-radius: 8px;
-            cursor: pointer;
-            margin-top: 20px;
-            width: 100%;
-            transition: background 0.2s;
-        }
-
-        .audit-btn:hover {
-            background: #5568d3;
-        }
-
-        .audit-btn:active {
-            transform: translateY(1px);
-        }
-
-        /* 区块二：Guided Missions（练习模式） */
+        /* 隐藏原有的 missions-section */
         .missions-section {
-            background: #fff;
-            border-radius: 12px;
-            padding: 32px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            display: none;
         }
 
         .missions-header {
@@ -265,23 +323,22 @@
 
         /* 学科切换器样式 */
         .category-switcher {
-            background: #fff;
+            background: #f8f9fa;
             border-radius: 12px;
             padding: 8px;
-            margin-bottom: 24px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
             display: flex;
             gap: 8px;
             flex-wrap: wrap;
+            justify-content: center;
         }
         .category-tab {
             flex: 1;
-            min-width: 120px;
-            padding: 12px 20px;
+            min-width: 140px;
+            padding: 14px 24px;
             border: none;
             background: transparent;
             border-radius: 8px;
-            font-size: 14px;
+            font-size: 15px;
             font-weight: 600;
             color: #6c757d;
             cursor: pointer;
@@ -289,13 +346,13 @@
             text-align: center;
         }
         .category-tab:hover {
-            background: #f8f9fa;
+            background: #e9ecef;
             color: #2c3e50;
         }
         .category-tab.active {
             background: #667eea;
             color: white;
-            box-shadow: 0 2px 4px rgba(102, 126, 234, 0.3);
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
         }
         
         /* 操作按钮区域 */
@@ -423,43 +480,54 @@
     </div>
 
     <div class="container">
-        <!-- 区块一：Quick Audit（单次批改模式） -->
-        <div class="quick-audit-section">
-            <div class="section-header">
-                <h2 class="section-title">Quick Audit</h2>
-                <p class="section-subtitle">Paste your completed essay for instant diagnostic feedback</p>
+        <!-- 单入口主区域 -->
+        <div class="main-entry-section">
+            <div class="entry-header">
+                <h1 class="entry-title">开始你的写作之旅</h1>
+                <p class="entry-subtitle">粘贴你的文章或输入题目，我们将智能识别并为你提供最合适的帮助</p>
             </div>
-            <textarea 
-                id="audit-input" 
-                class="audit-textarea" 
-                placeholder="Paste your essay here for a comprehensive PEEL audit and diagnostic report..."
-            ></textarea>
-            <button class="audit-btn" onclick="processQuickAudit()">Generate Audit Report</button>
-        </div>
 
-        <!-- 区块二：Guided Missions（练习模式） -->
-        <div class="missions-section">
-            <!-- 学科切换器 -->
-            <div class="category-switcher" id="category-switcher">
-                <button class="category-tab active" data-category="all" onclick="switchCategory('all')">All</button>
-                <button class="category-tab" data-category="alevel" onclick="switchCategory('alevel')">A-Level History</button>
-                <button class="category-tab" data-category="ielts" onclick="switchCategory('ielts')">IELTS Writing</button>
-                <button class="category-tab" data-category="toefl" onclick="switchCategory('toefl')">TOEFL Writing</button>
-                <button class="category-tab" data-category="personal" onclick="switchCategory('personal')">Personal Practice</button>
-            </div>
-            
-            <div class="missions-header">
-                <div class="missions-actions">
-                    <div>
-                        <h2 class="missions-title">Guided Missions</h2>
-                        <p class="missions-subtitle">Structured practice exercises with step-by-step guidance</p>
-                    </div>
-                    <div class="action-buttons">
-                        <button class="ghost-btn" onclick="showCustomMissionModal()">+ Custom Mission</button>
-                        <button class="ghost-btn" onclick="showLibraryModal()">🔍 Browse Library</button>
-                    </div>
+            <!-- 学科 Tab -->
+            <div class="category-tabs-section">
+                <div class="category-switcher" id="category-switcher">
+                    <button class="category-tab active" data-category="alevel" onclick="switchCategory('alevel')">📚 A-Level History</button>
+                    <button class="category-tab" data-category="ielts" onclick="switchCategory('ielts')">📝 IELTS Writing</button>
+                    <button class="category-tab" data-category="toefl" onclick="switchCategory('toefl')">🎓 TOEFL Writing</button>
                 </div>
             </div>
+
+            <!-- 大输入框 -->
+            <div class="main-input-area">
+                <textarea 
+                    id="main-input" 
+                    class="main-textarea" 
+                    placeholder="在这里粘贴你的完整文章（评审模式）或输入题目（引导模式）..."
+                ></textarea>
+                <button class="start-btn" id="start-btn" onclick="handleLaunch()">🚀 Start</button>
+            </div>
+
+            <!-- 3个母题快速入口 -->
+            <div class="theme-quick-access">
+                <div class="theme-card" onclick="quickStartTheme('civil_rights')">
+                    <div class="theme-icon">✊</div>
+                    <div class="theme-title">Civil Rights</div>
+                    <div class="theme-desc">民权运动专题</div>
+                </div>
+                <div class="theme-card" onclick="quickStartTheme('economics')">
+                    <div class="theme-icon">📊</div>
+                    <div class="theme-title">Economics</div>
+                    <div class="theme-desc">经济学专题</div>
+                </div>
+                <div class="theme-card" onclick="quickStartTheme('general')">
+                    <div class="theme-icon">📝</div>
+                    <div class="theme-title">General Writing</div>
+                    <div class="theme-desc">通用写作</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 隐藏的 Guided Missions 区域（保留原有功能） -->
+        <div class="missions-section">
             <div class="mission-grid" id="mission-grid">
                 <!-- 任务卡片将通过 JavaScript 动态渲染 -->
             </div>
@@ -639,19 +707,41 @@
             }
         }
 
-        // Quick Audit 处理
-        function processQuickAudit() {
-            const textarea = document.getElementById('audit-input');
+        /**
+         * Agent 6: 意图分流核心函数
+         * 根据输入内容长度智能判断：长文 → 评审模式，题目 → 引导模式
+         */
+        function handleLaunch() {
+            const textarea = document.getElementById('main-input');
             const text = textarea.value.trim();
             
             if (!text) {
-                alert('Please paste your essay first!');
+                alert('请输入内容：粘贴完整文章或输入题目');
                 return;
             }
 
+            const wordCount = text.length;
+            const charCount = text.replace(/\s/g, '').length;
+
+            // 意图识别：字数 > 100 字符 → 评审模式（长文）
+            // 字数 <= 100 字符 → 引导模式（题目）
+            if (charCount > 100) {
+                // 评审模式：处理完整文章
+                handleAuditMode(text);
+            } else {
+                // 引导模式：处理题目
+                handleGuideMode(text);
+            }
+        }
+
+        /**
+         * 评审模式：字数 > 100
+         * 将文本存入 storage 并跳转，通知页面"开启评审模式"
+         */
+        function handleAuditMode(text) {
             // 检查剩余批改次数（如果已登录）
             if (userProfile.isLoggedIn && userProfile.auditsRemaining <= 0) {
-                alert('You have no audits remaining. Please purchase more credits.');
+                alert('批改次数已用完，请购买更多额度');
                 return;
             }
 
@@ -662,7 +752,7 @@
                 .filter(p => p.length > 0);
 
             if (paragraphs.length === 0) {
-                alert('No valid content found. Please check your essay.');
+                alert('未找到有效内容，请检查你的文章');
                 return;
             }
 
@@ -678,8 +768,12 @@
             const bodies = paragraphs.slice(1, paragraphs.length - 1);
             localStorage.setItem('pendingBodies', JSON.stringify(bodies));
 
-            // 标记为 Audit Mode
+            // 存储完整文本（供 Track A 使用）
+            localStorage.setItem('pendingFullText', text);
+
+            // 标记为评审模式
             localStorage.setItem('workspaceMode', 'audit');
+            localStorage.setItem('intentMode', 'audit'); // 新增：明确标记意图模式
 
             // 减少批改次数（如果已登录）
             if (userProfile.isLoggedIn) {
@@ -688,16 +782,54 @@
                 renderProfile();
             }
 
-            // 跳转到默认练习页面
+            // 跳转到默认工作区页面（通知页面开启评审模式）
             window.location.href = 'assets/missions/CR_M1_workspace.html';
         }
 
-        // 支持 Enter + Ctrl/Cmd 提交
-        document.getElementById('audit-input').addEventListener('keydown', (e) => {
-            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
-                processQuickAudit();
+        /**
+         * 引导模式：字数 <= 100
+         * 解析题目，跳转后通知页面"开启引导模式"
+         */
+        function handleGuideMode(text) {
+            // 存储题目文本
+            localStorage.setItem('pendingQuestion', text);
+            
+            // 根据当前选择的学科，选择合适的默认工作区
+            let targetUrl = 'assets/missions/CR_M1_workspace.html';
+            
+            // 可以根据学科选择不同的工作区
+            if (currentCategory === 'ielts') {
+                targetUrl = 'assets/missions/CR_M1_workspace.html'; // 可以后续改为专门的 IELTS 工作区
+            } else if (currentCategory === 'toefl') {
+                targetUrl = 'assets/missions/CR_M1_workspace.html'; // 可以后续改为专门的 TOEFL 工作区
             }
-        });
+
+            // 标记为引导模式
+            localStorage.setItem('workspaceMode', 'guide');
+            localStorage.setItem('intentMode', 'guide'); // 新增：明确标记意图模式
+
+            // 跳转到工作区页面（通知页面开启引导模式）
+            window.location.href = targetUrl;
+        }
+
+        /**
+         * 母题快速入口
+         */
+        function quickStartTheme(theme) {
+            // 根据母题设置默认题目或跳转
+            const themeQuestions = {
+                'civil_rights': 'Assess the reasons for the opposition to the Civil Rights movement in the Southern states in the 1950s.',
+                'economics': 'Evaluate the impact of economic policies on social development.',
+                'general': 'Discuss the role of education in modern society.'
+            };
+
+            const question = themeQuestions[theme] || '';
+            const textarea = document.getElementById('main-input');
+            textarea.value = question;
+            
+            // 自动触发启动
+            handleLaunch();
+        }
 
         // 进入 Practice Mode
         function enterPracticeMode(url) {
@@ -718,8 +850,13 @@
                 }
             });
             
-            // 渲染任务卡片
-            renderMissions();
+            // 存储当前选择的学科（供引导模式使用）
+            localStorage.setItem('selectedCategory', category);
+            
+            // 渲染任务卡片（如果 missions-section 可见）
+            if (document.querySelector('.missions-section').style.display !== 'none') {
+                renderMissions();
+            }
         }
         
         // 渲染任务卡片
@@ -831,11 +968,36 @@
             }
         }
 
+        // 支持 Enter + Ctrl/Cmd 提交
+        document.addEventListener('DOMContentLoaded', () => {
+            const mainInput = document.getElementById('main-input');
+            if (mainInput) {
+                mainInput.addEventListener('keydown', (e) => {
+                    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                        e.preventDefault();
+                        handleLaunch();
+                    }
+                });
+            }
+        });
+
         // 页面加载时检查登录状态和初始化
         window.addEventListener('load', () => {
             checkLoginStatus();
             loadCustomMissions();
-            renderMissions();
+            
+            // 恢复上次选择的学科
+            const savedCategory = localStorage.getItem('selectedCategory');
+            if (savedCategory) {
+                switchCategory(savedCategory);
+            } else {
+                switchCategory('alevel'); // 默认选择 A-Level History
+            }
+            
+            // 如果 missions-section 可见，渲染任务卡片
+            if (document.querySelector('.missions-section').style.display !== 'none') {
+                renderMissions();
+            }
         });
     </script>
 
