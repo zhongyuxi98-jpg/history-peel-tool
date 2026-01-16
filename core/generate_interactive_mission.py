@@ -857,6 +857,266 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             color: #1e293b;
             z-index: 1;
         }}
+        
+        /* Visual Audit V3.1 结构化卡片系统样式 */
+        #review-container {{
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }}
+        
+        /* 通用卡片样式 */
+        .card {{
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            border: 1px solid #E2E8F0;
+            transition: transform 0.2s;
+        }}
+        .card:hover {{
+            transform: translateY(-2px);
+        }}
+        .card-title {{
+            font-size: 20px;
+            font-weight: 800;
+            color: #1e293b;
+            margin: 0 0 20px 0;
+        }}
+        
+        /* [总分卡片] Score Card - Hero Section */
+        #score-card {{
+            text-align: center;
+            background: linear-gradient(135deg, #1e293b 0%, #4F46E5 100%);
+            color: white;
+            padding: 48px 32px;
+        }}
+        .score-circle {{
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 24px;
+            font-size: 48px;
+            font-weight: 800;
+        }}
+        .score-grade {{
+            font-size: 32px;
+            font-weight: 800;
+            margin-bottom: 12px;
+        }}
+        .score-summary {{
+            font-size: 16px;
+            line-height: 1.6;
+            opacity: 0.95;
+            max-width: 600px;
+            margin: 0 auto;
+        }}
+        
+        /* [评分维度卡片] Criteria Card - 2x2 Grid */
+        .criteria-grid {{
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }}
+        .criterion-item {{
+            background: #f8fafc;
+            border-radius: 8px;
+            padding: 16px;
+            border: 1px solid #e2e8f0;
+        }}
+        .criterion-label {{
+            font-size: 14px;
+            font-weight: 700;
+            color: #1e293b;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+        }}
+        .criterion-progress-bar {{
+            width: 100%;
+            height: 10px;
+            background: #e2e8f0;
+            border-radius: 5px;
+            overflow: hidden;
+        }}
+        .criterion-progress-fill {{
+            height: 100%;
+            background: linear-gradient(90deg, #4F46E5 0%, #1e293b 100%);
+            border-radius: 5px;
+            transition: width 0.8s ease-out;
+        }}
+        
+        /* [修改任务卡片] Actions Card - Checklist */
+        .action-list {{
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }}
+        .action-item {{
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 12px;
+            background: #f8fafc;
+            border-radius: 8px;
+        }}
+        .action-checkbox {{
+            width: 20px;
+            height: 20px;
+            margin-top: 2px;
+            cursor: pointer;
+            accent-color: #4F46E5;
+        }}
+        .action-text {{
+            flex: 1;
+            font-size: 14px;
+            line-height: 1.6;
+            color: #1e293b;
+            transition: all 0.3s;
+        }}
+        .action-item.completed .action-text {{
+            text-decoration: line-through;
+            opacity: 0.5;
+        }}
+        
+        /* [段落诊断区域] Paragraphs Area */
+        .paragraph-card {{
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 16px;
+        }}
+        .paragraph-header {{
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }}
+        .paragraph-type {{
+            font-size: 14px;
+            font-weight: 700;
+            color: #4F46E5;
+            text-transform: uppercase;
+            padding: 6px 12px;
+            background: #eef2ff;
+            border-radius: 6px;
+        }}
+        .peel-status {{
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }}
+        .status-dot {{
+            height: 8px;
+            width: 8px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 4px;
+        }}
+        .dot-pass {{
+            background: #48BB78;
+        }}
+        .dot-fail {{
+            background: #F56565;
+        }}
+        .paragraph-surgery {{
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-top: 16px;
+        }}
+        .diagnosis-box {{
+            background: #FFF5F5;
+            border-left: 4px solid #F56565;
+            padding: 16px;
+            border-radius: 8px;
+        }}
+        .diagnosis-label {{
+            font-size: 12px;
+            font-weight: 700;
+            color: #F56565;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+        }}
+        .issue-list {{
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }}
+        .issue-item {{
+            font-size: 13px;
+            line-height: 1.6;
+            color: #1e293b;
+        }}
+        .revision-box {{
+            background: #F0FFF4;
+            border-left: 4px solid #48BB78;
+            padding: 16px;
+            border-radius: 8px;
+        }}
+        .revision-label {{
+            font-size: 12px;
+            font-weight: 700;
+            color: #48BB78;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+        }}
+        .revision-text {{
+            font-size: 13px;
+            line-height: 1.6;
+            color: #1e293b;
+            white-space: pre-wrap;
+        }}
+        
+        /* [范文卡片] Model Essay Card */
+        .model-essay-toggle {{
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #4F46E5 0%, #1e293b 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+        }}
+        .model-essay-toggle:hover {{
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(79, 70, 229, 0.3);
+        }}
+        .model-essay-content {{
+            margin-top: 20px;
+            padding: 20px;
+            background: #f8fafc;
+            border-radius: 8px;
+            line-height: 1.8;
+            font-size: 14px;
+            color: #1e293b;
+            white-space: pre-wrap;
+            display: none;
+        }}
+        .model-essay-content.show {{
+            display: block;
+        }}
+        
+        /* 移动端适配 */
+        @media (max-width: 768px) {{
+            #review-container {{
+                padding: 0 0.5rem;
+            }}
+            .criteria-grid {{
+                grid-template-columns: 1fr;
+            }}
+            .paragraph-surgery {{
+                grid-template-columns: 1fr;
+            }}
+        }}
+        
         .review-diagnostics {{
             display: flex;
             flex-direction: column;
@@ -1078,81 +1338,12 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             </div>
         </div>
 
-        <!-- Visual Audit V3.0 手术级视觉诊断系统 -->
+        <!-- Visual Audit V3.1 结构化卡片系统 -->
         <div id="review-overlay" style="display: none;">
-            <div class="review-overlay-v3-container">
-                <!-- [总分卡片] Overall Score Card -->
-                <div class="overall-score-card" id="overall-score-card">
-                    <div class="circular-progress-container">
-                        <svg class="circular-progress" viewBox="0 0 120 120">
-                            <circle class="progress-ring-bg" cx="60" cy="60" r="54"></circle>
-                            <circle class="progress-ring" cx="60" cy="60" r="54" id="progress-ring"></circle>
-                        </svg>
-                        <div class="circular-progress-content">
-                            <div class="overall-grade" id="overall-grade">-</div>
-                            <div class="overall-score-text" id="overall-score-text">-</div>
-                        </div>
-                    </div>
-                    <div class="overall-summary" id="overall-summary"></div>
-                </div>
-                
-                <!-- [各项评分卡片] Criteria Matrix -->
-                <div class="criteria-matrix-card">
-                    <h3 class="card-title">评分维度 <span class="help-icon" onclick="showCriteriaHelp()">❓</span></h3>
-                    <div class="criteria-grid" id="criteria-grid"></div>
-                </div>
-                
-                <!-- [修改任务卡片] Action Checklist -->
-                <div class="action-checklist-card">
-                    <h3 class="card-title">修改任务清单</h3>
-                    <div class="action-list" id="action-list"></div>
-                </div>
-                
-                <!-- [分段手术对比卡片] Segment Surgery -->
-                <div class="segment-surgery-card">
-                    <h3 class="card-title">段落诊断</h3>
-                    <div class="paragraph-cards" id="paragraph-cards"></div>
-                </div>
-                
-                <!-- [范文卡片] Model Essay -->
-                <div class="model-essay-card">
-                    <button class="reveal-btn" id="reveal-model-btn" onclick="toggleModelEssay()">
-                        📖 Reveal Model Essay
-                    </button>
-                    <div class="model-essay-content" id="model-essay-content" style="display: none;"></div>
-                </div>
-            </div>
+            <div id="review-container" style="max-width: 1000px; margin: 2rem auto; padding: 0 1rem;"></div>
             <div style="margin-top: 20px; text-align: center;">
                 <button class="ai-review-trigger" id="review-close-btn" onclick="closeReviewOverlay()">返回编辑</button>
                 <button class="ai-review-trigger" id="review-resubmit-btn" onclick="resubmitForReview()" style="display: none; margin-left: 10px;">🔄 重新提交</button>
-            </div>
-        </div>
-        
-        <!-- AO 定义帮助 Modal -->
-        <div id="criteria-help-modal" class="help-modal" style="display: none;" onclick="if(event.target===this) closeCriteriaHelp()">
-            <div class="help-modal-content">
-                <div class="help-modal-header">
-                    <h3>A-Level 评分维度定义</h3>
-                    <button onclick="closeCriteriaHelp()">✕</button>
-                </div>
-                <div class="help-modal-body">
-                    <div class="ao-definition">
-                        <strong>AO1: Knowledge</strong>
-                        <p>对经济学概念、理论和事实的准确理解与掌握</p>
-                    </div>
-                    <div class="ao-definition">
-                        <strong>AO2: Application</strong>
-                        <p>将经济学知识应用到具体情境和案例中的能力</p>
-                    </div>
-                    <div class="ao-definition">
-                        <strong>AO3: Analysis</strong>
-                        <p>分析经济问题，识别因果关系，构建逻辑论证的能力</p>
-                    </div>
-                    <div class="ao-definition">
-                        <strong>AO4: Evaluation</strong>
-                        <p>评估不同观点、论据和结论，做出判断和结论的能力</p>
-                    </div>
-                </div>
             </div>
         </div>
 
@@ -2596,43 +2787,282 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             if (reviewActions) reviewActions.style.display = 'flex';
         }}
         
-        // 渲染结构化 JSON 评审结果（使用 Visual Audit V2.0 界面）
+        // Visual Audit V3.1: 渲染结构化 JSON 评审结果
         function renderReview(jsonData, container) {{
-            if (!container || !jsonData) return;
+            if (!jsonData) return;
             
-            // 获取完整文章文本
-            const essayFull = buildEssayText();
-            
-            // 解析 justification 为 feedback_loops（如果不存在）
-            let feedbackLoops = jsonData.feedback_loops || [];
-            if (feedbackLoops.length === 0 && jsonData.justification) {{
-                // 尝试从 justification 中提取诊断信息
-                const justification = jsonData.justification || "";
-                const blockIdPattern = /\\[block_id:\\s*([a-z]+-\\d+)\\]/gi;
-                const paragraphs = justification.split('\\n\\n').filter(p => p.trim());
-                
-                paragraphs.forEach((para, index) => {{
-                    const blockIdMatches = [...para.matchAll(blockIdPattern)];
-                    const blockIds = [...new Set(blockIdMatches.map(m => m[1]))];
-                    const displayText = para.replace(/\\[block_id:[^\\]]+\\]/gi, '').trim();
-                    
-                    if (displayText && blockIds.length > 0) {{
-                        feedbackLoops.push({{
-                            diagnosis: displayText,
-                            original_segment: '', // 需要从原文中提取
-                            improved: ''
-                        }});
-                    }}
-                }});
+            // 检测数据格式：如果是新的 V3.1 格式（包含 overall, criteria, paragraphs, actions, model_essay）
+            if (jsonData.overall && jsonData.criteria && Array.isArray(jsonData.paragraphs)) {{
+                renderReviewV31(jsonData);
+            }} else {{
+                // 向后兼容：使用旧的 V2.0 格式
+                if (!container) return;
+                const essayFull = buildEssayText();
+                let feedbackLoops = jsonData.feedback_loops || [];
+                if (feedbackLoops.length === 0 && jsonData.justification) {{
+                    const justification = jsonData.justification || "";
+                    const blockIdPattern = /\\[block_id:\\s*([a-z]+-\\d+)\\]/gi;
+                    const paragraphs = justification.split('\\n\\n').filter(p => p.trim());
+                    paragraphs.forEach((para, index) => {{
+                        const blockIdMatches = [...para.matchAll(blockIdPattern)];
+                        const blockIds = [...new Set(blockIdMatches.map(m => m[1]))];
+                        const displayText = para.replace(/\\[block_id:[^\\]]+\\]/gi, '').trim();
+                        if (displayText && blockIds.length > 0) {{
+                            feedbackLoops.push({{
+                                diagnosis: displayText,
+                                original_segment: '',
+                                improved: ''
+                            }});
+                        }}
+                    }});
+                }}
+                renderReviewOverlay({{
+                    overall: jsonData.overall || '-',
+                    dimension_scores: jsonData.dimension_scores || {{}},
+                    feedback_loops: feedbackLoops,
+                    justification: jsonData.justification || ''
+                }}, essayFull);
             }}
+        }}
+        
+        // Visual Audit V3.1: 结构化卡片系统渲染
+        function renderReviewV31(data) {{
+            const container = document.getElementById('review-container');
+            if (!container) return;
             
-            // 使用 renderReviewOverlay 显示新的可视化界面
-            renderReviewOverlay({{
-                overall: jsonData.overall || '-',
-                dimension_scores: jsonData.dimension_scores || {{}},
-                feedback_loops: feedbackLoops,
-                justification: jsonData.justification || ''
-            }}, essayFull);
+            // 隐藏其他视图
+            const essayConstructor = document.getElementById('essay-constructor');
+            const moduleToolbar = document.getElementById('module-toolbar');
+            const reviewActions = document.querySelector('.review-actions');
+            const feedbackView = document.getElementById('feedback-view');
+            
+            if (essayConstructor) essayConstructor.style.display = 'none';
+            if (moduleToolbar) moduleToolbar.style.display = 'none';
+            if (reviewActions) reviewActions.style.display = 'none';
+            if (feedbackView) feedbackView.style.display = 'none';
+            
+            // 显示 review-overlay
+            const reviewOverlay = document.getElementById('review-overlay');
+            if (reviewOverlay) reviewOverlay.style.display = 'block';
+            
+            // 清空容器并渲染所有卡片
+            container.innerHTML = '';
+            
+            // 1. [总分卡片] Score Card
+            container.innerHTML += renderScoreCard(data.overall);
+            
+            // 2. [评分维度卡片] Criteria Card
+            container.innerHTML += renderCriteriaCard(data.criteria);
+            
+            // 3. [修改任务卡片] Actions Card
+            container.innerHTML += renderActionsCard(data.actions);
+            
+            // 4. [段落诊断区域] Paragraphs Area
+            container.innerHTML += renderParagraphsArea(data.paragraphs);
+            
+            // 5. [范文卡片] Model Essay Card
+            container.innerHTML += renderModelEssayCard(data.model_essay);
+        }}
+        
+        // [总分卡片] Score Card
+        function renderScoreCard(overall) {{
+            if (!overall) return '';
+            const score = overall.score || '-';
+            const grade = overall.grade || '-';
+            const summary = overall.summary || '暂无全局诊断结论';
+            
+            return `
+                <div id="score-card" class="card">
+                    <div class="score-circle">${{score}}</div>
+                    <div class="score-grade">${{grade}}</div>
+                    <div class="score-summary">${{escapeHtml(summary)}}</div>
+                </div>
+            `;
+        }}
+        
+        // [评分维度卡片] Criteria Card
+        function renderCriteriaCard(criteria) {{
+            if (!criteria || !Array.isArray(criteria)) return '';
+            
+            const criteriaMap = {{
+                'AO1': 'AO1: Knowledge',
+                'AO2': 'AO2: Application',
+                'AO3': 'AO3: Analysis',
+                'AO4': 'AO4: Evaluation'
+            }};
+            
+            const itemsHtml = criteria.map(criterion => {{
+                const aoKey = criterion.ao || '';
+                const label = criteriaMap[aoKey] || aoKey;
+                const score = criterion.score || 0;
+                const percentage = calculateCriteriaPercentageV31(score);
+                
+                return `
+                    <div class="criterion-item">
+                        <div class="criterion-label">${{label}}</div>
+                        <div class="criterion-progress-bar">
+                            <div class="criterion-progress-fill" style="width: ${{percentage}}%"></div>
+                        </div>
+                    </div>
+                `;
+            }}).join('');
+            
+            return `
+                <div id="criteria-card" class="card">
+                    <h3 class="card-title">评分维度</h3>
+                    <div class="criteria-grid">${{itemsHtml}}</div>
+                </div>
+            `;
+        }}
+        
+        // 计算 Criteria 百分比
+        function calculateCriteriaPercentageV31(score) {{
+            if (typeof score === 'number') {{
+                return Math.min(100, Math.max(0, score));
+            }}
+            const gradeMap = {{ 'A*': 95, 'A': 85, 'B': 75, 'C': 65, 'D': 55, 'E': 45 }};
+            return gradeMap[score] || 50;
+        }}
+        
+        // [修改任务卡片] Actions Card
+        function renderActionsCard(actions) {{
+            if (!actions || !Array.isArray(actions)) return '';
+            
+            const itemsHtml = actions.map((action, index) => {{
+                const text = action.text || action || '';
+                return `
+                    <div class="action-item" id="action-item-${{index}}">
+                        <input 
+                            type="checkbox" 
+                            class="action-checkbox" 
+                            id="action-checkbox-${{index}}"
+                            onchange="toggleActionV31(${{index}})"
+                        >
+                        <label for="action-checkbox-${{index}}" class="action-text">${{escapeHtml(text)}}</label>
+                    </div>
+                `;
+            }}).join('');
+            
+            return `
+                <div id="actions-card" class="card">
+                    <h3 class="card-title">修改任务清单</h3>
+                    <div class="action-list">${{itemsHtml}}</div>
+                </div>
+            `;
+        }}
+        
+        // 切换 Action 完成状态
+        function toggleActionV31(index) {{
+            const checkbox = document.getElementById(`action-checkbox-${{index}}`);
+            const item = document.getElementById(`action-item-${{index}}`);
+            if (checkbox && item) {{
+                if (checkbox.checked) {{
+                    item.classList.add('completed');
+                }} else {{
+                    item.classList.remove('completed');
+                }}
+            }}
+        }}
+        
+        // [段落诊断区域] Paragraphs Area
+        function renderParagraphsArea(paragraphs) {{
+            if (!paragraphs || !Array.isArray(paragraphs)) return '';
+            
+            const cardsHtml = paragraphs.map((para, index) => {{
+                const type = para.type || 'Body';
+                const typeLabel = type.charAt(0).toUpperCase() + type.slice(1);
+                const peelCheck = para.peel_check || {{}};
+                const issues = para.issues || [];
+                const exampleRevision = para.example_revision || '';
+                
+                // PEEL 状态灯
+                const peelStatus = renderPeelStatusV31(peelCheck);
+                
+                // Issues 列表
+                const issuesHtml = issues.map(issue => 
+                    `<div class="issue-item">${{escapeHtml(issue)}}</div>`
+                ).join('') || '<div class="issue-item" style="color:#64748b;">无问题</div>';
+                
+                return `
+                    <div class="paragraph-card">
+                        <div class="paragraph-header">
+                            <span class="paragraph-type">${{typeLabel}}</span>
+                            <div class="peel-status">${{peelStatus}}</div>
+                        </div>
+                        <div class="paragraph-surgery">
+                            <div class="diagnosis-box">
+                                <div class="diagnosis-label">Issues</div>
+                                <div class="issue-list">${{issuesHtml}}</div>
+                            </div>
+                            <div class="revision-box">
+                                <div class="revision-label">Example Revision</div>
+                                <div class="revision-text">${{escapeHtml(exampleRevision) || '暂无修改建议'}}</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }}).join('');
+            
+            return `
+                <div id="paragraphs-area" class="card">
+                    <h3 class="card-title">段落诊断</h3>
+                    ${{cardsHtml}}
+                </div>
+            `;
+        }}
+        
+        // 渲染 PEEL 状态灯
+        function renderPeelStatusV31(peelCheck) {{
+            const status = [
+                peelCheck.point || false,
+                peelCheck.evidence || false,
+                peelCheck.explanation || false,
+                peelCheck.link || false
+            ];
+            const labels = ['P', 'E', 'E', 'L'];
+            
+            return status.map((isValid, index) => {{
+                const className = isValid ? 'dot-pass' : 'dot-fail';
+                return `<span class="status-dot ${{className}}" title="${{labels[index]}}: ${{isValid ? 'Valid' : 'Missing'}}"></span>`;
+            }}).join('') + '<span style="margin-left:8px; font-size:11px; color:#64748b;">PEEL</span>';
+        }}
+        
+        // [范文卡片] Model Essay Card
+        function renderModelEssayCard(modelEssay) {{
+            if (!modelEssay) return '';
+            
+            return `
+                <div id="model-essay-card" class="card">
+                    <h3 class="card-title">Model Essay</h3>
+                    <button class="model-essay-toggle" onclick="toggleModelEssayV31()">
+                        📖 Show Full Model Essay
+                    </button>
+                    <div class="model-essay-content" id="model-essay-content">${{escapeHtml(modelEssay)}}</div>
+                </div>
+            `;
+        }}
+        
+        // 切换范文显示/隐藏
+        function toggleModelEssayV31() {{
+            const btn = document.querySelector('.model-essay-toggle');
+            const content = document.getElementById('model-essay-content');
+            if (content && btn) {{
+                if (content.classList.contains('show')) {{
+                    content.classList.remove('show');
+                    btn.textContent = '📖 Show Full Model Essay';
+                }} else {{
+                    content.classList.add('show');
+                    btn.textContent = '📖 Hide Model Essay';
+                }}
+            }}
+        }}
+        
+        // HTML 转义函数
+        function escapeHtml(text) {{
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
         }}
 
         // 渲染 AI 反馈（带 Locate 功能，向后兼容文本格式）
