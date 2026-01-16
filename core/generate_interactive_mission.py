@@ -159,6 +159,13 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             pointer-events: none;
         }}
         
+        /* [Agent-02 守门员] 提交校验提示动画 */
+        @keyframes shake {{
+            0%, 100% {{ transform: translateX(0); }}
+            25% {{ transform: translateX(-5px); }}
+            75% {{ transform: translateX(5px); }}
+        }}
+        
         /* Focus 按钮 */
         .focus-btn {{
             background: none;
@@ -1035,7 +1042,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         <div id="essay-constructor"></div>
 
         <div class="review-actions">
-            <button class="ai-review-trigger" id="ai-btn" onclick="showPreviewView()">🚀 SUBMIT FOR AI TEACHER'S REVIEW</button>
+            <button class="ai-review-trigger" id="ai-btn" onclick="showPreviewView()" disabled style="opacity: 0.5; cursor: not-allowed;">🚀 SUBMIT FOR AI TEACHER'S REVIEW</button>
+            <div id="submit-validation-hint" style="font-size: 12px; color: #6c757d; margin-top: 8px; text-align: center; min-height: 20px;"></div>
         </div>
 
         <!-- Preview View (直接显示，不再用 Modal) -->
@@ -1070,29 +1078,81 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             </div>
         </div>
 
-        <!-- Visual Audit V2.0 双栏对比视图 -->
+        <!-- Visual Audit V3.0 手术级视觉诊断系统 -->
         <div id="review-overlay" style="display: none;">
-            <div class="review-overlay-container">
-                <!-- 左栏：原文区 -->
-                <div class="review-left-panel">
-                    <h3 class="review-panel-title">📝 原文</h3>
-                    <div id="review-original-text" class="review-text-content"></div>
-                </div>
-                <!-- 右栏：诊断区 -->
-                <div class="review-right-panel">
-                    <div class="review-scores-header">
-                        <div class="overall-score">
-                            <div class="score-label">总分</div>
-                            <div class="score-value" id="review-overall-score">-</div>
+            <div class="review-overlay-v3-container">
+                <!-- [总分卡片] Overall Score Card -->
+                <div class="overall-score-card" id="overall-score-card">
+                    <div class="circular-progress-container">
+                        <svg class="circular-progress" viewBox="0 0 120 120">
+                            <circle class="progress-ring-bg" cx="60" cy="60" r="54"></circle>
+                            <circle class="progress-ring" cx="60" cy="60" r="54" id="progress-ring"></circle>
+                        </svg>
+                        <div class="circular-progress-content">
+                            <div class="overall-grade" id="overall-grade">-</div>
+                            <div class="overall-score-text" id="overall-score-text">-</div>
                         </div>
-                        <div class="dimension-scores" id="review-dimension-scores"></div>
                     </div>
-                    <div class="review-diagnostics" id="review-diagnostics"></div>
+                    <div class="overall-summary" id="overall-summary"></div>
+                </div>
+                
+                <!-- [各项评分卡片] Criteria Matrix -->
+                <div class="criteria-matrix-card">
+                    <h3 class="card-title">评分维度 <span class="help-icon" onclick="showCriteriaHelp()">❓</span></h3>
+                    <div class="criteria-grid" id="criteria-grid"></div>
+                </div>
+                
+                <!-- [修改任务卡片] Action Checklist -->
+                <div class="action-checklist-card">
+                    <h3 class="card-title">修改任务清单</h3>
+                    <div class="action-list" id="action-list"></div>
+                </div>
+                
+                <!-- [分段手术对比卡片] Segment Surgery -->
+                <div class="segment-surgery-card">
+                    <h3 class="card-title">段落诊断</h3>
+                    <div class="paragraph-cards" id="paragraph-cards"></div>
+                </div>
+                
+                <!-- [范文卡片] Model Essay -->
+                <div class="model-essay-card">
+                    <button class="reveal-btn" id="reveal-model-btn" onclick="toggleModelEssay()">
+                        📖 Reveal Model Essay
+                    </button>
+                    <div class="model-essay-content" id="model-essay-content" style="display: none;"></div>
                 </div>
             </div>
             <div style="margin-top: 20px; text-align: center;">
                 <button class="ai-review-trigger" id="review-close-btn" onclick="closeReviewOverlay()">返回编辑</button>
                 <button class="ai-review-trigger" id="review-resubmit-btn" onclick="resubmitForReview()" style="display: none; margin-left: 10px;">🔄 重新提交</button>
+            </div>
+        </div>
+        
+        <!-- AO 定义帮助 Modal -->
+        <div id="criteria-help-modal" class="help-modal" style="display: none;" onclick="if(event.target===this) closeCriteriaHelp()">
+            <div class="help-modal-content">
+                <div class="help-modal-header">
+                    <h3>A-Level 评分维度定义</h3>
+                    <button onclick="closeCriteriaHelp()">✕</button>
+                </div>
+                <div class="help-modal-body">
+                    <div class="ao-definition">
+                        <strong>AO1: Knowledge</strong>
+                        <p>对经济学概念、理论和事实的准确理解与掌握</p>
+                    </div>
+                    <div class="ao-definition">
+                        <strong>AO2: Application</strong>
+                        <p>将经济学知识应用到具体情境和案例中的能力</p>
+                    </div>
+                    <div class="ao-definition">
+                        <strong>AO3: Analysis</strong>
+                        <p>分析经济问题，识别因果关系，构建逻辑论证的能力</p>
+                    </div>
+                    <div class="ao-definition">
+                        <strong>AO4: Evaluation</strong>
+                        <p>评估不同观点、论据和结论，做出判断和结论的能力</p>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -1574,6 +1634,101 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             
             const totalWords = calculateTotalWordCount(modules);
             globalCountEl.textContent = totalWords + ' words';
+            
+            // [Agent-02 守门员] 实时校验并更新提交按钮状态
+            validateSubmission();
+        }}
+        
+        /**
+         * [Agent-02 守门员] 校验提交条件
+         * @returns {{Object}} 校验结果对象
+         */
+        function validateSubmission() {{
+            const essayText = buildEssayText();
+            const totalWords = calculateTotalWordCount(modules);
+            const hintEl = document.getElementById('submit-validation-hint');
+            const submitBtn = document.getElementById('ai-btn');
+            
+            if (!hintEl || !submitBtn) return {{ valid: false, reason: '' }};
+            
+            // 1. 字数校验
+            if (totalWords === 0) {{
+                submitBtn.disabled = true;
+                submitBtn.style.opacity = '0.5';
+                submitBtn.style.cursor = 'not-allowed';
+                hintEl.textContent = '⚠️ 禁止 0 字提交';
+                hintEl.style.color = '#e63946';
+                return {{ valid: false, reason: 'zero_words' }};
+            }}
+            
+            if (totalWords < 50) {{
+                submitBtn.disabled = true;
+                submitBtn.style.opacity = '0.5';
+                submitBtn.style.cursor = 'not-allowed';
+                const remaining = 50 - totalWords;
+                hintEl.textContent = `⚠️ 内容过短，AI 无法进行有效诊断。还差 ${{remaining}} 词即可提交`;
+                hintEl.style.color = '#f4a261';
+                return {{ valid: false, reason: 'too_short', remaining }};
+            }}
+            
+            // 2. 段落结构校验（至少 2 个明显的换行，代表 Intro + Body）
+            const paragraphs = essayText.split(/\\n\\s*\\n/).filter(p => p.trim().length > 0);
+            const hasMultipleParagraphs = paragraphs.length >= 2;
+            
+            if (!hasMultipleParagraphs) {{
+                // 检查是否有至少 2 个换行符（包括单个换行）
+                const lineBreaks = (essayText.match(/\\n/g) || []).length;
+                if (lineBreaks < 2) {{
+                    submitBtn.disabled = true;
+                    submitBtn.style.opacity = '0.5';
+                    submitBtn.style.cursor = 'not-allowed';
+                    hintEl.textContent = '⚠️ 建议至少包含开头段与一个正文段以符合 A-Level 评审标准';
+                    hintEl.style.color = '#f4a261';
+                    return {{ valid: false, reason: 'insufficient_paragraphs' }};
+                }}
+            }}
+            
+            // 3. 非法输入拦截
+            const trimmedText = essayText.trim();
+            
+            // 检查是否为纯数字
+            if (/^\\d+$/.test(trimmedText.replace(/\\s/g, ''))) {{
+                submitBtn.disabled = true;
+                submitBtn.style.opacity = '0.5';
+                submitBtn.style.cursor = 'not-allowed';
+                hintEl.textContent = '⚠️ 检测到非法输入（纯数字），请输入有效的文章内容';
+                hintEl.style.color = '#e63946';
+                return {{ valid: false, reason: 'numbers_only' }};
+            }}
+            
+            // 检查是否为重复乱码字符（如 "aaaaa..."）
+            const uniqueChars = new Set(trimmedText.replace(/\\s/g, ''));
+            if (uniqueChars.size <= 2 && trimmedText.length > 10) {{
+                // 如果只有 1-2 个不同字符且文本较长，可能是乱码
+                const charCounts = {{}};
+                for (const char of trimmedText.replace(/\\s/g, '')) {{
+                    charCounts[char] = (charCounts[char] || 0) + 1;
+                }}
+                const maxCount = Math.max(...Object.values(charCounts));
+                const totalChars = trimmedText.replace(/\\s/g, '').length;
+                // 如果某个字符占比超过 80%，可能是乱码
+                if (maxCount / totalChars > 0.8) {{
+                    submitBtn.disabled = true;
+                    submitBtn.style.opacity = '0.5';
+                    submitBtn.style.cursor = 'not-allowed';
+                    hintEl.textContent = '⚠️ 检测到非法输入（重复字符），请输入有效的文章内容';
+                    hintEl.style.color = '#e63946';
+                    return {{ valid: false, reason: 'repeated_chars' }};
+                }}
+            }}
+            
+            // 所有校验通过
+            submitBtn.disabled = false;
+            submitBtn.style.opacity = '1';
+            submitBtn.style.cursor = 'pointer';
+            hintEl.textContent = '✅ 可以提交评审';
+            hintEl.style.color = '#2a9d8f';
+            return {{ valid: true }};
         }}
         
         // --- Focus Mode 功能 ---
@@ -1816,6 +1971,18 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
         // --- 6. 预览视图逻辑（精简流程：直接显示，无 Modal） ---
         function showPreviewView() {{
+            // [Agent-02 守门员] 提交前再次校验
+            const validation = validateSubmission();
+            if (!validation.valid) {{
+                // 显示错误提示
+                const hintEl = document.getElementById('submit-validation-hint');
+                if (hintEl) {{
+                    hintEl.style.animation = 'shake 0.5s';
+                    setTimeout(() => {{ hintEl.style.animation = ''; }}, 500);
+                }}
+                return;
+            }}
+            
             const previewView = document.getElementById('preview-view');
             const content = document.getElementById('preview-content');
             if (!previewView || !content) return;
@@ -2975,6 +3142,9 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             
             renderModules();
             updateGlobalWordCount();
+            
+            // [Agent-02 守门员] 初始化提交按钮状态
+            validateSubmission();
             
             // 监听所有 textarea 的输入，实时更新全局字数
             document.addEventListener('input', (e) => {{
