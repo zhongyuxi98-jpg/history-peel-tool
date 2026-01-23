@@ -696,9 +696,38 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         
         /* Visual Audit V2.0 双栏对比视图样式 - 手术级视觉诊断 */
         #review-overlay {{
-            display: none;
+            display: none; /* 默认隐藏，通过 JavaScript 控制显示 */
             margin-top: 30px;
             width: 100%;
+            visibility: visible !important; /* 确保可见性不被覆盖 */
+            height: auto !important; /* 确保高度自适应 */
+            min-height: 500px !important; /* 确保有显示空间 */
+            opacity: 1 !important; /* 确保不透明 */
+            z-index: 1000 !important; /* 防止被遮挡 */
+            position: relative; /* 确保 z-index 生效 */
+        }}
+        /* 确保 review-overlay 显示时所有子元素也可见 */
+        #review-overlay[style*="display: block"] {{
+            display: block !important;
+            visibility: visible !important;
+            height: auto !important;
+            opacity: 1 !important;
+        }}
+        /* 确保所有评审相关的容器默认可见（当父容器显示时） */
+        #review-overlay #overall-grade,
+        #review-overlay #overall-score-text,
+        #review-overlay #overall-summary,
+        #review-overlay #criteria-grid,
+        #review-overlay #action-list,
+        #review-overlay #paragraph-cards,
+        #review-overlay #model-essay-content,
+        #review-overlay #review-container,
+        #review-overlay #review-overall-score,
+        #review-overlay #review-dimension-scores,
+        #review-overlay #review-diagnostics {{
+            visibility: visible !important;
+            height: auto !important;
+            opacity: 1 !important;
         }}
         .review-overlay-container {{
             display: flex;
@@ -1339,12 +1368,39 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         </div>
 
         <!-- Visual Audit V3.1 结构化卡片系统 -->
-        <div id="review-overlay" style="display: none;">
-            <div id="review-container" style="max-width: 1000px; margin: 2rem auto; padding: 0 1rem;"></div>
-            <div style="margin-top: 20px; text-align: center;">
-                <button class="ai-review-trigger" id="review-close-btn" onclick="closeReviewOverlay()">返回编辑</button>
-                <button class="ai-review-trigger" id="review-resubmit-btn" onclick="resubmitForReview()" style="display: none; margin-left: 10px;">🔄 重新提交</button>
+        <div id="review-overlay" style="display: none; padding: 20px; background: #f8fafc;">
+            <!-- 总分卡片 -->
+            <div class="score-card" style="background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); margin-bottom: 20px; text-align: center;">
+                <h1 id="overall-grade" style="font-size: 48px; margin: 0; color: #2563eb;"></h1>
+                <div id="overall-score-text" style="font-weight: bold; margin: 10px 0;"></div>
+                <p id="overall-summary" style="color: #475569; line-height: 1.6;"></p>
             </div>
+        
+            <!-- 评分维度网格 -->
+            <div id="criteria-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;"></div>
+        
+            <!-- 行动清单 -->
+            <div id="action-list" style="margin-bottom: 20px;"></div>
+        
+            <!-- 段落诊断卡片 -->
+            <div id="paragraph-cards" style="display: flex; flex-direction: column; gap: 20px; margin-bottom: 20px;"></div>
+        
+            <!-- 范文卡片 -->
+            <div style="margin-bottom: 20px;">
+                <button id="reveal-model-btn" onclick="toggleModelEssay()" style="width: 100%; padding: 16px; background: linear-gradient(135deg, #4F46E5 0%, #1e293b 100%); color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 700; cursor: pointer;">
+                    📖 Reveal Model Essay
+                </button>
+                <div id="model-essay-content" style="display: none; margin-top: 20px; padding: 20px; background: #f8fafc; border-radius: 8px; line-height: 1.8; font-size: 14px; color: #1e293b; white-space: pre-wrap;"></div>
+            </div>
+        
+            <!-- 操作按钮 -->
+            <div style="margin-top: 30px; text-align: center;">
+                <button class="ai-review-trigger" id="review-close-btn" onclick="closeReviewOverlay()" style="padding: 12px 24px; background: #64748b; color: white; border: none; border-radius: 8px; cursor: pointer; margin-right: 10px;">返回编辑</button>
+                <button class="ai-review-trigger" id="review-resubmit-btn" onclick="resubmitForReview()" style="display: none; padding: 12px 24px; background: #e63946; color: white; border: none; border-radius: 8px; cursor: pointer;">🔄 重新提交</button>
+            </div>
+            
+            <!-- 保留 review-container 用于向后兼容 -->
+            <div id="review-container" style="max-width: 1000px; margin: 2rem auto; padding: 0 1rem; display: none;"></div>
         </div>
 
         <div id="export-preview">
@@ -2215,9 +2271,500 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             constructor.scrollIntoView({{ behavior: 'smooth' }});
         }}
 
-        function confirmSubmitFromPreview() {{
-            // 直接提交，无需关闭预览
-            submitReview();
+        async function confirmSubmitFromPreview() {{
+            console.log('🚀 confirmSubmitFromPreview 函数被调用');
+            
+            // ===== 实现清空逻辑：函数开始时立即清空所有容器 =====
+            const reviewOverlay = document.getElementById('review-overlay');
+            const containersToClear = [
+                'overall-grade',
+                'overall-score-text',
+                'overall-summary',
+                'criteria-grid',
+                'action-list',
+                'paragraph-cards',
+                'model-essay-content',
+                'review-container',
+                'review-overall-score',
+                'review-dimension-scores',
+                'review-diagnostics'
+            ];
+            
+            // 清空所有容器内容并重置样式
+            containersToClear.forEach(id => {{
+                const el = document.getElementById(id);
+                if (el) {{
+                    // 单一数据源：使用 innerHTML 替换而非追加
+                    el.innerHTML = '';
+                    
+                    // 重置样式：清除所有调试样式
+                    el.style.display = '';
+                    el.style.visibility = '';
+                    el.style.height = '';
+                    el.style.minHeight = '';
+                    el.style.maxHeight = '';
+                    el.style.opacity = '';
+                    el.style.border = '';
+                    el.style.borderRadius = '';
+                    el.style.padding = '';
+                    el.style.margin = '';
+                    el.style.backgroundColor = '';
+                    el.style.color = '';
+                    el.style.fontSize = '';
+                    el.style.fontWeight = '';
+                    el.style.textAlign = '';
+                    el.style.position = '';
+                    el.style.zIndex = '';
+                    el.style.overflow = '';
+                    el.style.transform = '';
+                    el.style.boxShadow = '';
+                }}
+            }});
+            
+            // 重置 review-overlay 的样式和内容
+            if (reviewOverlay) {{
+                // 清空 review-overlay 中可能存在的临时调试内容
+                // 注意：不要清空 review-overlay.innerHTML，因为我们需要保留其结构
+                // 只清空子容器，不破坏 HTML 结构
+                
+                // 重置样式：清除所有调试样式
+                reviewOverlay.style.display = '';
+                reviewOverlay.style.visibility = '';
+                reviewOverlay.style.height = '';
+                reviewOverlay.style.minHeight = '';
+                reviewOverlay.style.maxHeight = '';
+                reviewOverlay.style.opacity = '';
+                reviewOverlay.style.border = '';
+                reviewOverlay.style.borderRadius = '';
+                reviewOverlay.style.padding = '';
+                reviewOverlay.style.margin = '';
+                reviewOverlay.style.backgroundColor = '';
+                reviewOverlay.style.position = '';
+                reviewOverlay.style.zIndex = '';
+                reviewOverlay.style.overflow = '';
+                reviewOverlay.style.transform = '';
+                reviewOverlay.style.boxShadow = '';
+                
+                // 清理 review-overlay 中可能存在的临时调试容器
+                // 查找所有可能的临时容器（通过类名或 ID 模式）
+                const tempContainers = reviewOverlay.querySelectorAll('[id*="debug"], [id*="temp"], [id*="test"], [class*="debug"], [class*="temp"]');
+                tempContainers.forEach(temp => {{
+                    if (temp && temp.parentNode) {{
+                        temp.parentNode.removeChild(temp);
+                    }}
+                }});
+            }}
+            
+            console.log('✅ 所有容器已清空，样式已重置');
+            
+            // 1. 收集输入内容
+            const essay = buildEssayText();
+            const question = getCurrentQuestion();
+            
+            console.log('📝 收集到的内容:', {{ essayLength: essay.length, questionLength: question.length }});
+            
+            if (!essay || !essay.trim()) {{
+                alert('⚠️ 请先输入文章内容');
+                return;
+            }}
+            
+            // 2. 检查 renderVisualAuditV3 是否已加载
+            if (typeof window.renderVisualAuditV3 !== 'function') {{
+                console.error('❌ renderVisualAuditV3 函数未找到');
+                alert('⚠️ 渲染函数未加载，请确保 visual_audit_v3.js 已正确加载');
+                return;
+            }}
+            console.log('✅ renderVisualAuditV3 函数已找到');
+            
+            // 3. 显示 Loading 状态
+            const previewView = document.getElementById('preview-view');
+            const constructor = document.getElementById('essay-constructor');
+            const toolbar = document.getElementById('module-toolbar');
+            const reviewActions = document.querySelector('.review-actions');
+            
+            // 隐藏输入区和预览区
+            if (previewView) previewView.style.display = 'none';
+            if (constructor) constructor.style.display = 'none';
+            if (toolbar) toolbar.style.display = 'none';
+            if (reviewActions) reviewActions.style.display = 'none';
+            
+            // 显示 review-overlay 和 Loading
+            if (reviewOverlay) {{
+                // 强制显示 review-overlay（仅设置必要的显示属性）
+                reviewOverlay.style.display = 'block';
+                reviewOverlay.style.visibility = 'visible';
+                
+                // 显示 Loading 状态
+                const reviewContainer = document.getElementById('review-container');
+                if (reviewContainer) {{
+                    reviewContainer.style.display = 'block';
+                    reviewContainer.style.visibility = 'visible';
+                    // 单一数据源：使用 innerHTML 替换
+                    reviewContainer.innerHTML = `
+                        <div style="text-align: center; padding: 60px 20px;">
+                            <div style="font-size: 48px; margin-bottom: 20px;">⏳</div>
+                            <h2 style="color: #1e293b; margin-bottom: 12px;">AI 正在评审中...</h2>
+                            <p style="color: #64748b;">请稍候，我们正在分析您的文章</p>
+                        </div>
+                    `;
+                }}
+            }}
+            
+            // 4. 确定 API 地址（支持本地和生产环境）
+            const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+            const apiUrl = isLocalhost ? 'http://localhost:3000/api/review' : '/api/review';
+            console.log('🌐 API 地址:', apiUrl);
+            console.log('正在请求 Agent 评分...');
+            
+            // 5. 发送请求到 /api/review
+            try {{
+                const requestBody = {{
+                    essay: essay,
+                    question: question,
+                    language: currentLanguageMode || 'en'
+                }};
+                console.log('📤 请求体:', {{ essayLength: requestBody.essay.length, question: requestBody.question }});
+                
+                const response = await fetch(apiUrl, {{
+                    method: 'POST',
+                    headers: {{
+                        'Content-Type': 'application/json'
+                    }},
+                    body: JSON.stringify(requestBody)
+                }});
+                
+                console.log('📥 收到响应:', {{ status: response.status, statusText: response.statusText, ok: response.ok }});
+                
+                if (!response.ok) {{
+                    const errorText = await response.text();
+                    console.error('❌ HTTP 错误:', {{ status: response.status, errorText }});
+                    throw new Error(`HTTP error! status: ${{response.status}}, message: ${{errorText}}`);
+                }}
+                
+                const responseData = await response.json();
+                console.log('收到评分数据:', responseData);
+                
+                // 检查响应数据格式
+                if (!responseData) {{
+                    throw new Error('API 返回空数据');
+                }}
+                
+                // 6. 确保数据脱壳：后端返回的可能是 {{ "structured": {{ ... }} }}
+                const finalData = responseData.structured || responseData;
+                console.log('📊 脱壳后的数据:', finalData);
+                
+                // 验证脱壳后的数据格式
+                if (!finalData || !finalData.overall) {{
+                    console.warn('⚠️ 响应数据格式异常:', responseData);
+                    throw new Error('API 返回数据格式不正确，缺少 overall 字段');
+                }
+                
+                console.log('✅ 数据验证通过，准备渲染');
+                
+                // ===== 在调用 renderVisualAuditV3 前再次清空并重置 =====
+                // 确保渲染前所有容器都是干净的状态
+                const containersToClearBeforeRender = [
+                    'overall-grade',
+                    'overall-score-text',
+                    'overall-summary',
+                    'criteria-grid',
+                    'action-list',
+                    'paragraph-cards',
+                    'model-essay-content',
+                    'review-container',
+                    'review-overall-score',
+                    'review-dimension-scores',
+                    'review-diagnostics'
+                ];
+                
+                containersToClearBeforeRender.forEach(id => {{
+                    const el = document.getElementById(id);
+                    if (el) {{
+                        // 单一数据源：使用 innerHTML 替换而非追加
+                        el.innerHTML = '';
+                        
+                        // 重置样式：清除所有调试和临时样式
+                        el.style.display = '';
+                        el.style.visibility = '';
+                        el.style.height = '';
+                        el.style.minHeight = '';
+                        el.style.maxHeight = '';
+                        el.style.opacity = '';
+                        el.style.border = '';
+                        el.style.borderRadius = '';
+                        el.style.padding = '';
+                        el.style.margin = '';
+                        el.style.backgroundColor = '';
+                        el.style.color = '';
+                        el.style.fontSize = '';
+                        el.style.fontWeight = '';
+                        el.style.textAlign = '';
+                        el.style.position = '';
+                        el.style.zIndex = '';
+                        el.style.overflow = '';
+                        el.style.transform = '';
+                        el.style.boxShadow = '';
+                    }}
+                }});
+                
+                // 重置 review-overlay 的样式（保留必要的显示属性）
+                if (reviewOverlay) {{
+                    // 清理 review-overlay 中可能存在的临时调试容器
+                    const tempContainers = reviewOverlay.querySelectorAll('[id*="debug"], [id*="temp"], [id*="test"], [class*="debug"], [class*="temp"]');
+                    tempContainers.forEach(temp => {{
+                        if (temp && temp.parentNode) {{
+                            temp.parentNode.removeChild(temp);
+                        }}
+                    }});
+                    
+                    // 只保留必要的显示属性，清除其他调试样式
+                    reviewOverlay.style.display = 'block';
+                    reviewOverlay.style.visibility = 'visible';
+                    // 清除可能影响布局的调试样式
+                    reviewOverlay.style.height = '';
+                    reviewOverlay.style.minHeight = '';
+                    reviewOverlay.style.maxHeight = '';
+                    reviewOverlay.style.border = '';
+                    reviewOverlay.style.borderRadius = '';
+                    reviewOverlay.style.padding = '';
+                    reviewOverlay.style.margin = '';
+                    reviewOverlay.style.backgroundColor = '';
+                    reviewOverlay.style.position = '';
+                    reviewOverlay.style.zIndex = '';
+                    reviewOverlay.style.overflow = '';
+                    reviewOverlay.style.transform = '';
+                    reviewOverlay.style.boxShadow = '';
+                    
+                    // 确保所有直接子元素也重置样式
+                    Array.from(reviewOverlay.children).forEach(child => {{
+                        if (child.style) {{
+                            // 只保留必要的显示属性
+                            child.style.display = '';
+                            child.style.visibility = '';
+                            // 清除调试样式
+                            child.style.height = '';
+                            child.style.minHeight = '';
+                            child.style.maxHeight = '';
+                            child.style.border = '';
+                            child.style.borderRadius = '';
+                            child.style.padding = '';
+                            child.style.margin = '';
+                            child.style.backgroundColor = '';
+                            child.style.position = '';
+                            child.style.zIndex = '';
+                            child.style.overflow = '';
+                            child.style.transform = '';
+                            child.style.boxShadow = '';
+                        }}
+                    }});
+                }}
+                
+                console.log('✅ 渲染前清空完成，所有样式已重置，临时容器已清理');
+                
+                // 7. 强制显示 review-overlay 及其所有子容器
+                if (reviewOverlay) {{
+                    // 移除所有可能隐藏的样式
+                    reviewOverlay.style.display = 'block';
+                    reviewOverlay.style.visibility = 'visible';
+                    reviewOverlay.style.height = 'auto';
+                    reviewOverlay.style.opacity = '1';
+                    reviewOverlay.style.position = '';
+                    
+                    // 确保所有直接子元素也可见
+                    Array.from(reviewOverlay.children).forEach(child => {{
+                        if (child.style) {{
+                            child.style.display = '';
+                            child.style.visibility = 'visible';
+                            child.style.height = 'auto';
+                        }}
+                    }});
+                }}
+                
+                // 8. 立即调用 renderVisualAuditV3 渲染结果（自动显示）
+                console.log('🎨 开始调用 renderVisualAuditV3...');
+                console.log('📦 传递给 renderVisualAuditV3 的最终数据:', finalData);
+                
+                // 修复同步问题：先进行存在性检查
+                if (window.renderVisualAuditV3) {{
+                    try {{
+                        // 确保 review-overlay 显示并设置 z-index
+                        if (reviewOverlay) {{
+                            reviewOverlay.style.display = 'block';
+                            reviewOverlay.style.visibility = 'visible';
+                            reviewOverlay.style.zIndex = '1000';
+                            reviewOverlay.style.minHeight = '500px';
+                        }}
+                        
+                        // 强制渲染触发：显式调用渲染函数（传递完整的 responseData，包含 structured 字段）
+                        // renderVisualAuditV3 内部已经处理了防递归逻辑和数据脱壳
+                        window.renderVisualAuditV3(responseData);
+                        console.log('✅ renderVisualAuditV3 调用成功');
+                        
+                        // 渲染后再次确保显示状态和滚动
+                        setTimeout(() => {{
+                            if (reviewOverlay) {{
+                                reviewOverlay.style.display = 'block';
+                                reviewOverlay.style.visibility = 'visible';
+                                reviewOverlay.style.height = 'auto';
+                                reviewOverlay.style.zIndex = '1000';
+                                reviewOverlay.style.minHeight = '500px';
+                                
+                                // 平滑滚动到评审区域
+                                reviewOverlay.scrollIntoView({{ 
+                                    behavior: 'smooth', 
+                                    block: 'start' 
+                                }});
+                            }}
+                            console.log('✅ 渲染完成，review-overlay 已显示并滚动到位');
+                        }}, 300);
+                    }} catch (renderError) {{
+                        console.error('❌ 渲染过程出错:', renderError);
+                        if (reviewOverlay) {{
+                            const reviewContainer = document.getElementById('review-container');
+                            if (reviewContainer) {{
+                                reviewContainer.innerHTML = `
+                                    <div style="text-align: center; padding: 60px 20px; color: #dc2626;">
+                                        <h2>⚠️ 渲染失败</h2>
+                                        <p>${{renderError.message}}</p>
+                                        <p style="font-size: 12px; color: #64748b; margin-top: 10px;">请检查控制台获取详细信息</p>
+                                    </div>
+                                `;
+                                reviewContainer.style.display = 'block';
+                            }}
+                        }}
+                    }}
+                }} else {{
+                    console.error('渲染脚本尚未加载');
+                    const errorMsg = '渲染脚本尚未加载，请确保 visual_audit_v3.js 已正确引入';
+                    console.error('❌', errorMsg);
+                    
+                    if (reviewOverlay) {{
+                        reviewOverlay.style.display = 'block';
+                        reviewOverlay.style.visibility = 'visible';
+                        reviewOverlay.style.zIndex = '1000';
+                        reviewOverlay.style.minHeight = '500px';
+                        
+                        const reviewContainer = document.getElementById('review-container');
+                        if (reviewContainer) {{
+                            reviewContainer.style.display = 'block';
+                            reviewContainer.innerHTML = `
+                                <div style="text-align: center; padding: 60px 20px; color: #dc2626; background: #fef2f2; border-radius: 12px; border: 2px solid #dc2626;">
+                                    <div style="font-size: 48px; margin-bottom: 20px;">⚠️</div>
+                                    <h2 style="margin: 0 0 16px 0; color: #dc2626;">渲染脚本未加载</h2>
+                                    <p style="margin: 0 0 12px 0; color: #991b1b; font-size: 14px;">${{errorMsg}}</p>
+                                    <p style="margin: 0 0 24px 0; color: #64748b; font-size: 12px;">请检查 visual_audit_v3.js 是否正确引入</p>
+                                    <button onclick="location.reload()" style="padding: 12px 24px; background: #dc2626; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                                        刷新页面重试
+                                    </button>
+                                </div>
+                            `;
+                        }} else {{
+                            reviewOverlay.innerHTML = `
+                                <div style="text-align: center; padding: 60px 20px; color: #dc2626; background: #fef2f2; border-radius: 12px; border: 2px solid #dc2626;">
+                                    <div style="font-size: 48px; margin-bottom: 20px;">⚠️</div>
+                                    <h2 style="margin: 0 0 16px 0; color: #dc2626;">渲染脚本未加载</h2>
+                                    <p style="margin: 0 0 12px 0; color: #991b1b; font-size: 14px;">${{errorMsg}}</p>
+                                    <p style="margin: 0 0 24px 0; color: #64748b; font-size: 12px;">请检查 visual_audit_v3.js 是否正确引入</p>
+                                    <button onclick="location.reload()" style="padding: 12px 24px; background: #dc2626; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                                        刷新页面重试
+                                    </button>
+                                </div>
+                            `;
+                        }}
+                        
+                        // 滚动到错误信息区域
+                        setTimeout(() => {{
+                            reviewOverlay.scrollIntoView({{ 
+                                behavior: 'smooth', 
+                                block: 'start' 
+                            }});
+                        }}, 100);
+                    }}
+                }}
+            }} catch (error) {{
+                console.error('❌ 评审请求失败:', error);
+                console.error('错误详情:', {{
+                    name: error.name,
+                    message: error.message,
+                    stack: error.stack
+                }});
+                
+                // 异常反馈：在 review-overlay 区域显示错误信息
+                if (reviewOverlay) {{
+                    reviewOverlay.style.display = 'block';
+                    reviewOverlay.style.visibility = 'visible';
+                    reviewOverlay.style.zIndex = '1000';
+                    reviewOverlay.style.minHeight = '500px';
+                    
+                    // 清空容器并显示错误信息
+                    const containersToClear = [
+                        'overall-grade',
+                        'overall-score-text',
+                        'overall-summary',
+                        'criteria-grid',
+                        'action-list',
+                        'paragraph-cards',
+                        'model-essay-content',
+                        'review-container'
+                    ];
+                    
+                    containersToClear.forEach(id => {{
+                        const el = document.getElementById(id);
+                        if (el) el.innerHTML = '';
+                    }});
+                    
+                    // 在 review-overlay 中显示错误信息
+                    const reviewContainer = document.getElementById('review-container');
+                    if (reviewContainer) {{
+                        reviewContainer.style.display = 'block';
+                        reviewContainer.style.visibility = 'visible';
+                        reviewContainer.innerHTML = `
+                            <div style="text-align: center; padding: 60px 20px; color: #dc2626; background: #fef2f2; border-radius: 12px; border: 2px solid #dc2626;">
+                                <div style="font-size: 48px; margin-bottom: 20px;">⚠️</div>
+                                <h2 style="margin: 0 0 16px 0; color: #dc2626;">评分获取失败，请重试</h2>
+                                <p style="margin: 0 0 12px 0; color: #991b1b; font-size: 14px;">${{error.message}}</p>
+                                <p style="margin: 0 0 24px 0; color: #64748b; font-size: 12px;">请检查网络连接或联系技术支持</p>
+                                <button onclick="location.reload()" style="padding: 12px 24px; background: #dc2626; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                                    刷新页面重试
+                                </button>
+                            </div>
+                        `;
+                    }} else {{
+                        // 如果 review-container 不存在，直接在 review-overlay 中显示
+                        reviewOverlay.innerHTML = `
+                            <div style="text-align: center; padding: 60px 20px; color: #dc2626; background: #fef2f2; border-radius: 12px; border: 2px solid #dc2626;">
+                                <div style="font-size: 48px; margin-bottom: 20px;">⚠️</div>
+                                <h2 style="margin: 0 0 16px 0; color: #dc2626;">评分获取失败，请重试</h2>
+                                <p style="margin: 0 0 12px 0; color: #991b1b; font-size: 14px;">${{error.message}}</p>
+                                <p style="margin: 0 0 24px 0; color: #64748b; font-size: 12px;">请检查网络连接或联系技术支持</p>
+                                <button onclick="location.reload()" style="padding: 12px 24px; background: #dc2626; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                                    刷新页面重试
+                                </button>
+                            </div>
+                        `;
+                    }}
+                    
+                    // 滚动到错误信息区域
+                    setTimeout(() => {{
+                        reviewOverlay.scrollIntoView({{ 
+                            behavior: 'smooth', 
+                            block: 'start' 
+                        }});
+                    }}, 100);
+                }}
+                
+                // 显示用户友好的错误提示
+                let errorMessage = '后端连接失败，请检查服务器是否开启';
+                if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {{
+                    errorMessage = '后端连接失败，请检查服务器是否开启（localhost:3000）';
+                }} else if (error.message.includes('HTTP error')) {{
+                    errorMessage = `服务器错误: ${{error.message}}`;
+                }} else {{
+                    errorMessage = `请求失败: ${{error.message}}`;
+                }}
+                
+                alert(errorMessage);
+            }}
         }}
 
         // --- 7. 底部批改：整篇 Essay 级别（同屏对照修改） ---
@@ -2287,37 +2834,70 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                         jsonData = JSON.parse(reviewText);
                         console.log('✅ 从文本中解析出 JSON:', jsonData);
                     }} catch (parseError) {{
-                        console.warn('⚠️ JSON 解析失败，使用文本格式:', parseError);
-                        // 如果解析失败，使用原始文本
-                previousReview = result.review || "";
-                renderAIFeedback(contentDiv, previousReview);
-                        // 保存原始文本到 localStorage
-                        saveReviewToLocal({{ review: previousReview, examType: examType }});
-                if (resubmitBtn) resubmitBtn.style.display = 'block';
+                        console.warn('⚠️ JSON 解析失败:', parseError);
+                        // 如果解析失败，显示友好错误提示（禁止显示原始 JSON）
+                        const errorMsg = '<div class="card" style="background:#fef2f2; border-color:#dc2626; color:#991b1b; padding:24px; text-align:center;"><h3 style="margin:0 0 12px 0;">⚠️ 评审响应解析失败</h3><p style="margin:0; line-height:1.6;">AI 返回的数据格式异常，无法正确解析。请刷新页面重试，或联系技术支持。</p></div>';
+                        const reviewContainer = document.getElementById('review-container');
+                        if (reviewContainer) {{
+                            reviewContainer.innerHTML = errorMsg;
+                            const reviewOverlay = document.getElementById('review-overlay');
+                            if (reviewOverlay) reviewOverlay.style.display = 'block';
+                        }} else {{
+                            contentDiv.innerHTML = errorMsg;
+                        }}
+                        saveReviewToLocal({{ error: 'parse_failed', examType: examType }});
+                        if (resubmitBtn) resubmitBtn.style.display = 'block';
                         return;
                     }}
                 }}
                 
                 // 如果有 JSON 数据，使用新的可视化界面
                 if (jsonData) {{
-                    // 验证 JSON 结构
-                    if (jsonData.overall && jsonData.dimension_scores && jsonData.justification) {{
-                        // 使用 Visual Audit V2.0 界面
+                    // 检查是否为 V3.1 格式（包含 overall, criteria, paragraphs, actions, model_essay）
+                    if (jsonData.overall && (jsonData.criteria || jsonData.dimension_scores) && Array.isArray(jsonData.paragraphs || [])) {{
+                        // 转换 criteria 格式（如果是对象，转换为数组）
+                        if (jsonData.criteria && !Array.isArray(jsonData.criteria)) {{
+                            const criteriaObj = jsonData.criteria;
+                            jsonData.criteria = Object.keys(criteriaObj).map(key => {{
+                                const aoMatch = key.match(/AO\\d+/);
+                                const ao = aoMatch ? aoMatch[0] : key;
+                                return {{ ao, score: criteriaObj[key] }};
+                            }});
+                        }}
+                        // 使用 Visual Audit V3.1 卡片系统
                         renderReview(jsonData, contentDiv);
-                        // 保存结构化数据到 localStorage
                         saveReviewToLocal({{ structured: jsonData, examType: examType, timestamp: Date.now() }});
-                        previousReview = result.review || JSON.stringify(jsonData, null, 2);
+                    }} else if (jsonData.overall && jsonData.dimension_scores && jsonData.justification) {{
+                        // 使用 Visual Audit V2.0 界面（向后兼容）
+                        renderReview(jsonData, contentDiv);
+                        saveReviewToLocal({{ structured: jsonData, examType: examType, timestamp: Date.now() }});
                     }} else {{
-                        console.warn('⚠️ JSON 结构不完整，降级为文本显示');
-                        previousReview = result.review || JSON.stringify(jsonData, null, 2);
-                        renderAIFeedback(contentDiv, previousReview);
-                        saveReviewToLocal({{ review: previousReview, examType: examType }});
+                        // JSON 结构不完整，显示友好错误提示
+                        console.warn('⚠️ JSON 结构不完整，无法渲染卡片视图');
+                        const errorMsg = '<div class="card" style="background:#fef2f2; border-color:#dc2626; color:#991b1b; padding:24px; text-align:center;"><h3 style="margin:0 0 12px 0;">⚠️ 评审数据格式异常</h3><p style="margin:0; line-height:1.6;">AI 返回的数据格式不符合预期。请刷新页面重试，或联系技术支持。</p></div>';
+                        const reviewContainer = document.getElementById('review-container');
+                        if (reviewContainer) {{
+                            reviewContainer.innerHTML = errorMsg;
+                            const reviewOverlay = document.getElementById('review-overlay');
+                            if (reviewOverlay) reviewOverlay.style.display = 'block';
+                        }} else {{
+                            contentDiv.innerHTML = errorMsg;
+                        }}
+                        saveReviewToLocal({{ error: 'incomplete_json', examType: examType }});
                     }}
                 }} else {{
-                    // 降级处理：使用原始文本
-                    previousReview = result.review || "";
-                    renderAIFeedback(contentDiv, previousReview);
-                    saveReviewToLocal({{ review: previousReview, examType: examType }});
+                    // 无法解析 JSON，显示友好错误提示
+                    console.warn('⚠️ 无法解析评审响应');
+                    const errorMsg = '<div class="card" style="background:#fef2f2; border-color:#dc2626; color:#991b1b; padding:24px; text-align:center;"><h3 style="margin:0 0 12px 0;">⚠️ 评审响应解析失败</h3><p style="margin:0; line-height:1.6;">AI 返回的数据无法正确解析。请刷新页面重试，或联系技术支持。</p></div>';
+                    const reviewContainer = document.getElementById('review-container');
+                    if (reviewContainer) {{
+                        reviewContainer.innerHTML = errorMsg;
+                        const reviewOverlay = document.getElementById('review-overlay');
+                        if (reviewOverlay) reviewOverlay.style.display = 'block';
+                    }} else {{
+                        contentDiv.innerHTML = errorMsg;
+                    }}
+                    saveReviewToLocal({{ error: 'parse_failed', examType: examType }});
                 }}
                 
                 if (resubmitBtn) resubmitBtn.style.display = 'block';
@@ -2882,7 +3462,24 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         
         // [评分维度卡片] Criteria Card
         function renderCriteriaCard(criteria) {{
-            if (!criteria || !Array.isArray(criteria)) return '';
+            if (!criteria) return '';
+            
+            // 支持数组格式：[{ao: 'AO1', score: 85}]
+            // 也支持对象格式：{AO1_Knowledge: 85, AO2_Application: 70}
+            let criteriaArray = [];
+            
+            if (Array.isArray(criteria)) {{
+                criteriaArray = criteria;
+            }} else if (typeof criteria === 'object') {{
+                // 转换对象为数组
+                criteriaArray = Object.keys(criteria).map(key => {{
+                    const aoMatch = key.match(/AO\\d+/);
+                    const ao = aoMatch ? aoMatch[0] : key.replace(/_.*$/, '');
+                    return {{ ao, score: criteria[key] }};
+                }});
+            }} else {{
+                return '';
+            }}
             
             const criteriaMap = {{
                 'AO1': 'AO1: Knowledge',
@@ -2891,7 +3488,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 'AO4': 'AO4: Evaluation'
             }};
             
-            const itemsHtml = criteria.map(criterion => {{
+            const itemsHtml = criteriaArray.map(criterion => {{
                 const aoKey = criterion.ao || '';
                 const label = criteriaMap[aoKey] || aoKey;
                 const score = criterion.score || 0;
@@ -3065,34 +3662,47 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             return div.innerHTML;
         }}
 
-        // 渲染 AI 反馈（带 Locate 功能，向后兼容文本格式）
+        // 渲染 AI 反馈（已废弃：禁止直接显示原始文本/JSON）
+        // 此函数已不再使用，所有渲染都通过 renderReview 使用卡片系统
+        // 保留此函数仅用于向后兼容，但已禁用 JSON 渲染
         function renderAIFeedback(container, reviewText) {{
-            if (!container) return;
+            if (!container || !reviewText) return;
             
-            // 解析 AI 反馈，查找 block_id 标记（格式：[block_id: intro-1], [block_id: body-2], [block_id: conclusion-1]）
+            // 检测是否为 JSON 格式（禁止直接渲染）
+            const trimmed = reviewText.trim();
+            if ((trimmed.startsWith('{{') || trimmed.startsWith('[')) && trimmed.endsWith('}}') || trimmed.endsWith(']')) {{
+                // 尝试解析 JSON，如果成功则使用卡片系统
+                try {{
+                    const jsonData = JSON.parse(trimmed);
+                    renderReview(jsonData, container);
+                    return;
+                }} catch (e) {{
+                    // JSON 解析失败，显示友好错误提示（禁止显示原始 JSON）
+                    const errorMsg = '<div class="card" style="background:#fef2f2; border-color:#dc2626; color:#991b1b; padding:24px; text-align:center;"><h3 style="margin:0 0 12px 0;">⚠️ 数据格式异常</h3><p style="margin:0; line-height:1.6;">检测到 JSON 格式的数据，但无法正确解析。请刷新页面重试。</p></div>';
+                    container.innerHTML = errorMsg;
+                    return;
+                }}
+            }}
+            
+            // 仅处理非 JSON 的文本反馈（向后兼容）
+            // 解析 AI 反馈，查找 block_id 标记
             const blockIdPattern = /\\[block_id:\\s*([a-z]+-\\d+)\\]/gi;
-            
-            // 同时支持旧格式的 Body 段落引用（向后兼容）
             const bodyPattern = /Body\\s+(?:Paragraph\\s+)?(\\d+)/gi;
             
-            // 将反馈分段，为每个提到 block_id 的段落添加 Locate 按钮
             let html = '<div class="ai-feedback-card">';
             const paragraphs = reviewText.split('\\n\\n').filter(p => p.trim());
             
             paragraphs.forEach(para => {{
-                // 查找 block_id 标记
                 const blockIdMatches = [...para.matchAll(blockIdPattern)];
                 const blockIds = [...new Set(blockIdMatches.map(m => m[1]))];
-                
-                // 查找 Body 段落引用（向后兼容）
                 const paraMatches = [...para.matchAll(bodyPattern)];
                 const paraBodyRefs = [...new Set(paraMatches.map(m => parseInt(m[1])))];
-                
-                // 移除 block_id 标记后显示文本
                 const displayText = para.replace(/\\[block_id:[^\\]]+\\]/gi, '').trim();
-                html += `<p style="margin:0 0 12px 0; line-height:1.8;">${{displayText}}</p>`;
                 
-                // 为每个 block_id 添加 Locate 按钮
+                if (displayText) {{
+                    html += `<p style="margin:0 0 12px 0; line-height:1.8;">${{escapeHtml(displayText)}}</p>`;
+                }}
+                
                 if (blockIds.length > 0) {{
                     blockIds.forEach(blockId => {{
                         const displayName = blockId.replace('-', ' ').replace(/\\b\\w/g, l => l.toUpperCase());
@@ -3100,7 +3710,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                     }});
                 }}
                 
-                // 向后兼容：为 Body 段落添加 Locate 按钮
                 if (paraBodyRefs.length > 0 && blockIds.length === 0) {{
                     paraBodyRefs.forEach(bodyNum => {{
                         html += `<button class="locate-btn" onclick="locateIssue('body-${{bodyNum}}')">📍 Locate Body ${{bodyNum}}</button> `;
@@ -3582,9 +4191,12 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                     updateGlobalWordCount();
                 }}
             }});
-        }});
-    </script>
-</body>
+            }});
+        </script>
+        
+        <!-- 引入 visual_audit_v3.js - 必须在主逻辑脚本之后，确保 DOM 已加载 -->
+        <script src="/visual_audit_v3.js"></script>
+    </body>
 </html>"""
 
 

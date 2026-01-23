@@ -816,8 +816,25 @@
                 <!-- 任务卡片将通过 JavaScript 动态渲染 -->
             </div>
         </div>
-    </div>
 
+        <!-- 评审结果覆盖层 -->
+        <div id="review-overlay" style="display: none; padding: 20px; background: #f8fafc;">
+            <div class="score-card" style="background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); margin-bottom: 20px; text-align: center;">
+                <h1 id="overall-grade" style="font-size: 48px; margin: 0; color: #2563eb;"></h1>
+                <div id="overall-score-text" style="font-weight: bold; margin: 10px 0;"></div>
+                <p id="overall-summary" style="color: #475569; line-height: 1.6;"></p>
+            </div>
+        
+            <div id="criteria-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;"></div>
+        
+            <div id="paragraph-cards" style="display: flex; flex-direction: column; gap: 20px;"></div>
+        
+            <div style="margin-top: 30px; text-align: center;">
+                <button onclick="location.reload()" style="padding: 12px 24px; background: #64748b; color: white; border: none; border-radius: 8px; cursor: pointer;">
+                    ← 返回写作大厅
+                </button>
+            </div>
+        </div>
     <script>
         // 任务数据配置（支持多学科）
         const missionsData = {
@@ -1526,5 +1543,6 @@
         });
     </script>
 
+    <script src="/visual_audit_v3.js"></script>
 </body>
 </html>
