@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>PEEL Workspace - CR_M2</title>
+    <title>PEEL Workspace - {mid}</title>
     <style>
         body {{ font-family: 'Segoe UI', sans-serif; background: #f4f7f6; margin: 0; color: #333; }}
         .main-wrapper {{
@@ -1311,11 +1311,11 @@
 
         <div class="header" id="header-section">
             <div style="color:#6c757d; font-size:11px; margin-bottom:5px;">
-                MISSION ID: CR_M2
+                MISSION ID: {mid}
                 <span id="mode-badge" class="mode-badge" style="display:none;"></span>
             </div>
             <div style="display:flex; align-items:center; gap:10px;">
-                <h1 class="q-text" id="question-title" contenteditable="true" spellcheck="false" style="outline:none; margin:0; flex:1;">Evaluate how successful the Civil Rights movement was in the 1950s.</h1>
+                <h1 class="q-text" id="question-title" contenteditable="true" spellcheck="false" style="outline:none; margin:0; flex:1;">{question}</h1>
                 <span title="Click to edit the question" style="font-size:18px; color:#457b9d;">✏️</span>
             </div>
         </div>
@@ -1473,7 +1473,7 @@
 
 
     <script>
-        const ID = "CR_M2";
+        const ID = "{mid}";
 
         // --- 0. 全局状态 ---
         let currentLanguageMode = document.getElementById('language-setting').value || 'dual';
@@ -1529,7 +1529,7 @@
         function getCurrentQuestion() {{
             const title = document.getElementById('question-title');
             const text = (title?.innerText || "").trim();
-            return text || "Evaluate how successful the Civil Rights movement was in the 1950s.";
+            return text || "{question}";
         }}
 
         function setActiveTextarea(el) {{
