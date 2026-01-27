@@ -1082,6 +1082,11 @@
 
     <script>
         const ID = "CR_M1";
+        
+        // API 配置：根据环境自动判断 API 地址
+        const API_BASE_URL = window.location.hostname === 'localhost' && window.location.port === '8000' 
+            ? 'http://localhost:5501' 
+            : '';
 
         // --- 0. 全局状态 ---
         let currentLanguageMode = document.getElementById('language-setting').value || 'dual';
@@ -1795,15 +1800,9 @@
             const examSelector = document.getElementById('exam-type-selector');
             const examType = examSelector ? examSelector.value : currentExamType;
             
-            const data = { 
-                essay_question,
-                essay_full,
-                structure,
-                language: currentLanguageMode,
-                constraint,
-                is_resubmit: isResubmit,
-                previous_review: previousReview,
-                currentExamType: examType
+            // 准备发送给 API 的数据，API 期望 { essay: string }
+            const apiData = { 
+                essay: essay_full
             };
             
             // 隐藏编辑区，显示批改视图
@@ -1820,14 +1819,18 @@
             if (resubmitBtn) resubmitBtn.style.display = 'none';
 
             try {
-                const response = await fetch('/api/review', { 
+                const response = await fetch(`${API_BASE_URL}/api/review`, { 
                     method: 'POST', 
                     headers: { 'Content-Type': 'application/json' }, 
-                    body: JSON.stringify(data) 
+                    body: JSON.stringify(apiData) 
                 });
                 const result = await response.json();
-                previousReview = result.review || "";
-                renderAIFeedback(contentDiv, previousReview);
+                // console.log("result", result);
+                // 保存原始 JSON 数据用于重新提交
+                previousReview = result.review || formatReviewResponse(result);
+                
+                // 直接传递 JSON 对象给渲染函数
+                renderAIFeedback(contentDiv, result);
                 if (resubmitBtn) resubmitBtn.style.display = 'block';
             } catch (e) { contentDiv.innerText = "⚠️ Connection failed."; }
             finally { 
@@ -1940,50 +1943,260 @@
             scheduleSave();
         }
 
-        // 渲染 AI 反馈（带 Locate 功能）
-        function renderAIFeedback(container, reviewText) {
+        // 将 API 返回的结构化数据格式化为字符串
+        function formatReviewResponse(data) {
+            if (!data) return "";
+            
+            let text = "";
+            
+            // 总体分析
+            if (data.overall_analysis) {
+                const oa = data.overall_analysis;
+                text += `## Overall Analysis\n\n`;
+                text += `Score: ${oa.score}/100 | Grade: ${oa.grade}\n\n`;
+                
+                if (oa.ao_scores) {
+                    text += `AO Scores:\n`;
+                    text += `- AO1 (Knowledge): ${oa.ao_scores.AO1_Knowledge || 0}\n`;
+                    text += `- AO2 (Application): ${oa.ao_scores.AO2_Application || 0}\n`;
+                    text += `- AO3 (Analysis): ${oa.ao_scores.AO3_Analysis || 0}\n`;
+                    text += `- AO4 (Evaluation): ${oa.ao_scores.AO4_Evaluation || 0}\n\n`;
+                }
+                
+                if (oa.summary && Array.isArray(oa.summary)) {
+                    text += `Summary:\n${oa.summary.map(s => `- ${s}`).join('\n')}\n\n`;
+                }
+            }
+            
+            // 段落评审
+            if (data.paragraph_reviews && Array.isArray(data.paragraph_reviews) && data.paragraph_reviews.length > 0) {
+                text += `## Paragraph Reviews\n\n`;
+                data.paragraph_reviews.forEach((pr, idx) => {
+                    text += `### ${pr.paragraph_id || `Paragraph ${idx + 1}`}\n\n`;
+                    if (pr.strengths && pr.strengths.length > 0) {
+                        text += `Strengths:\n${pr.strengths.map(s => `- ${s}`).join('\n')}\n\n`;
+                    }
+                    if (pr.problems && pr.problems.length > 0) {
+                        text += `Problems:\n${pr.problems.map(p => `- ${p}`).join('\n')}\n\n`;
+                    }
+                    if (pr.suggestions && pr.suggestions.length > 0) {
+                        text += `Suggestions:\n${pr.suggestions.map(s => `- ${s}`).join('\n')}\n\n`;
+                    }
+                    if (pr.rewrite_hint) {
+                        text += `Rewrite Hint: ${pr.rewrite_hint}\n\n`;
+                    }
+                });
+            }
+            
+            // 行动建议
+            if (data.action_items && Array.isArray(data.action_items) && data.action_items.length > 0) {
+                text += `## Action Items\n\n`;
+                data.action_items.forEach(ai => {
+                    text += `- [${ai.target || 'General'}] ${ai.action || ''}\n`;
+                });
+                text += `\n`;
+            }
+            
+            // 模型范文
+            if (data.model_essay) {
+                text += `## Model Essay\n\n`;
+                if (data.model_essay.intro) {
+                    text += `### Introduction\n${data.model_essay.intro}\n\n`;
+                }
+                if (data.model_essay.body && Array.isArray(data.model_essay.body)) {
+                    data.model_essay.body.forEach((para, idx) => {
+                        text += `### Body Paragraph ${idx + 1}\n${para}\n\n`;
+                    });
+                }
+                if (data.model_essay.conclusion) {
+                    text += `### Conclusion\n${data.model_essay.conclusion}\n\n`;
+                }
+            }
+            
+            // 错误信息
+            if (data.error) {
+                text += `\n\n⚠️ Note: ${data.error}\n`;
+            }
+            
+            return text.trim();
+        }
+
+        // 渲染 AI 反馈（支持 JSON 格式，生成三个卡片）
+        function renderAIFeedback(container, data) {
             if (!container) return;
             
-            // 解析 AI 反馈，查找 block_id 标记（格式：[block_id: intro-1], [block_id: body-2], [block_id: conclusion-1]）
-            const blockIdPattern = /\[block_id:\s*([a-z]+-\d+)\]/gi;
+            let html = '';
             
-            // 同时支持旧格式的 Body 段落引用（向后兼容）
-            const bodyPattern = /Body\s+(?:Paragraph\s+)?(\d+)/gi;
+            // 如果传入的是字符串（旧格式），使用原来的逻辑
+            if (typeof data === 'string') {
+                const blockIdPattern = /\[block_id:\s*([a-z]+-\d+)\]/gi;
+                const bodyPattern = /Body\s+(?:Paragraph\s+)?(\d+)/gi;
+                
+                html = '<div class="ai-feedback-card">';
+                const paragraphs = data.split('\n\n').filter(p => p.trim());
+                
+                paragraphs.forEach(para => {
+                    const blockIdMatches = [...para.matchAll(blockIdPattern)];
+                    const blockIds = [...new Set(blockIdMatches.map(m => m[1]))];
+                    const paraMatches = [...para.matchAll(bodyPattern)];
+                    const paraBodyRefs = [...new Set(paraMatches.map(m => parseInt(m[1])))];
+                    const displayText = para.replace(/\[block_id:[^\]]+\]/gi, '').trim();
+                    html += `<p style="margin:0 0 12px 0; line-height:1.8;">${displayText}</p>`;
+                    
+                    if (blockIds.length > 0) {
+                        blockIds.forEach(blockId => {
+                            const displayName = blockId.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase());
+                            html += `<button class="locate-btn" onclick="locateIssue('${blockId}')">📍 Locate ${displayName}</button> `;
+                        });
+                    }
+                    
+                    if (paraBodyRefs.length > 0 && blockIds.length === 0) {
+                        paraBodyRefs.forEach(bodyNum => {
+                            html += `<button class="locate-btn" onclick="locateIssue('body-${bodyNum}')">📍 Locate Body ${bodyNum}</button> `;
+                        });
+                    }
+                });
+                
+                html += '</div>';
+                container.innerHTML = html;
+                return;
+            }
             
-            // 将反馈分段，为每个提到 block_id 的段落添加 Locate 按钮
-            let html = '<div class="ai-feedback-card">';
-            const paragraphs = reviewText.split('\n\n').filter(p => p.trim());
+            // 新格式：处理 JSON 对象，生成三个卡片
             
-            paragraphs.forEach(para => {
-                // 查找 block_id 标记
-                const blockIdMatches = [...para.matchAll(blockIdPattern)];
-                const blockIds = [...new Set(blockIdMatches.map(m => m[1]))];
+            // 卡片 1: Overall Analysis
+            if (data.overall_analysis) {
+                const oa = data.overall_analysis;
+                html += '<div class="ai-feedback-card">';
+                html += '<h3 style="margin:0 0 15px 0; color:#e63946; font-size:18px;">📊 Overall Analysis</h3>';
                 
-                // 查找 Body 段落引用（向后兼容）
-                const paraMatches = [...para.matchAll(bodyPattern)];
-                const paraBodyRefs = [...new Set(paraMatches.map(m => parseInt(m[1])))];
+                html += `<div style="margin-bottom:15px;">
+                    <strong>Score:</strong> <span style="font-size:20px; color:#e63946; font-weight:bold;">${oa.score}/100</span> 
+                    | <strong>Grade:</strong> <span style="font-size:18px; color:#e63946; font-weight:bold;">${oa.grade}</span>
+                </div>`;
                 
-                // 移除 block_id 标记后显示文本
-                const displayText = para.replace(/\[block_id:[^\]]+\]/gi, '').trim();
-                html += `<p style="margin:0 0 12px 0; line-height:1.8;">${displayText}</p>`;
+                if (oa.ao_scores) {
+                    html += '<div style="margin-bottom:15px;"><strong>AO Scores:</strong><ul style="margin:8px 0; padding-left:20px;">';
+                    html += `<li>AO1 (Knowledge): ${oa.ao_scores.AO1_Knowledge || 0}</li>`;
+                    html += `<li>AO2 (Application): ${oa.ao_scores.AO2_Application || 0}</li>`;
+                    html += `<li>AO3 (Analysis): ${oa.ao_scores.AO3_Analysis || 0}</li>`;
+                    html += `<li>AO4 (Evaluation): ${oa.ao_scores.AO4_Evaluation || 0}</li>`;
+                    html += '</ul></div>';
+                }
                 
-                // 为每个 block_id 添加 Locate 按钮
-                if (blockIds.length > 0) {
-                    blockIds.forEach(blockId => {
-                        const displayName = blockId.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase());
-                        html += `<button class="locate-btn" onclick="locateIssue('${blockId}')">📍 Locate ${displayName}</button> `;
+                if (oa.summary && Array.isArray(oa.summary) && oa.summary.length > 0) {
+                    html += '<div style="margin-bottom:15px;"><strong>Summary:</strong><ul style="margin:8px 0; padding-left:20px;">';
+                    oa.summary.forEach(s => {
+                        html += `<li style="margin-bottom:8px; line-height:1.6;">${s}</li>`;
+                    });
+                    html += '</ul></div>';
+                }
+                
+                // 添加 Action Items
+                if (data.action_items && Array.isArray(data.action_items) && data.action_items.length > 0) {
+                    html += '<div style="margin-top:20px; padding-top:15px; border-top:2px solid #e0e0e0;"><strong style="color:#667eea;">📋 Action Items:</strong><ul style="margin:8px 0; padding-left:20px;">';
+                    data.action_items.forEach(ai => {
+                        const target = ai.target || 'General';
+                        const action = ai.action || '';
+                        html += `<li style="margin-bottom:10px; line-height:1.6;"><strong>[${target}]</strong> ${action}</li>`;
+                    });
+                    html += '</ul></div>';
+                }
+                
+                html += '</div>';
+            }
+            
+            // 卡片 2: Paragraph Reviews
+            if (data.paragraph_reviews && Array.isArray(data.paragraph_reviews) && data.paragraph_reviews.length > 0) {
+                html += '<div class="ai-feedback-card">';
+                html += '<h3 style="margin:0 0 15px 0; color:#e63946; font-size:18px;">📝 Paragraph Reviews</h3>';
+                
+                data.paragraph_reviews.forEach((pr, idx) => {
+                    const paraId = pr.paragraph_id || `paragraph-${idx + 1}`;
+                    const blockId = paraId.includes('-') ? paraId : `${paraId}-1`;
+                    
+                    html += `<div style="margin-bottom:20px; padding-bottom:15px; border-bottom:${idx < data.paragraph_reviews.length - 1 ? '1px solid #e0e0e0' : 'none'};">`;
+                    html += `<h4 style="margin:0 0 10px 0; color:#667eea; font-size:16px;">${paraId.charAt(0).toUpperCase() + paraId.slice(1)}</h4>`;
+                    
+                    if (pr.strengths && pr.strengths.length > 0) {
+                        html += '<div style="margin-bottom:10px;"><strong style="color:#28a745;">✓ Strengths:</strong><ul style="margin:5px 0; padding-left:20px;">';
+                        pr.strengths.forEach(s => {
+                            html += `<li style="margin-bottom:5px; line-height:1.6;">${s}</li>`;
+                        });
+                        html += '</ul></div>';
+                    }
+                    
+                    if (pr.problems && pr.problems.length > 0) {
+                        html += '<div style="margin-bottom:10px;"><strong style="color:#dc3545;">✗ Problems:</strong><ul style="margin:5px 0; padding-left:20px;">';
+                        pr.problems.forEach(p => {
+                            html += `<li style="margin-bottom:5px; line-height:1.6;">${p}</li>`;
+                        });
+                        html += '</ul></div>';
+                    }
+                    
+                    if (pr.suggestions && pr.suggestions.length > 0) {
+                        html += '<div style="margin-bottom:10px;"><strong style="color:#ffc107;">💡 Suggestions:</strong><ul style="margin:5px 0; padding-left:20px;">';
+                        pr.suggestions.forEach(s => {
+                            html += `<li style="margin-bottom:5px; line-height:1.6;">${s}</li>`;
+                        });
+                        html += '</ul></div>';
+                    }
+                    
+                    if (pr.rewrite_hint) {
+                        html += `<div style="margin-top:10px; padding:10px; background:#f8f9fa; border-left:3px solid #667eea; border-radius:4px;">
+                            <strong>Rewrite Hint:</strong> <span style="line-height:1.6;">${pr.rewrite_hint}</span>
+                        </div>`;
+                    }
+                    
+                    // 添加 Locate 按钮
+                    html += `<div style="margin-top:10px;">
+                        <button class="locate-btn" onclick="locateIssue('${blockId}')">📍 Locate ${blockId.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}</button>
+                    </div>`;
+                    
+                    html += '</div>';
+                });
+                
+                html += '</div>';
+            }
+            
+            // 卡片 3: Model Essay
+            if (data.model_essay) {
+                html += '<div class="ai-feedback-card">';
+                html += '<h3 style="margin:0 0 15px 0; color:#e63946; font-size:18px;">📚 Model Essay</h3>';
+                
+                if (data.model_essay.intro) {
+                    html += '<div style="margin-bottom:20px;">';
+                    html += '<h4 style="margin:0 0 10px 0; color:#667eea; font-size:16px;">Introduction</h4>';
+                    html += `<p style="margin:0; line-height:1.8; padding:12px; background:#f8f9fa; border-radius:6px;">${data.model_essay.intro}</p>`;
+                    html += '</div>';
+                }
+                
+                if (data.model_essay.body && Array.isArray(data.model_essay.body)) {
+                    data.model_essay.body.forEach((para, idx) => {
+                        html += '<div style="margin-bottom:20px;">';
+                        html += `<h4 style="margin:0 0 10px 0; color:#667eea; font-size:16px;">Body Paragraph ${idx + 1}</h4>`;
+                        html += `<p style="margin:0; line-height:1.8; padding:12px; background:#f8f9fa; border-radius:6px;">${para}</p>`;
+                        html += '</div>';
                     });
                 }
                 
-                // 向后兼容：为 Body 段落添加 Locate 按钮
-                if (paraBodyRefs.length > 0 && blockIds.length === 0) {
-                    paraBodyRefs.forEach(bodyNum => {
-                        html += `<button class="locate-btn" onclick="locateIssue('body-${bodyNum}')">📍 Locate Body ${bodyNum}</button> `;
-                    });
+                if (data.model_essay.conclusion) {
+                    html += '<div style="margin-bottom:20px;">';
+                    html += '<h4 style="margin:0 0 10px 0; color:#667eea; font-size:16px;">Conclusion</h4>';
+                    html += `<p style="margin:0; line-height:1.8; padding:12px; background:#f8f9fa; border-radius:6px;">${data.model_essay.conclusion}</p>`;
+                    html += '</div>';
                 }
-            });
+                
+                html += '</div>';
+            }
             
-            html += '</div>';
+            // 错误信息（如果有）
+            if (data.error) {
+                html += '<div class="ai-feedback-card" style="border-left-color:#ffc107;">';
+                html += `<p style="margin:0; color:#856404; background:#fff3cd; padding:12px; border-radius:6px;">⚠️ Note: ${data.error}</p>`;
+                html += '</div>';
+            }
+            
             container.innerHTML = html;
         }
 
