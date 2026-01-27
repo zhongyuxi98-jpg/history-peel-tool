@@ -1,0 +1,68 @@
+{
+  "overall_analysis": {
+    "score": 62,
+    "grade": "C",
+    "ao_scores": {
+      "AO1_Knowledge": 8,
+      "AO2_Application": 4,
+      "AO3_Analysis": 5,
+      "AO4_Evaluation": 3
+    },
+    "summary": [
+      "Good factual knowledge of key cases",
+      "Question focus partially misaligned",
+      "Evaluation is underdeveloped"
+    ]
+  },
+
+  "paragraph_reviews": [
+    {
+      "paragraph_id": "intro",
+      "strengths": [
+        "Mentions Brown v Board accurately"
+      ],
+      "problems": [
+        "Does not address Southern opposition"
+      ],
+      "suggestions": [
+        "Add Citizens' Councils as an example of organised resistance",
+        "Mention fear of social mixing explicitly"
+      ],
+      "rewrite_hint": "Refocus the introduction on why white Southerners opposed desegregation rather than federal institutions."
+    },
+    {
+      "paragraph_id": "body_1",
+      "strengths": [
+        "Clear explanation of Supreme Court decision"
+      ],
+      "problems": [
+        "Lacks causal explanation of opposition"
+      ],
+      "suggestions": [
+        "Explain how desegregation threatened Jim Crow social hierarchy"
+      ],
+      "rewrite_hint": "Link legal change to white economic and social fears."
+    }
+  ],
+
+  "action_items": [
+    {
+      "target": "intro",
+      "action": "Add two examples of Southern resistance groups"
+    },
+    {
+      "target": "body_2",
+      "action": "Add evaluation comparing economic vs ideological motives"
+    }
+  ],
+
+  "model_essay": {
+    "intro": "A strong introduction answering the question directly...",
+    "body": [
+      "Paragraph 1 model answer...",
+      "Paragraph 2 model answer...",
+      "Paragraph 3 model answer..."
+    ],
+    "conclusion": "A balanced judgement weighing ideology and economics..."
+  }
+}

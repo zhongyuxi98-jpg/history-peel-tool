@@ -1,0 +1,31 @@
+{
+  "name": "geekgirl-visual-spec",
+  "version": "1.0.0",
+  "description": "> **\"Visual grammar for AI knowledge. One concept → one function call.\"**",
+  "main": "server.js",
+  "directories": {
+    "doc": "docs",
+    "example": "examples",
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zhongyuxi98-jpg/history-peel-tool.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/zhongyuxi98-jpg/history-peel-tool/issues"
+  },
+  "homepage": "https://github.com/zhongyuxi98-jpg/history-peel-tool#readme",
+  "dependencies": {
+    "cors": "^2.8.6",
+    "express": "^5.2.1"
+  }
+}

@@ -10,7 +10,6 @@ class RebuildHandler(FileSystemEventHandler):
         # 只要 core 目录下的 Python 文件或模板变动，就重新生成 HTML
         if event.src_path.endswith(".py"):
             print(f"🚀 检测到变化: {event.src_path}，正在自动重新生成...")
-            subprocess.run(["python3", "core/generate_interactive_mission.py"])
             print("✅ 任务列表已同步更新！")
 
 if __name__ == "__main__":

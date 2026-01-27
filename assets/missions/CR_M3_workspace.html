@@ -1082,6 +1082,11 @@
 
     <script>
         const ID = "CR_M3";
+        
+        // API 配置：根据环境自动判断 API 地址
+        const API_BASE_URL = window.location.hostname === 'localhost' && window.location.port === '8000' 
+            ? 'http://localhost:5501' 
+            : '';
 
         // --- 0. 全局状态 ---
         let currentLanguageMode = document.getElementById('language-setting').value || 'dual';
@@ -1795,15 +1800,9 @@
             const examSelector = document.getElementById('exam-type-selector');
             const examType = examSelector ? examSelector.value : currentExamType;
             
-            const data = { 
-                essay_question,
-                essay_full,
-                structure,
-                language: currentLanguageMode,
-                constraint,
-                is_resubmit: isResubmit,
-                previous_review: previousReview,
-                currentExamType: examType
+            // 准备发送给 API 的数据，API 期望 { essay: string }
+            const apiData = { 
+                essay: essay_full
             };
             
             // 隐藏编辑区，显示批改视图
@@ -1820,13 +1819,24 @@
             if (resubmitBtn) resubmitBtn.style.display = 'none';
 
             try {
-                const response = await fetch('/api/review', { 
+                const response = await fetch(`${API_BASE_URL}/api/review`, { 
                     method: 'POST', 
                     headers: { 'Content-Type': 'application/json' }, 
-                    body: JSON.stringify(data) 
+                    body: JSON.stringify(apiData) 
                 });
                 const result = await response.json();
-                previousReview = result.review || "";
+                
+                // 将 API 返回的结构化数据转换为字符串格式
+                let reviewText = "";
+                if (result.review) {
+                    // 如果 API 返回了 review 字段（旧格式），直接使用
+                    reviewText = result.review;
+                } else {
+                    // 新格式：将结构化数据格式化为字符串
+                    reviewText = formatReviewResponse(result);
+                }
+                
+                previousReview = reviewText;
                 renderAIFeedback(contentDiv, previousReview);
                 if (resubmitBtn) resubmitBtn.style.display = 'block';
             } catch (e) { contentDiv.innerText = "⚠️ Connection failed."; }
@@ -1938,6 +1948,84 @@
             const paragraphs = value.split('\n\n').map(p => p.trim()).filter(p => p.length > 0);
             // 这里可以更智能地匹配到现有模块，暂时简单处理
             scheduleSave();
+        }
+
+        // 将 API 返回的结构化数据格式化为字符串
+        function formatReviewResponse(data) {
+            if (!data) return "";
+            
+            let text = "";
+            
+            // 总体分析
+            if (data.overall_analysis) {
+                const oa = data.overall_analysis;
+                text += `## Overall Analysis\n\n`;
+                text += `Score: ${oa.score}/100 | Grade: ${oa.grade}\n\n`;
+                
+                if (oa.ao_scores) {
+                    text += `AO Scores:\n`;
+                    text += `- AO1 (Knowledge): ${oa.ao_scores.AO1_Knowledge || 0}\n`;
+                    text += `- AO2 (Application): ${oa.ao_scores.AO2_Application || 0}\n`;
+                    text += `- AO3 (Analysis): ${oa.ao_scores.AO3_Analysis || 0}\n`;
+                    text += `- AO4 (Evaluation): ${oa.ao_scores.AO4_Evaluation || 0}\n\n`;
+                }
+                
+                if (oa.summary && Array.isArray(oa.summary)) {
+                    text += `Summary:\n${oa.summary.map(s => `- ${s}`).join('\n')}\n\n`;
+                }
+            }
+            
+            // 段落评审
+            if (data.paragraph_reviews && Array.isArray(data.paragraph_reviews) && data.paragraph_reviews.length > 0) {
+                text += `## Paragraph Reviews\n\n`;
+                data.paragraph_reviews.forEach((pr, idx) => {
+                    text += `### ${pr.paragraph_id || `Paragraph ${idx + 1}`}\n\n`;
+                    if (pr.strengths && pr.strengths.length > 0) {
+                        text += `Strengths:\n${pr.strengths.map(s => `- ${s}`).join('\n')}\n\n`;
+                    }
+                    if (pr.problems && pr.problems.length > 0) {
+                        text += `Problems:\n${pr.problems.map(p => `- ${p}`).join('\n')}\n\n`;
+                    }
+                    if (pr.suggestions && pr.suggestions.length > 0) {
+                        text += `Suggestions:\n${pr.suggestions.map(s => `- ${s}`).join('\n')}\n\n`;
+                    }
+                    if (pr.rewrite_hint) {
+                        text += `Rewrite Hint: ${pr.rewrite_hint}\n\n`;
+                    }
+                });
+            }
+            
+            // 行动建议
+            if (data.action_items && Array.isArray(data.action_items) && data.action_items.length > 0) {
+                text += `## Action Items\n\n`;
+                data.action_items.forEach(ai => {
+                    text += `- [${ai.target || 'General'}] ${ai.action || ''}\n`;
+                });
+                text += `\n`;
+            }
+            
+            // 模型范文
+            if (data.model_essay) {
+                text += `## Model Essay\n\n`;
+                if (data.model_essay.intro) {
+                    text += `### Introduction\n${data.model_essay.intro}\n\n`;
+                }
+                if (data.model_essay.body && Array.isArray(data.model_essay.body)) {
+                    data.model_essay.body.forEach((para, idx) => {
+                        text += `### Body Paragraph ${idx + 1}\n${para}\n\n`;
+                    });
+                }
+                if (data.model_essay.conclusion) {
+                    text += `### Conclusion\n${data.model_essay.conclusion}\n\n`;
+                }
+            }
+            
+            // 错误信息
+            if (data.error) {
+                text += `\n\n⚠️ Note: ${data.error}\n`;
+            }
+            
+            return text.trim();
         }
 
         // 渲染 AI 反馈（带 Locate 功能）

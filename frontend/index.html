@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Mission</title>
+  <link rel="stylesheet" href="app.css">
+</head>
+<body>
+  <h1 id="question">Loading...</h1>
+  
+  <textarea id="essayInput" placeholder="Write your essay here..." style="width: 100%; min-height: 300px; margin: 20px 0; padding: 15px; font-size: 16px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;"></textarea>
+  
+  <button id="submitBtn" style="padding: 12px 24px; font-size: 16px; background-color: #4F46E5; color: white; border: none; border-radius: 6px; cursor: pointer;">Submit for Review</button>
+
+  <div id="review-panel">
+    <!-- 1. 总分 + 等级 -->
+    <section id="score-card" class="review-section"></section>
+
+    <!-- 2. AO 评分维度 -->
+    <section id="ao-cards" class="review-section"></section>
+
+    <!-- 3. 段落修改建议 -->
+    <section id="paragraph-cards" class="review-section"></section>
+
+    <!-- 4. 行动建议 -->
+    <section id="action-cards" class="review-section"></section>
+
+    <!-- 5. AI 范文 -->
+    <section id="model-essay-card" class="review-section"></section>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
+
+
+
+
