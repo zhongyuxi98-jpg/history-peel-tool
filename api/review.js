@@ -1,12 +1,9 @@
-import express from 'express';
 import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-
-const router = express.Router();
 
 // 读取 system prompt
 function getSystemPrompt() {
@@ -84,10 +81,21 @@ function validateSchema(data, fallbackSchema) {
   return true;
 }
 
-router.post('/review', async (req, res) => {
+// Vercel serverless 函数
+export default async function handler(req, res) {
+  // 只允许 POST 请求
+  if (req.method !== 'POST') {
+    return res.status(405).json({
+      error: 'Method Not Allowed',
+      message: 'Only POST requests are allowed'
+    });
+  }
+
   const { essay } = req.body;
   
-  if (!req.is('application/json')) {
+  // 检查 Content-Type
+  const contentType = req.headers['content-type'];
+  if (!contentType || !contentType.includes('application/json')) {
     return res.status(415).json({
       error: 'Content-Type must be application/json'
     });
@@ -213,6 +221,4 @@ router.post('/review', async (req, res) => {
       message: error.message
     });
   }
-});
-
-export default router;
+}

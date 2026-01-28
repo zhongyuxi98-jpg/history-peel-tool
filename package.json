@@ -26,6 +26,7 @@
   "homepage": "https://github.com/zhongyuxi98-jpg/history-peel-tool#readme",
   "dependencies": {
     "cors": "^2.8.6",
+    "dotenv": "^16.4.5",
     "express": "^5.2.1"
   }
 }
