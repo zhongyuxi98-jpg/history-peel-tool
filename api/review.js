@@ -5,71 +5,105 @@ import { dirname, join } from 'path';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-// 读取 system prompt
-function getSystemPrompt() {
+// 支持的考试类型
+const EXAM_TYPES = {
+  alevel: 'alevel_prompt.txt',
+  ielts: 'ielts_prompt.txt',
+  toefl: 'toefl_prompt.txt',
+  ib: 'ib_prompt.txt'
+};
+
+// 根据考试类型读取对应的 system prompt
+function getSystemPrompt(examType = 'alevel') {
+  const promptFile = EXAM_TYPES[examType] || EXAM_TYPES.alevel;
+
   try {
-    const promptPath = join(__dirname, 'prompts', 'review_system_prompt.txt');
+    const promptPath = join(__dirname, 'prompts', promptFile);
     return readFileSync(promptPath, 'utf-8');
   } catch (error) {
-    console.error('Failed to read system prompt:', error);
-    return 'You are an A-Level History examiner. Return only valid JSON following the schema.';
+    console.error(`Failed to read prompt for ${examType}:`, error);
+    // 回退到默认提示
+    return 'You are an academic essay examiner. Return only valid JSON following the schema.';
   }
 }
 
 // 读取 fallback schema
-function getFallbackSchema() {
-  try {
-    const schemaPath = join(__dirname, '..', 'data', 'review_schema.json');
-    const schemaContent = readFileSync(schemaPath, 'utf-8');
-    return JSON.parse(schemaContent);
-  } catch (error) {
-    console.error('Failed to read fallback schema:', error);
-    return {
-      overall_analysis: {
-        score: 0,
-        grade: "U",
-        ao_scores: {
-          AO1_Knowledge: 0,
-          AO2_Application: 0,
-          AO3_Analysis: 0,
-          AO4_Evaluation: 0
-        },
-        summary: ["Error: Unable to load schema"]
-      },
-      paragraph_reviews: [],
-      action_items: [],
-      model_essay: {
-        intro: "",
-        body: [],
-        conclusion: ""
-      }
+function getFallbackSchema(examType = 'alevel') {
+  // 根据考试类型返回不同的默认结构
+  const baseSchema = {
+    overall_analysis: {
+      score: 0,
+      grade: examType === 'ielts' ? 'Band 0' : examType === 'toefl' ? '0/5' : examType === 'ib' ? '1' : 'U',
+      criteria_scores: {},
+      summary: ['Error: Unable to process essay']
+    },
+    paragraph_reviews: [],
+    action_items: [],
+    model_essay: {
+      intro: '',
+      body: [],
+      conclusion: ''
+    }
+  };
+
+  // 设置不同考试类型的评分维度
+  if (examType === 'ielts') {
+    baseSchema.overall_analysis.criteria_scores = {
+      Task_Response: 0,
+      Coherence_Cohesion: 0,
+      Lexical_Resource: 0,
+      Grammatical_Range_Accuracy: 0
+    };
+  } else if (examType === 'toefl') {
+    baseSchema.overall_analysis.criteria_scores = {
+      Development: 0,
+      Organization: 0,
+      Language_Use: 0,
+      Mechanics: 0
+    };
+  } else if (examType === 'ib') {
+    baseSchema.overall_analysis.criteria_scores = {
+      Knowledge_Understanding: 0,
+      Application_Analysis: 0,
+      Synthesis_Evaluation: 0,
+      Use_of_Terminology: 0
+    };
+  } else {
+    // A-Level 默认
+    baseSchema.overall_analysis.criteria_scores = {
+      AO1_Knowledge: 0,
+      AO2_Application: 0,
+      AO3_Analysis: 0,
+      AO4_Evaluation: 0
     };
   }
+
+  return baseSchema;
 }
 
 // 验证 JSON 结构是否符合 schema
-function validateSchema(data, fallbackSchema) {
+function validateSchema(data) {
   const requiredFields = ['overall_analysis', 'paragraph_reviews', 'action_items', 'model_essay'];
-  
+
   for (const field of requiredFields) {
     if (!data || typeof data !== 'object' || !(field in data)) {
-      console.warn(`Missing required field: ${field}, using fallback`);
+      console.warn(`Missing required field: ${field}`);
       return false;
     }
   }
-  
+
   // 验证 overall_analysis 结构
   if (!data.overall_analysis || typeof data.overall_analysis !== 'object') {
     return false;
   }
-  
+
   const requiredOverallFields = ['score', 'grade'];
   for (const field of requiredOverallFields) {
     if (!(field in data.overall_analysis)) {
       return false;
     }
   }
-  
+
   // 确保数组字段存在
   if (!Array.isArray(data.paragraph_reviews)) {
     data.paragraph_reviews = [];
@@ -77,7 +111,7 @@ function validateSchema(data, fallbackSchema) {
   if (!Array.isArray(data.action_items)) {
     data.action_items = [];
   }
-  
+
   return true;
 }
 
@@ -91,8 +125,9 @@ export default async function handler(req, res) {
     });
   }
 
-  const { essay } = req.body;
-  
+  // 解构请求参数，支持 examType
+  const { essay, examType = 'alevel' } = req.body;
+
   // 检查 Content-Type
   const contentType = req.headers['content-type'];
   if (!contentType || !contentType.includes('application/json')) {
@@ -100,13 +135,21 @@ export default async function handler(req, res) {
       error: 'Content-Type must be application/json'
     });
   }
-  
+
+  // 验证 examType
+  if (!EXAM_TYPES[examType]) {
+    return res.status(400).json({
+      error: 'Invalid exam type',
+      message: `Supported types: ${Object.keys(EXAM_TYPES).join(', ')}`
+    });
+  }
+
   if (essay && essay.length > 15000) {
     return res.status(400).json({
       error: 'Essay too long'
     });
   }
-  
+
   if (!essay || typeof essay !== 'string' || essay.trim().length === 0) {
     return res.status(400).json({
       error: 'Invalid essay content',
@@ -117,15 +160,15 @@ export default async function handler(req, res) {
   const apiKey = process.env.DASHSCOPE_API_KEY;
   if (!apiKey) {
     console.error('DASHSCOPE_API_KEY is not set');
-    const fallbackSchema = getFallbackSchema();
+    const fallbackSchema = getFallbackSchema(examType);
     return res.status(500).json({
       ...fallbackSchema,
       error: 'API key not configured'
     });
   }
 
-  const systemPrompt = getSystemPrompt();
-  const fallbackSchema = getFallbackSchema();
+  const systemPrompt = getSystemPrompt(examType);
+  const fallbackSchema = getFallbackSchema(examType);
 
   try {
     // 调用大模型
@@ -175,46 +218,45 @@ export default async function handler(req, res) {
         .replace(/^```\s*/i, '')
         .replace(/\s*```$/i, '')
         .trim();
-      
+
       parsedData = JSON.parse(cleanedResponse);
     } catch (parseError) {
       console.error('JSON parse error:', parseError);
       console.error('Raw response:', modelResponse);
-      // 使用 fallback schema
       return res.json(fallbackSchema);
     }
 
     // 验证结构
-    if (!validateSchema(parsedData, fallbackSchema)) {
-      console.warn('Schema validation failed, using fallback');
-      // 合并 fallback 以确保所有必需字段存在
+    if (!validateSchema(parsedData)) {
+      console.warn('Schema validation failed, merging with fallback');
       const mergedData = {
         ...fallbackSchema,
         ...parsedData,
         overall_analysis: {
           ...fallbackSchema.overall_analysis,
-          ...parsedData.overall_analysis
+          ...(parsedData.overall_analysis || {})
         },
-        paragraph_reviews: Array.isArray(parsedData.paragraph_reviews) 
-          ? parsedData.paragraph_reviews 
+        paragraph_reviews: Array.isArray(parsedData.paragraph_reviews)
+          ? parsedData.paragraph_reviews
           : fallbackSchema.paragraph_reviews,
         action_items: Array.isArray(parsedData.action_items)
           ? parsedData.action_items
           : fallbackSchema.action_items,
         model_essay: {
           ...fallbackSchema.model_essay,
-          ...parsedData.model_essay
+          ...(parsedData.model_essay || {})
         }
       };
       return res.json(mergedData);
     }
 
-    // 返回解析后的 JSON 对象
+    // 添加 examType 到响应中，方便前端使用
+    parsedData.examType = examType;
+
     return res.json(parsedData);
 
   } catch (error) {
     console.error('Error in review API:', error);
-    // 返回 fallback schema
     return res.status(500).json({
       ...fallbackSchema,
       error: 'AI service error',

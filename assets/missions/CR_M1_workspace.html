@@ -93,6 +93,27 @@
             opacity: 1;
         }
         .header { border-bottom: 3px solid #1d3557; margin-bottom: 25px; padding-bottom: 15px; }
+
+        /* 考试类型选择器 */
+        .exam-type-selector .exam-type-btn {
+            padding: 4px 12px;
+            font-size: 11px;
+            border: 1px solid #dee2e6;
+            background: #f8f9fa;
+            color: #495057;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .exam-type-selector .exam-type-btn:hover {
+            background: #e9ecef;
+            border-color: #adb5bd;
+        }
+        .exam-type-selector .exam-type-btn.active {
+            background: #1d3557;
+            color: white;
+            border-color: #1d3557;
+        }
         .q-text { font-size: 20px; font-weight: 700; color: #1d3557; }
         .nav-bar { margin-bottom: 25px; display: flex; gap: 10px; }
         
@@ -929,9 +950,17 @@
         </div>
 
         <div class="header" id="header-section">
-            <div style="color:#6c757d; font-size:11px; margin-bottom:5px;">
-                MISSION ID: CR_M1
-                <span id="mode-badge" class="mode-badge" style="display:none;"></span>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+                <div style="color:#6c757d; font-size:11px;">
+                    MISSION ID: CR_M1
+                    <span id="mode-badge" class="mode-badge" style="display:none;"></span>
+                </div>
+                <div class="exam-type-selector" style="display:flex; gap:6px;">
+                    <button class="exam-type-btn active" data-exam="alevel" title="A-Level">A-Level</button>
+                    <button class="exam-type-btn" data-exam="ielts" title="IELTS Writing">IELTS</button>
+                    <button class="exam-type-btn" data-exam="toefl" title="TOEFL Writing">TOEFL</button>
+                    <button class="exam-type-btn" data-exam="ib" title="IB Diploma">IB</button>
+                </div>
             </div>
             <div style="display:flex; align-items:center; gap:10px;">
                 <h1 class="q-text" id="question-title" contenteditable="true" spellcheck="false" style="outline:none; margin:0; flex:1;">Assess the reasons for the opposition to the Civil Rights movement in the Southern states in the 1950s.</h1>
@@ -1093,9 +1122,20 @@
         let modules = []; // { id, type: 'intro'|'body'|'conclusion', boxes: [] }
         let activeTextarea = null;
         let workspaceMode = 'practice'; // 'audit' or 'practice'
+        let selectedExamType = 'alevel'; // 'alevel' | 'ielts' | 'toefl' | 'ib'
 
         const STORAGE_KEY = `GGV1_STATE::${ID}`;
         let saveDebounceTimer = null;
+
+        // 考试类型选择器事件
+        document.querySelectorAll('.exam-type-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.exam-type-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                selectedExamType = btn.dataset.exam;
+                console.log('Selected exam type:', selectedExamType);
+            });
+        });
 
         // --- 0.0 模式检测与初始化 ---
         function detectWorkspaceMode() {
@@ -1800,9 +1840,10 @@
             const examSelector = document.getElementById('exam-type-selector');
             const examType = examSelector ? examSelector.value : currentExamType;
             
-            // 准备发送给 API 的数据，API 期望 { essay: string }
-            const apiData = { 
-                essay: essay_full
+            /// 准备发送给 API 的数据，API 期望 { essay: string, examType: string }
+            const apiData = {
+                essay: essay_full,
+                examType: selectedExamType
             };
             
             // 隐藏编辑区，显示批改视图
