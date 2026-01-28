@@ -4,6 +4,14 @@
     {
       "src": "api/**/*.js",
       "use": "@vercel/node"
+    },
+    {
+      "src": "index.html",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "assets/**",
+      "use": "@vercel/static"
     }
   ],
   "routes": [
@@ -14,6 +22,10 @@
     {
       "src": "/assets/(.*)",
       "dest": "/assets/$1"
+    },
+    {
+      "src": "/(.*\\.(html|css|js|svg|png|jpg|jpeg|gif|ico|json))",
+      "dest": "/$1"
     },
     {
       "src": "/(.*)",
