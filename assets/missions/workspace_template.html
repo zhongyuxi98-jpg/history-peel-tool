@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title id="page-title">PEEL Workspace</title>
+    <link rel="stylesheet" href="../css/workspace.css">
+</head>
+
+<body>
+    <div class="main-wrapper">
+    <div class="main">
+        <div class="nav-bar">
+            <button class="btn-workspace" onclick="backToWorkspace()" style="background: #6c757d; color: white; padding: 10px 18px; border-radius: 6px; border: none; cursor: pointer; font-weight: 600;">← Workspace</button>
+            <button class="btn-save" onclick="save()">💾 SAVE</button>
+            <button class="btn-mission-lab" onclick="showMissionLab()" style="background: #764ba2; color: white; padding: 10px 18px; border-radius: 6px; border: none; cursor: pointer; font-weight: 600;">📚 Mission Lab</button>
+            <select id="language-setting" style="padding: 10px; border-radius: 6px; border: 1.5px solid #007bff;">
+                <option value="dual" selected>🌓 Dual-Language</option>
+                <option value="en">🇬🇧 English Only</option>
+                <option value="zh">🇨🇳 Chinese Only</option>
+            </select>
+            <select id="exam-type-selector" style="padding: 10px; border-radius: 6px; border: 1.5px solid #28a745;">
+                <option value="AL_ECON" selected>📚 A-Level Economics</option>
+                <option value="IELTS">📝 IELTS Academic</option>
+            </select>
+            <div class="timer-container">
+                <button class="timer-btn" onclick="toggleTimerPanel()">⏱️ Timer</button>
+                <div class="timer-panel" id="timer-panel">
+                    <div class="timer-display" id="timer-display">00:00:00</div>
+                    <div class="timer-controls">
+                        <button class="timer-control-btn timer-start-btn" id="timer-start-btn" onclick="startTimer()">Start</button>
+                        <button class="timer-control-btn timer-pause-btn" id="timer-pause-btn" onclick="pauseTimer()" style="display: none;">Pause</button>
+                        <button class="timer-control-btn timer-reset-btn" onclick="resetTimer()">Reset</button>
+                    </div>
+                    <div class="timer-mode-select">
+                        <button class="timer-mode-btn active" id="timer-mode-up" onclick="setTimerMode('up')">Count Up</button>
+                        <button class="timer-mode-btn" id="timer-mode-down" onclick="setTimerMode('down')">Count Down</button>
+                    </div>
+                    <div id="timer-countdown-input-container" style="display: none;">
+                        <label class="timer-countdown-label">Set countdown (minutes):</label>
+                        <input type="number" class="timer-countdown-input" id="timer-countdown-input" value="45" min="1" max="180" placeholder="45">
+                    </div>
+                </div>
+            </div>
+            <button class="btn-export" onclick="exportDoc()">📥 EXPORT + FEEDBACK</button>
+        </div>
+
+        <!-- Mission Lab 抽屉 -->
+        <div id="mission-lab-drawer" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 2000; overflow-y: auto;">
+            <div style="background: #fff; margin: 40px auto; max-width: 1000px; border-radius: 12px; padding: 30px; box-shadow: 0 10px 40px rgba(0,0,0,0.3);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+                    <h2 style="font-size: 28px; color: #1d3557;">📚 Mission Lab</h2>
+                    <button onclick="closeMissionLab()" style="background: #6c757d; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: 600;">✕ Close</button>
+                </div>
+                <div id="mission-lab-cards" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 25px;">
+                    <!-- 动态渲染 -->
+                </div>
+            </div>
+        </div>
+
+        <div class="header" id="header-section">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+                <div style="color:#6c757d; font-size:11px;">
+                    MISSION ID: <span id="mission-id-display"></span>
+                    <span id="mode-badge" class="mode-badge" style="display:none;"></span>
+                </div>
+                <div class="exam-type-selector" style="display:flex; gap:6px;">
+                    <button class="exam-type-btn active" data-exam="alevel" title="A-Level">A-Level</button>
+                    <button class="exam-type-btn" data-exam="ielts" title="IELTS Writing">IELTS</button>
+                    <button class="exam-type-btn" data-exam="toefl" title="TOEFL Writing">TOEFL</button>
+                    <button class="exam-type-btn" data-exam="ib" title="IB Diploma">IB</button>
+                </div>
+            </div>
+            <div style="display:flex; align-items:center; gap:10px;">
+                <h1 class="q-text" id="question-title" contenteditable="true" spellcheck="false" style="outline:none; margin:0; flex:1;"></h1>
+                <span title="Click to edit the question" style="font-size:18px; color:#457b9d;">✏️</span>
+            </div>
+        </div>
+
+        <div id="module-toolbar">
+            <button class="toolbar-btn" onclick="addModule('intro')">+ Add Intro</button>
+            <button class="toolbar-btn" onclick="addModule('body')">+ Add Body (PEEL)</button>
+            <button class="toolbar-btn" onclick="addModule('conclusion')">+ Add Conclusion</button>
+        </div>
+
+        <div id="essay-constructor"></div>
+
+        <div class="review-actions">
+            <button class="ai-review-trigger" id="ai-btn" onclick="showPreviewView()">🚀 SUBMIT FOR AI TEACHER'S REVIEW</button>
+        </div>
+
+        <!-- Preview View -->
+        <div id="preview-view" style="display: none;">
+            <div style="background: #fff; border-radius: 12px; padding: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); max-width: 1000px; width: 100%;">
+                <div style="font-size: 24px; font-weight: 700; color: #1d3557; margin-bottom: 20px;">📄 Essay Preview</div>
+                <div id="preview-content" style="max-height: 60vh; overflow-y: auto; padding: 20px; background: #f8f9fa; border-radius: 8px; line-height: 1.8; white-space: pre-wrap; margin-bottom: 20px;"></div>
+                <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                    <button class="modal-btn modal-btn-secondary" onclick="backFromPreview()">← Back to Edit</button>
+                    <button class="modal-btn modal-btn-primary" onclick="confirmSubmitFromPreview()">✓ Confirm & Submit for Review</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 批改视图 -->
+        <div id="feedback-view">
+            <div class="feedback-container">
+                <div class="feedback-left">
+                    <h3>
+                        📝 Your Essay
+                        <button class="view-mode-toggle" id="view-mode-toggle" onclick="toggleEditViewMode()">Switch to Text Mode</button>
+                    </h3>
+                    <div id="feedback-essay-editable"></div>
+                </div>
+                <div class="feedback-right">
+                    <h3>🎯 Academic Review</h3>
+                    <div id="ai-content" style="line-height: 1.8; font-size: 15px;">AI is analyzing...</div>
+                </div>
+            </div>
+            <div style="margin-top: 20px; text-align: center;">
+                <button class="ai-review-trigger" id="resubmit-btn" onclick="resubmitForReview()" style="display: none;">🔄 Re-submit for Improved Score</button>
+            </div>
+        </div>
+
+        <!-- Visual Audit V2.0 双栏对比视图 -->
+        <div id="review-overlay" style="display: none;">
+            <div class="review-overlay-container">
+                <div class="review-left-panel">
+                    <h3 class="review-panel-title">📝 原文</h3>
+                    <div id="review-original-text" class="review-text-content"></div>
+                </div>
+                <div class="review-right-panel">
+                    <div class="review-scores-header">
+                        <div class="overall-score">
+                            <div class="score-label">总分</div>
+                            <div class="score-value" id="review-overall-score">-</div>
+                        </div>
+                        <div class="dimension-scores" id="review-dimension-scores"></div>
+                    </div>
+                    <div class="review-diagnostics" id="review-diagnostics"></div>
+                </div>
+            </div>
+            <div style="margin-top: 20px; text-align: center;">
+                <button class="ai-review-trigger" id="review-close-btn" onclick="closeReviewOverlay()">返回编辑</button>
+                <button class="ai-review-trigger" id="review-resubmit-btn" onclick="resubmitForReview()" style="display: none; margin-left: 10px;">🔄 重新提交</button>
+            </div>
+        </div>
+
+        <div id="export-preview">
+            <div style="font-weight:700; margin-bottom:8px;">📄 Essay Preview</div>
+            <div id="export-essay"></div>
+        </div>
+    </div>
+
+    <!-- 侧边栏切换按钮 -->
+    <button class="sidebar-toggle collapsed" id="sidebar-toggle" onclick="toggleSidebar()" title="Toggle Knowledge Hub">📚</button>
+
+    <!-- 侧边栏遮罩层 -->
+    <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
+
+    <!-- 可折叠侧边栏 -->
+    <div class="sidebar" id="knowledge-sidebar">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+            <h3 style="margin:0; color:#1d3557;">Knowledge Hub</h3>
+            <button onclick="closeSidebar()" style="background: none; border: none; font-size: 20px; cursor: pointer; color: #6c757d; padding: 0; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;">✕</button>
+        </div>
+        <div class="sidebar-content">
+            <div class="kb-section">
+                <div style="font-size:12px; font-weight:800; color:#1d3557; margin-bottom:10px; border-bottom:1px solid #eee;">⚖️ LEGAL MILESTONES</div>
+                <div class="tag-row"><div class="tag" onclick="add('Brown v. Board (1954)')">Brown v. Board</div><button class="explain-btn" onclick="getExplanation('Brown v. Board')">💡</button></div>
+                <div class="tag-row"><div class="tag" onclick="add('Civil Rights Act (1957)')">1957 CR Act</div><button class="explain-btn" onclick="getExplanation('Civil Rights Act 1957')">💡</button></div>
+            </div>
+
+            <div class="kb-section" style="margin-top:20px;">
+                <div style="font-size:12px; font-weight:800; color:#1d3557; margin-bottom:10px; border-bottom:1px solid #eee;">✊ DIRECT ACTION</div>
+                <div class="tag-row"><div class="tag" onclick="add('Montgomery Bus Boycott (1955–56)')">Bus Boycott</div><button class="explain-btn" onclick="getExplanation('Montgomery Bus Boycott')">💡</button></div>
+                <div class="tag-row"><div class="tag" onclick="add('Little Rock Nine (1957)')">Little Rock 9</div><button class="explain-btn" onclick="getExplanation('Little Rock Nine')">💡</button></div>
+                <div class="tag-row"><div class="tag" onclick="add('Jim Crow laws')">Jim Crow</div><button class="explain-btn" onclick="getExplanation('Jim Crow laws')">💡</button></div>
+            </div>
+        </div>
+
+        <div id="explainer-window">
+            <div style="font-weight:800; color:#a8dadc; font-size:11px; margin-bottom:8px; display:flex; justify-content:space-between;">
+                <span>👨‍🏫 KNOWLEDGE EXPLORER</span>
+                <span style="cursor:pointer" onclick="document.getElementById('explain-box').innerText='Click the 💡 button for detailed context.'">Reset</span>
+            </div>
+            <div id="explain-box">Click the 💡 button for detailed context.</div>
+        </div>
+    </div>
+    </div>
+
+    <!-- Toast 容器 -->
+    <div id="toast-container"></div>
+
+    <!-- 全局字数统计气泡 -->
+    <div class="global-word-count" id="global-word-count">0 words</div>
+
+    <!-- Focus Modal -->
+    <div class="focus-modal" id="focus-modal" onclick="if(event.target===this) closeFocusMode()">
+        <div class="focus-modal-content" onclick="event.stopPropagation()">
+            <div class="focus-modal-header">
+                <div class="focus-modal-title" id="focus-modal-title">Focus Mode</div>
+                <button class="focus-modal-close" onclick="closeFocusMode()">✕ Close</button>
+            </div>
+            <textarea
+                class="focus-textarea"
+                id="focus-textarea"
+                placeholder="Write your content here..."
+                oninput="onFocusInput(); updateFocusWordCount();"
+            ></textarea>
+            <div class="focus-modal-footer">
+                <div class="focus-word-count" id="focus-word-count">0 words</div>
+                <button class="focus-save-btn" onclick="saveFocusMode()">Save & Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 初始化脚本：设置任务配置 -->
+    <script>
+        // 页面初始化：从 MISSION_CONFIG 设置内容
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof MISSION_CONFIG !== 'undefined') {
+                // 设置页面标题
+                document.getElementById('page-title').textContent = 'PEEL Workspace - ' + MISSION_CONFIG.id;
+                // 设置任务 ID 显示
+                document.getElementById('mission-id-display').textContent = MISSION_CONFIG.id;
+                // 设置题目
+                document.getElementById('question-title').textContent = MISSION_CONFIG.title;
+                // 设置默认考试类型
+                if (MISSION_CONFIG.defaultExamType) {
+                    document.querySelectorAll('.exam-type-btn').forEach(btn => {
+                        btn.classList.remove('active');
+                        if (btn.dataset.exam === MISSION_CONFIG.defaultExamType) {
+                            btn.classList.add('active');
+                        }
+                    });
+                }
+            }
+        });
+    </script>
+
+    <!-- 引用公共 JS -->
+    <script src="../js/workspace.js"></script>
+    <script src="/visual_audit_v3.js"></script>
+</body>
+</html>
