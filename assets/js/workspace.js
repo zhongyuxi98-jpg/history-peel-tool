@@ -121,7 +121,7 @@
             return {
                 question: getCurrentQuestion(),
                 language: currentLanguageMode,
-                examType: currentExamType,
+                examType: selectedExamType,
                 modules,
                 updatedAt: Date.now()
             };
@@ -149,7 +149,7 @@
                     document.getElementById('language-setting').value = s.language;
                 }
                 if (s.examType) {
-                    currentExamType = s.examType;
+                    selectedExamType = s.examType;
                     const examSelector = document.getElementById('exam-type-selector');
                     if (examSelector) examSelector.value = s.examType;
                 }
@@ -612,7 +612,7 @@
         const examTypeSelector = document.getElementById('exam-type-selector');
         if (examTypeSelector) {
             examTypeSelector.addEventListener('change', (e) => {
-                currentExamType = e.target.value;
+                selectedExamType = e.target.value;
                 saveToLocal();
             });
         }
@@ -726,7 +726,7 @@
 
             // 获取当前选定的考试类型
             const examSelector = document.getElementById('exam-type-selector');
-            const examType = examSelector ? examSelector.value : currentExamType;
+            const examType = examSelector ? examSelector.value : selectedExamType;
             
             /// 准备发送给 API 的数据，API 期望 { essay: string, examType: string }
             const apiData = {
