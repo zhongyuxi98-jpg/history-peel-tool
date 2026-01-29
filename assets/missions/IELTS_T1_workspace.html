@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>IELTS Writing - Task 2</title>
+    <link rel="stylesheet" href="../css/workspace.css">
+</head>
+<body>
+    <!-- 任务配置 -->
+    <script>
+        const MISSION_CONFIG = {
+            id: "IELTS_T1",
+            title: "Some people believe that technology has made our lives more complicated, while others argue that it has made life easier. Discuss both views and give your own opinion.",
+            defaultExamType: "ielts"
+        };
+    </script>
+
+    <!-- HTML 骨架 -->
+    <div class="main-wrapper">
+    <div class="main">
+        <div class="nav-bar">
+            <button class="btn-workspace" onclick="backToWorkspace()" style="background: #6c757d; color: white; padding: 10px 18px; border-radius: 6px; border: none; cursor: pointer; font-weight: 600;">← Workspace</button>
+            <button class="btn-save" onclick="save()">💾 SAVE</button>
+            <select id="language-setting" style="padding: 10px; border-radius: 6px; border: 1.5px solid #007bff;">
+                <option value="dual" selected>🌓 Dual-Language</option>
+                <option value="en">🇬🇧 English Only</option>
+                <option value="zh">🇨🇳 Chinese Only</option>
+            </select>
+            <div class="timer-container">
+                <button class="timer-btn" onclick="toggleTimerPanel()">⏱️ 40 min</button>
+                <div class="timer-panel" id="timer-panel">
+                    <div class="timer-display" id="timer-display">00:40:00</div>
+                    <div class="timer-controls">
+                        <button class="timer-control-btn timer-start-btn" id="timer-start-btn" onclick="startTimer()">Start</button>
+                        <button class="timer-control-btn timer-pause-btn" id="timer-pause-btn" onclick="pauseTimer()" style="display: none;">Pause</button>
+                        <button class="timer-control-btn timer-reset-btn" onclick="resetTimer()">Reset</button>
+                    </div>
+                    <div class="timer-mode-select">
+                        <button class="timer-mode-btn" id="timer-mode-up" onclick="setTimerMode('up')">Count Up</button>
+                        <button class="timer-mode-btn active" id="timer-mode-down" onclick="setTimerMode('down')">Count Down</button>
+                    </div>
+                    <div id="timer-countdown-input-container">
+                        <label class="timer-countdown-label">Set countdown (minutes):</label>
+                        <input type="number" class="timer-countdown-input" id="timer-countdown-input" value="40" min="1" max="180">
+                    </div>
+                </div>
+            </div>
+            <button class="btn-export" onclick="exportDoc()">📥 EXPORT</button>
+        </div>
+
+        <div class="header" id="header-section">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+                <div style="color:#6c757d; font-size:11px;">
+                    IELTS Writing Task 2 | <span id="mission-id-display">Discussion Essay</span>
+                    <span id="mode-badge" class="mode-badge" style="display:none;"></span>
+                </div>
+                <div class="exam-type-selector" style="display:flex; gap:6px;">
+                    <button class="exam-type-btn" data-exam="alevel">A-Level</button>
+                    <button class="exam-type-btn active" data-exam="ielts">IELTS</button>
+                    <button class="exam-type-btn" data-exam="toefl">TOEFL</button>
+                    <button class="exam-type-btn" data-exam="ib">IB</button>
+                </div>
+            </div>
+            <div style="display:flex; align-items:center; gap:10px;">
+                <h1 class="q-text" id="question-title" contenteditable="true" spellcheck="false" style="outline:none; margin:0; flex:1;">Some people believe that technology has made our lives more complicated, while others argue that it has made life easier. Discuss both views and give your own opinion.</h1>
+                <span title="Click to edit" style="font-size:18px; color:#457b9d;">✏️</span>
+            </div>
+            <div style="margin-top:10px; padding:10px; background:#e3f2fd; border-radius:6px; font-size:13px; color:#1565c0;">
+                📝 <strong>Task 2 要求：</strong>写至少 250 词 | 建议时间 40 分钟 | 讨论双方观点并给出你的看法
+            </div>
+        </div>
+
+        <div id="module-toolbar">
+            <button class="toolbar-btn" onclick="addModule('intro')">+ Add Introduction</button>
+            <button class="toolbar-btn" onclick="addModule('body')">+ Add Body Paragraph</button>
+            <button class="toolbar-btn" onclick="addModule('conclusion')">+ Add Conclusion</button>
+        </div>
+
+        <div id="essay-constructor"></div>
+
+        <div class="review-actions">
+            <button class="ai-review-trigger" id="ai-btn" onclick="showPreviewView()">🚀 GET BAND SCORE & FEEDBACK</button>
+        </div>
+
+        <div id="preview-view" style="display: none;">
+            <div style="background: #fff; border-radius: 12px; padding: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); max-width: 1000px; width: 100%;">
+                <div style="font-size: 24px; font-weight: 700; color: #1d3557; margin-bottom: 20px;">📄 Essay Preview</div>
+                <div id="preview-content" style="max-height: 60vh; overflow-y: auto; padding: 20px; background: #f8f9fa; border-radius: 8px; line-height: 1.8; white-space: pre-wrap; margin-bottom: 20px;"></div>
+                <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                    <button class="modal-btn modal-btn-secondary" onclick="backFromPreview()">← Back to Edit</button>
+                    <button class="modal-btn modal-btn-primary" onclick="confirmSubmitFromPreview()">✓ Get Band Score</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="feedback-view">
+            <div class="feedback-container">
+                <div class="feedback-left">
+                    <h3>📝 Your Essay <button class="view-mode-toggle" onclick="toggleEditViewMode()">Switch Mode</button></h3>
+                    <div id="feedback-essay-editable"></div>
+                </div>
+                <div class="feedback-right">
+                    <h3>🎯 IELTS Band Score</h3>
+                    <div id="ai-content" style="line-height: 1.8; font-size: 15px;">Calculating your band score...</div>
+                </div>
+            </div>
+            <div style="margin-top: 20px; text-align: center;">
+                <button class="ai-review-trigger" id="resubmit-btn" onclick="resubmitForReview()" style="display: none;">🔄 Re-submit for New Score</button>
+            </div>
+        </div>
+
+        <div id="export-preview">
+            <div style="font-weight:700; margin-bottom:8px;">📄 Essay Preview</div>
+            <div id="export-essay"></div>
+        </div>
+    </div>
+
+    <button class="sidebar-toggle collapsed" id="sidebar-toggle" onclick="toggleSidebar()">📚</button>
+    <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
+
+    <div class="sidebar" id="knowledge-sidebar">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+            <h3 style="margin:0; color:#1d3557;">IELTS Writing Tips</h3>
+            <button onclick="closeSidebar()" style="background: none; border: none; font-size: 20px; cursor: pointer;">✕</button>
+        </div>
+        <div class="sidebar-content">
+            <div class="kb-section">
+                <div style="font-size:12px; font-weight:800; color:#1d3557; margin-bottom:10px;">📊 BAND DESCRIPTORS</div>
+                <div class="tag-row"><div class="tag" onclick="add('Task Response')">Task Response (TR)</div><button class="explain-btn" onclick="getExplanation('IELTS Task Response criteria')">💡</button></div>
+                <div class="tag-row"><div class="tag" onclick="add('Coherence and Cohesion')">Coherence (CC)</div><button class="explain-btn" onclick="getExplanation('IELTS Coherence and Cohesion criteria')">💡</button></div>
+                <div class="tag-row"><div class="tag" onclick="add('Lexical Resource')">Vocabulary (LR)</div><button class="explain-btn" onclick="getExplanation('IELTS Lexical Resource criteria')">💡</button></div>
+                <div class="tag-row"><div class="tag" onclick="add('Grammatical Range')">Grammar (GRA)</div><button class="explain-btn" onclick="getExplanation('IELTS Grammatical Range criteria')">💡</button></div>
+            </div>
+            <div class="kb-section" style="margin-top:20px;">
+                <div style="font-size:12px; font-weight:800; color:#1d3557; margin-bottom:10px;">✍️ USEFUL PHRASES</div>
+                <div class="tag-row"><div class="tag" onclick="add('It is often argued that...')">Introduction</div></div>
+                <div class="tag-row"><div class="tag" onclick="add('On the one hand, ... On the other hand, ...')">Contrast</div></div>
+                <div class="tag-row"><div class="tag" onclick="add('In my opinion, ...')">Opinion</div></div>
+                <div class="tag-row"><div class="tag" onclick="add('In conclusion, ...')">Conclusion</div></div>
+            </div>
+        </div>
+        <div id="explainer-window">
+            <div style="font-weight:800; color:#a8dadc; font-size:11px; margin-bottom:8px;">👨‍🏫 IELTS TIPS</div>
+            <div id="explain-box">Click 💡 for band descriptor details.</div>
+        </div>
+    </div>
+    </div>
+
+    <div id="toast-container"></div>
+    <div class="global-word-count" id="global-word-count">0 words (min 250)</div>
+
+    <div class="focus-modal" id="focus-modal" onclick="if(event.target===this) closeFocusMode()">
+        <div class="focus-modal-content" onclick="event.stopPropagation()">
+            <div class="focus-modal-header">
+                <div class="focus-modal-title" id="focus-modal-title">Focus Mode</div>
+                <button class="focus-modal-close" onclick="closeFocusMode()">✕ Close</button>
+            </div>
+            <textarea class="focus-textarea" id="focus-textarea" placeholder="Write here..." oninput="onFocusInput(); updateFocusWordCount();"></textarea>
+            <div class="focus-modal-footer">
+                <div class="focus-word-count" id="focus-word-count">0 words</div>
+                <button class="focus-save-btn" onclick="saveFocusMode()">Save & Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 引用公共 JS -->
+    <script src="../js/workspace.js"></script>
+    <script src="/visual_audit_v3.js"></script>
+</body>
+</html>
