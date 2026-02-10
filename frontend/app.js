@@ -32,14 +32,16 @@ async function loadMission() {
 async function submitEssay() {
   const textarea = document.getElementById("essayInput");
   const essayText = textarea.value.trim();
-7
+
   if (!essayText) {
     alert("Please write an essay before submitting.");
     return;
   }
 
   try {
-    const response = await fetch("http://localhost:5501/api/review", {
+    const apiBase = window.location.hostname === 'localhost' && window.location.port === '8000'
+      ? 'http://localhost:5501' : '';
+    const response = await fetch(`${apiBase}/api/review`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json"

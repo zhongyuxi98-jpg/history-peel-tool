@@ -5,6 +5,12 @@
             ? 'http://localhost:5501' 
             : '';
 
+        // --- HTML 转义工具函数 ---
+        function escapeHtml(str) {
+            if (typeof str !== 'string') return '';
+            return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+
         // --- 0. 全局状态 ---
         let currentLanguageMode = document.getElementById('language-setting').value || 'dual';
         let modules = []; // { id, type: 'intro'|'body'|'conclusion', boxes: [] }
@@ -150,8 +156,10 @@
                 }
                 if (s.examType) {
                     selectedExamType = s.examType;
-                    const examSelector = document.getElementById('exam-type-selector');
-                    if (examSelector) examSelector.value = s.examType;
+                    // 同步 exam-type-btn 的 active 状态
+                    document.querySelectorAll('.exam-type-btn').forEach(b => {
+                        b.classList.toggle('active', b.dataset.exam === s.examType);
+                    });
                 }
                 if (Array.isArray(s.modules) && s.modules.length) {
                     modules = s.modules;
@@ -609,13 +617,7 @@
             saveToLocal();
         });
 
-        const examTypeSelector = document.getElementById('exam-type-selector');
-        if (examTypeSelector) {
-            examTypeSelector.addEventListener('change', (e) => {
-                selectedExamType = e.target.value;
-                saveToLocal();
-            });
-        }
+        // 考试类型变化时自动保存（通过 .exam-type-btn 点击事件已在上方绑定）
 
         document.getElementById('question-title').addEventListener('blur', () => saveToLocal());
 
@@ -724,11 +726,7 @@
             const essay_full = buildEssayText();
             const structure = getStructureSummary();
 
-            // 获取当前选定的考试类型
-            const examSelector = document.getElementById('exam-type-selector');
-            const examType = examSelector ? examSelector.value : selectedExamType;
-            
-            /// 准备发送给 API 的数据，API 期望 { essay: string, examType: string }
+            // 准备发送给 API 的数据，API 期望 { essay: string, examType: string }
             const apiData = {
                 essay: essay_full,
                 examType: selectedExamType
@@ -1016,131 +1014,134 @@
                 const oa = data.overall_analysis;
                 html += '<div class="ai-feedback-card">';
                 html += '<h3 style="margin:0 0 15px 0; color:#e63946; font-size:18px;">📊 Overall Analysis</h3>';
-                
+
                 html += `<div style="margin-bottom:15px;">
-                    <strong>Score:</strong> <span style="font-size:20px; color:#e63946; font-weight:bold;">${oa.score}/100</span> 
-                    | <strong>Grade:</strong> <span style="font-size:18px; color:#e63946; font-weight:bold;">${oa.grade}</span>
+                    <strong>Score:</strong> <span style="font-size:20px; color:#e63946; font-weight:bold;">${escapeHtml(String(oa.score))}/100</span>
+                    | <strong>Grade:</strong> <span style="font-size:18px; color:#e63946; font-weight:bold;">${escapeHtml(String(oa.grade))}</span>
                 </div>`;
-                
-                if (oa.ao_scores) {
-                    html += '<div style="margin-bottom:15px;"><strong>AO Scores:</strong><ul style="margin:8px 0; padding-left:20px;">';
-                    html += `<li>AO1 (Knowledge): ${oa.ao_scores.AO1_Knowledge || 0}</li>`;
-                    html += `<li>AO2 (Application): ${oa.ao_scores.AO2_Application || 0}</li>`;
-                    html += `<li>AO3 (Analysis): ${oa.ao_scores.AO3_Analysis || 0}</li>`;
-                    html += `<li>AO4 (Evaluation): ${oa.ao_scores.AO4_Evaluation || 0}</li>`;
+
+                // 通用评分维度渲染：支持 ao_scores / criteria_scores 及任意字段名
+                const scores = oa.ao_scores || oa.criteria_scores;
+                if (scores && typeof scores === 'object') {
+                    html += '<div style="margin-bottom:15px;"><strong>Criteria Scores:</strong><ul style="margin:8px 0; padding-left:20px;">';
+                    for (const [key, val] of Object.entries(scores)) {
+                        const label = key.replace(/_/g, ' ');
+                        html += `<li>${escapeHtml(label)}: ${escapeHtml(String(val))}</li>`;
+                    }
                     html += '</ul></div>';
                 }
-                
+
                 if (oa.summary && Array.isArray(oa.summary) && oa.summary.length > 0) {
                     html += '<div style="margin-bottom:15px;"><strong>Summary:</strong><ul style="margin:8px 0; padding-left:20px;">';
                     oa.summary.forEach(s => {
-                        html += `<li style="margin-bottom:8px; line-height:1.6;">${s}</li>`;
+                        html += `<li style="margin-bottom:8px; line-height:1.6;">${escapeHtml(s)}</li>`;
                     });
                     html += '</ul></div>';
                 }
-                
+
                 // 添加 Action Items
                 if (data.action_items && Array.isArray(data.action_items) && data.action_items.length > 0) {
                     html += '<div style="margin-top:20px; padding-top:15px; border-top:2px solid #e0e0e0;"><strong style="color:#667eea;">📋 Action Items:</strong><ul style="margin:8px 0; padding-left:20px;">';
                     data.action_items.forEach(ai => {
-                        const target = ai.target || 'General';
-                        const action = ai.action || '';
+                        const target = escapeHtml(ai.target || 'General');
+                        const action = escapeHtml(ai.action || '');
                         html += `<li style="margin-bottom:10px; line-height:1.6;"><strong>[${target}]</strong> ${action}</li>`;
                     });
                     html += '</ul></div>';
                 }
-                
+
                 html += '</div>';
             }
-            
+
             // 卡片 2: Paragraph Reviews
             if (data.paragraph_reviews && Array.isArray(data.paragraph_reviews) && data.paragraph_reviews.length > 0) {
                 html += '<div class="ai-feedback-card">';
                 html += '<h3 style="margin:0 0 15px 0; color:#e63946; font-size:18px;">📝 Paragraph Reviews</h3>';
-                
+
                 data.paragraph_reviews.forEach((pr, idx) => {
                     const paraId = pr.paragraph_id || `paragraph-${idx + 1}`;
                     const blockId = paraId.includes('-') ? paraId : `${paraId}-1`;
-                    
+                    const safeBlockId = escapeHtml(blockId);
+
                     html += `<div style="margin-bottom:20px; padding-bottom:15px; border-bottom:${idx < data.paragraph_reviews.length - 1 ? '1px solid #e0e0e0' : 'none'};">`;
-                    html += `<h4 style="margin:0 0 10px 0; color:#667eea; font-size:16px;">${paraId.charAt(0).toUpperCase() + paraId.slice(1)}</h4>`;
-                    
+                    html += `<h4 style="margin:0 0 10px 0; color:#667eea; font-size:16px;">${escapeHtml(paraId.charAt(0).toUpperCase() + paraId.slice(1))}</h4>`;
+
                     if (pr.strengths && pr.strengths.length > 0) {
                         html += '<div style="margin-bottom:10px;"><strong style="color:#28a745;">✓ Strengths:</strong><ul style="margin:5px 0; padding-left:20px;">';
                         pr.strengths.forEach(s => {
-                            html += `<li style="margin-bottom:5px; line-height:1.6;">${s}</li>`;
+                            html += `<li style="margin-bottom:5px; line-height:1.6;">${escapeHtml(s)}</li>`;
                         });
                         html += '</ul></div>';
                     }
-                    
+
                     if (pr.problems && pr.problems.length > 0) {
                         html += '<div style="margin-bottom:10px;"><strong style="color:#dc3545;">✗ Problems:</strong><ul style="margin:5px 0; padding-left:20px;">';
                         pr.problems.forEach(p => {
-                            html += `<li style="margin-bottom:5px; line-height:1.6;">${p}</li>`;
+                            html += `<li style="margin-bottom:5px; line-height:1.6;">${escapeHtml(p)}</li>`;
                         });
                         html += '</ul></div>';
                     }
-                    
+
                     if (pr.suggestions && pr.suggestions.length > 0) {
                         html += '<div style="margin-bottom:10px;"><strong style="color:#ffc107;">💡 Suggestions:</strong><ul style="margin:5px 0; padding-left:20px;">';
                         pr.suggestions.forEach(s => {
-                            html += `<li style="margin-bottom:5px; line-height:1.6;">${s}</li>`;
+                            html += `<li style="margin-bottom:5px; line-height:1.6;">${escapeHtml(s)}</li>`;
                         });
                         html += '</ul></div>';
                     }
-                    
+
                     if (pr.rewrite_hint) {
                         html += `<div style="margin-top:10px; padding:10px; background:#f8f9fa; border-left:3px solid #667eea; border-radius:4px;">
-                            <strong>Rewrite Hint:</strong> <span style="line-height:1.6;">${pr.rewrite_hint}</span>
+                            <strong>Rewrite Hint:</strong> <span style="line-height:1.6;">${escapeHtml(pr.rewrite_hint)}</span>
                         </div>`;
                     }
-                    
+
                     // 添加 Locate 按钮
                     html += `<div style="margin-top:10px;">
-                        <button class="locate-btn" onclick="locateIssue('${blockId}')">📍 Locate ${blockId.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}</button>
+                        <button class="locate-btn" onclick="locateIssue('${safeBlockId}')">📍 Locate ${escapeHtml(blockId.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase()))}</button>
                     </div>`;
-                    
+
                     html += '</div>';
                 });
-                
+
                 html += '</div>';
             }
-            
+
             // 卡片 3: Model Essay
             if (data.model_essay) {
                 html += '<div class="ai-feedback-card">';
                 html += '<h3 style="margin:0 0 15px 0; color:#e63946; font-size:18px;">📚 Model Essay</h3>';
-                
+
                 if (data.model_essay.intro) {
                     html += '<div style="margin-bottom:20px;">';
                     html += '<h4 style="margin:0 0 10px 0; color:#667eea; font-size:16px;">Introduction</h4>';
-                    html += `<p style="margin:0; line-height:1.8; padding:12px; background:#f8f9fa; border-radius:6px;">${data.model_essay.intro}</p>`;
+                    html += `<p style="margin:0; line-height:1.8; padding:12px; background:#f8f9fa; border-radius:6px;">${escapeHtml(data.model_essay.intro)}</p>`;
                     html += '</div>';
                 }
-                
+
                 if (data.model_essay.body && Array.isArray(data.model_essay.body)) {
                     data.model_essay.body.forEach((para, idx) => {
                         html += '<div style="margin-bottom:20px;">';
                         html += `<h4 style="margin:0 0 10px 0; color:#667eea; font-size:16px;">Body Paragraph ${idx + 1}</h4>`;
-                        html += `<p style="margin:0; line-height:1.8; padding:12px; background:#f8f9fa; border-radius:6px;">${para}</p>`;
+                        html += `<p style="margin:0; line-height:1.8; padding:12px; background:#f8f9fa; border-radius:6px;">${escapeHtml(para)}</p>`;
                         html += '</div>';
                     });
                 }
-                
+
                 if (data.model_essay.conclusion) {
                     html += '<div style="margin-bottom:20px;">';
                     html += '<h4 style="margin:0 0 10px 0; color:#667eea; font-size:16px;">Conclusion</h4>';
-                    html += `<p style="margin:0; line-height:1.8; padding:12px; background:#f8f9fa; border-radius:6px;">${data.model_essay.conclusion}</p>`;
+                    html += `<p style="margin:0; line-height:1.8; padding:12px; background:#f8f9fa; border-radius:6px;">${escapeHtml(data.model_essay.conclusion)}</p>`;
                     html += '</div>';
                 }
-                
+
                 html += '</div>';
             }
-            
+
             // 错误信息（如果有）
             if (data.error) {
                 html += '<div class="ai-feedback-card" style="border-left-color:#ffc107;">';
-                html += `<p style="margin:0; color:#856404; background:#fff3cd; padding:12px; border-radius:6px;">⚠️ Note: ${data.error}</p>`;
+                html += `<p style="margin:0; color:#856404; background:#fff3cd; padding:12px; border-radius:6px;">⚠️ Note: ${escapeHtml(data.error)}</p>`;
                 html += '</div>';
             }
             

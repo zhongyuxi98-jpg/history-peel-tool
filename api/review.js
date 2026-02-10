@@ -125,16 +125,16 @@ export default async function handler(req, res) {
     });
   }
 
-  // 解构请求参数，支持 examType
-  const { essay, examType = 'alevel' } = req.body;
-
-  // 检查 Content-Type
+  // 检查 Content-Type（必须在解构 body 之前）
   const contentType = req.headers['content-type'];
   if (!contentType || !contentType.includes('application/json')) {
     return res.status(415).json({
       error: 'Content-Type must be application/json'
     });
   }
+
+  // 解构请求参数，支持 examType
+  const { essay, examType = 'alevel' } = req.body;
 
   // 验证 examType
   if (!EXAM_TYPES[examType]) {

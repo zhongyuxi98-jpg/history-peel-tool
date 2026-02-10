@@ -9,6 +9,15 @@ export default async function handler(req, res) {
   const { topic, language, essay_question, section_type, constraint } = req.body;
   const apiKey = process.env.DASHSCOPE_API_KEY;
 
+  if (!apiKey) {
+    console.error('DASHSCOPE_API_KEY is not set');
+    return res.status(500).json({ explanation: "API key not configured. Please contact admin." });
+  }
+
+  if (!topic || typeof topic !== 'string' || topic.trim().length === 0) {
+    return res.status(400).json({ explanation: "Topic is required." });
+  }
+
   try {
     const strictConstraint = constraint
       ? `\n\n${constraint}`
@@ -51,8 +60,18 @@ ${commandWordPrompt ? `\n${commandWordPrompt}\n` : ""}
       }
     );
 
+    if (!response.ok) {
+      console.error(`DashScope API error: ${response.status}`);
+      return res.status(502).json({ explanation: "AI service temporarily unavailable. Please try again." });
+    }
+
     const data = await response.json();
-    const content = data.choices[0].message.content;
+    const content = data.choices?.[0]?.message?.content;
+
+    if (!content) {
+      console.error('No content in API response:', JSON.stringify(data));
+      return res.status(502).json({ explanation: "AI returned empty response. Please try again." });
+    }
 
     res.status(200).json({ explanation: content });
 
